@@ -1,9 +1,6 @@
 ---
-description: Flutter Clean Architecture Template - Cursor AI Rules
-globs:
-alwaysApply: true
+alwaysApply: false
 ---
-
 # Flutter Clean Architecture Template - Cursor AI Rules
 
 ## Architecture
@@ -12,6 +9,7 @@ alwaysApply: true
 **Layers**: `lib/core/` (infrastructure) → `lib/shared/` (reusable business) → `lib/features/` (feature modules)
 
 ### Feature Structure
+
 ```
 lib/features/{feature_name}/
 ├── data/          # DataSource, Repository impl, Models
@@ -20,6 +18,7 @@ lib/features/{feature_name}/
 ```
 
 ### Dependency Direction
+
 ```
 Presentation → Domain ← Data
 (Provider → Repository interface ← Repository impl)
@@ -38,6 +37,7 @@ Presentation → Domain ← Data
 ## Key Rules
 
 ### File Naming (snake_case)
+
 - Provider: `{name}_provider.dart`
 - DataSource: `{name}_remote_datasource.dart`
 - Request: `{action}_{feature}_request.dart`
@@ -45,12 +45,14 @@ Presentation → Domain ← Data
 - Page: `{name}_page.dart`
 
 ### Import Order
+
 1. `dart:*`
 2. `package:flutter/*`
 3. Third-party packages (alphabetical)
 4. Project imports (alphabetical)
 
 ### Provider Pattern
+
 ```dart
 @Riverpod(keepAlive: true)
 class Auth extends _$Auth {
@@ -60,10 +62,12 @@ class Auth extends _$Auth {
 ```
 
 ### Freezed Pattern
+
 - Single data class: `@freezed abstract class Foo with _$Foo`
 - Union type: `@freezed sealed class Bar with _$Bar`
 
 ### Error Handling
+
 ```dart
 Future<Either<Failure, T>> someMethod() async {
   try { ... return Right(result); }
@@ -72,6 +76,7 @@ Future<Either<Failure, T>> someMethod() async {
 ```
 
 ## Code Generation
+
 ```bash
 dart run build_runner build --delete-conflicting-outputs
 ```

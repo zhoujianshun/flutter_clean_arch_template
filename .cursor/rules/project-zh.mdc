@@ -1,0 +1,88 @@
+---
+alwaysApply: true
+---
+# Flutter 整洁架构模板 - Cursor AI 规则
+
+## 架构设计
+
+**模式**: 功能优先（Feature-First） + 领域驱动设计（DDD） + 整洁架构（Clean Architecture）
+**分层**: `lib/core/`（基础设施层） → `lib/shared/`（可复用业务层） → `lib/features/`（功能模块层）
+
+### 功能模块结构
+
+```
+lib/features/{功能名}/
+├── data/          # 数据源（DataSource）、仓库实现（Repository impl）、数据模型（Models）
+├── domain/        # 仓库接口（Repository interfaces）、实体（Entities，可选）
+└── presentation/  # 页面（Pages）、组件（Widgets）、状态管理（Providers）
+```
+
+### 依赖方向
+
+```
+Presentation → Domain ← Data
+（Provider → 仓库接口 ← 仓库实现）
+```
+
+> 注意：依赖始终指向 Domain 层，Data 层和 Presentation 层互不直接依赖。
+
+## 技术栈
+
+- **状态管理**: Riverpod 3.0+（使用 `@riverpod` 注解）
+- **路由导航**: AutoRoute 11+（类型安全路由）
+- **依赖注入**: GetIt + Injectable（通过 `getIt<T>()` 获取实例）
+- **网络请求**: Dio 5.9+
+- **数据模型**: Freezed 3.2+（数据类用 abstract class，联合类型用 sealed class）
+- **错误处理**: Dartz Either（`Future<Either<Failure, T>>`）
+- **屏幕适配**: flutter_screenutil（设计稿尺寸 375x812）
+
+## 核心规则
+
+### 文件命名（snake_case 蛇形命名法）
+
+- Provider 文件: `{名称}_provider.dart`
+- 数据源文件: `{名称}_remote_datasource.dart`
+- 请求模型: `{动作}_{功能}_request.dart`
+- 数据模型: `{功能}_model.dart`
+- 页面文件: `{名称}_page.dart`
+
+### 导入顺序
+
+1. `dart:*`（Dart 核心库）
+2. `package:flutter/*`（Flutter 框架）
+3. 第三方包（按字母排序）
+4. 项目内部导入（按字母排序）
+
+### Provider 模式
+
+```dart
+@Riverpod(keepAlive: true)
+class Auth extends _$Auth {
+  late final AuthRepository _repo = getIt<AuthRepository>();
+  // 直接调用仓库方法，不使用 UseCase 层
+}
+```
+
+### Freezed 模式
+
+- 单一数据类: `@freezed abstract class Foo with _$Foo`
+- 联合类型（枚举状态等）: `@freezed sealed class Bar with _$Bar`
+
+### 错误处理
+
+```dart
+Future<Either<Failure, T>> someMethod() async {
+  try { ... return Right(result); }
+  catch (e) { return Left(Failure.unknown(message: e.toString())); }
+}
+```
+
+> 所有可能失败的操作统一返回 `Either<Failure, T>`，左值为失败，右值为成功结果。
+
+## 代码生成
+
+```bash
+dart run build_runner build --delete-conflicting-outputs
+```
+
+> 修改 Freezed 模型、Riverpod Provider 或 AutoRoute 配置后，需要重新运行代码生成。
