@@ -79,6 +79,14 @@ Future<Either<Failure, T>> someMethod() async {
 
 > 所有可能失败的操作统一返回 `Either<Failure, T>`，左值为失败，右值为成功结果。
 
+## 认证系统
+
+- **`AuthMode`** 枚举（`core/constants/auth_mode.dart`）：`required`（所有页面需登录）/ `optional`（免登录浏览，部分页面按需登录）
+- 通过 `assets/env/.env*` 中的 `AUTH_MODE` 环境变量控制
+- `AuthGuard` 读取 `AppConfig.authMode` 决定认证策略
+- `optional` 模式下，将路由名添加到 `AuthGuard.authRequiredRoutes` 即可保护特定页面
+- `MOCK_AUTH=true` 启用 Mock 登录（无需真实 API），登录页显示「Demo Login」按钮
+
 ## 代码生成
 
 ```bash

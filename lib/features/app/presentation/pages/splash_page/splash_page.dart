@@ -1,8 +1,11 @@
 import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/core/constants/app_constants.dart';
+import 'package:flutter_clean_arch_template/core/constants/auth_mode.dart';
 import 'package:flutter_clean_arch_template/core/di/service_locator.dart';
+import 'package:flutter_clean_arch_template/core/env/app_config.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
 import 'package:flutter_clean_arch_template/core/router/app_router.dart';
 import 'package:flutter_clean_arch_template/features/auth/domain/repositories/auth_repository.dart';
@@ -33,9 +36,15 @@ class _SplashPageState extends State<SplashPage> {
       final isLoggedIn = await authRepo.isUserLoggedIn();
       if (!mounted) return;
 
+      final authMode = AppConfig.authMode;
+
       if (isLoggedIn) {
         unawaited(context.router.replaceAll([const AppShellRoute()]));
+      } else if (authMode == AuthMode.optional) {
+        // Guest-friendly mode: go to home without login
+        unawaited(context.router.replaceAll([const AppShellRoute()]));
       } else {
+        // Required mode: must login first
         unawaited(context.router.replaceAll([LoginRoute()]));
       }
     } catch (e) {

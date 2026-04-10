@@ -18,7 +18,8 @@
 全应用共享的基础设施：
 
 - 网络请求、Token 策略、全局错误类型
-- 路由、路由守卫、主题、环境配置加载
+- 路由、路由守卫（双认证模式）、主题、环境配置加载
+- `AuthMode` 枚举（`core/constants/auth_mode.dart`）和 `AppConfig.authMode` / `AppConfig.mockAuth` 灵活控制认证行为
 - 存储门面（Hive、SharedPreferences、SecureStorage）
 - 日志、DI 引导、应用初始化
 

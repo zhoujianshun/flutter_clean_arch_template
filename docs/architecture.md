@@ -18,7 +18,8 @@ This template organizes code by **feature** and applies **Clean Architecture** i
 Infrastructure shared by the whole app:
 
 - Networking, token strategy, global error types
-- Router, route guards, theme, environment loading
+- Router, route guards (dual auth mode), theme, environment loading
+- `AuthMode` enum (`core/constants/auth_mode.dart`) and `AppConfig.authMode` / `AppConfig.mockAuth` for flexible authentication control
 - Storage facades (Hive, SharedPreferences, secure storage)
 - Logging, DI bootstrap, app initialization
 

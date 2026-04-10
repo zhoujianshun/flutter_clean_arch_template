@@ -98,6 +98,20 @@ Other recipes from the root [`justfile`](../justfile):
 - Select the active set at run time with **`--dart-define=ENVIRONMENT=...`** (`development` | `staging` | `production`).
 - Ensure the matching file exists and is listed under `flutter.assets` in `pubspec.yaml` if you add new env files.
 
+### Auth & Demo Environment Variables
+
+| Variable | Values | Default | Description |
+|----------|--------|---------|-------------|
+| `AUTH_MODE` | `required` / `optional` | `required` | `required` = all pages need login; `optional` = home page is guest-accessible, only certain pages require login |
+| `MOCK_AUTH` | `true` / `false` | `true` (dev) | When `true`, login uses mock data and a "Demo Login" button appears; set `false` for real API calls |
+
+Example `.env.development`:
+
+```env
+AUTH_MODE=required
+MOCK_AUTH=true
+```
+
 Never commit secrets; use CI variables or local untracked overrides for sensitive values.
 
 ## Development Workflow

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_clean_arch_template/core/constants/auth_mode.dart';
 import 'package:flutter_clean_arch_template/core/env/env_config_manager.dart';
 
 /// Application environment configuration
@@ -55,6 +56,20 @@ class AppConfig {
     );
   }
 
+  /// Authentication mode: `required` (must login) or `optional` (guest-friendly).
+  static AuthMode get authMode {
+    final value = EnvConfigManager.getString(
+      'AUTH_MODE',
+      defaultValue: 'required',
+    );
+    return AuthMode.fromString(value);
+  }
+
+  /// When true, auth operations use local mock data instead of real API calls.
+  static bool get mockAuth {
+    return EnvConfigManager.getBool('MOCK_AUTH', defaultValue: false);
+  }
+
   static bool get isProduction => environment == 'production';
   static bool get isDevelopment => environment == 'development';
   static bool get isStaging => environment == 'staging';
@@ -79,6 +94,8 @@ class AppConfig {
       'logLevel': logLevel,
       'clientId': clientId,
       'enableTalkerScreen': enableTalkerScreen,
+      'authMode': authMode.name,
+      'mockAuth': mockAuth,
       'networkConfig': {
         'baseUrl': baseUrl,
         'connectTimeout': connectTimeout,

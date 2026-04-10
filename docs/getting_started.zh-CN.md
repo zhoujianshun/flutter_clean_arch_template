@@ -98,6 +98,20 @@ flutter run --dart-define=ENVIRONMENT=development
 - 运行时通过 **`--dart-define=ENVIRONMENT=...`** 选择环境（`development` | `staging` | `production`）
 - 添加新的环境文件后，确保在 `pubspec.yaml` 的 `flutter.assets` 中列出
 
+### 认证与 Demo 环境变量
+
+| 变量 | 可选值 | 默认值 | 说明 |
+|------|--------|--------|------|
+| `AUTH_MODE` | `required` / `optional` | `required` | `required` = 所有页面需登录；`optional` = 首页免登录，仅部分页面需要登录 |
+| `MOCK_AUTH` | `true` / `false` | `true`（dev） | 为 `true` 时登录使用 Mock 数据，登录页显示「Demo Login」按钮；设为 `false` 使用真实 API |
+
+示例 `.env.development`：
+
+```env
+AUTH_MODE=required
+MOCK_AUTH=true
+```
+
 **请勿提交敏感信息。** 使用 CI 变量或本地未跟踪的覆盖文件存放敏感值。
 
 ## 开发流程

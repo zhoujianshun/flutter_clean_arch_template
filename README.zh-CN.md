@@ -19,6 +19,8 @@
 - **Freezed** — 不可变数据模型和代数数据类型
 - **Dartz Either** — Repository 层显式的成功/失败处理
 - **多环境支持** — 通过 `--dart-define` 切换 `development` / `staging` / `production`
+- **双认证模式** — `required`（强制登录）或 `optional`（免登录浏览，部分页面按需登录），通过 `AUTH_MODE` 环境变量配置
+- **Demo 登录** — 开发/演示构建一键 Mock 登录（`MOCK_AUTH=true`），无需真实后端
 - **50+ 可复用 UI 组件** — 按钮、列表、状态组件、弹窗等，位于 `lib/shared/widgets/`
 - **Talker 日志系统** — 结构化日志，Dio 集成，可选 Riverpod 观察器
 - **flutter_screenutil** — 基于设计稿（375×812）的屏幕适配
@@ -113,6 +115,25 @@ lib/
 UI 层永远不依赖具体的 Repository 或 DataSource 实现类 — 仅依赖抽象接口和 shared/core 工具。
 
 详见 [docs/architecture.zh-CN.md](docs/architecture.zh-CN.md)。
+
+## 认证模式
+
+模版内置两种可配置的认证模式，通过 `assets/env/.env*` 中的 `AUTH_MODE` 环境变量控制：
+
+| 模式 | `AUTH_MODE` | 行为 |
+|------|-------------|------|
+| **强制登录** | `required`（默认） | 所有路由都需要登录。未认证用户启动后跳转到登录页 |
+| **可选登录** | `optional` | 应用默认进入首页。仅 `AuthGuard.authRequiredRoutes` 中列出的路由（如个人中心）需要登录 |
+
+### Demo 登录
+
+当 `MOCK_AUTH=true`（`development` 环境默认开启）时，登录页会显示 **「Demo Login」** 按钮，使用 Mock Token 模拟认证，无需真实 API。适用于：
+
+- 首次评估模版
+- 无后端情况下的 UI 开发
+- 自动化测试
+
+在 staging / production 环境中将 `MOCK_AUTH=false` 以使用真实 API 认证。
 
 ## 常用命令
 

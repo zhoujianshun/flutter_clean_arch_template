@@ -75,6 +75,14 @@ Future<Either<Failure, T>> someMethod() async {
 }
 ```
 
+## Authentication
+
+- **`AuthMode`** enum (`core/constants/auth_mode.dart`): `required` (all pages need login) / `optional` (guest-friendly, selective protection)
+- Controlled by `AUTH_MODE` env variable in `assets/env/.env*`
+- `AuthGuard` reads `AppConfig.authMode` to decide enforcement strategy
+- In `optional` mode, add route names to `AuthGuard.authRequiredRoutes` to protect specific pages
+- `MOCK_AUTH=true` enables mock login (no real API needed); login page shows "Demo Login" button
+
 ## Code Generation
 
 ```bash

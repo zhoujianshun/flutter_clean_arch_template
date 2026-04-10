@@ -43,10 +43,32 @@ Dio traffic can be logged via **`talker_dio_logger`** inside `ApiClient`. The te
 | Piece | Path / role |
 |-------|----------------|
 | **`app_router.dart`** | Declares `AutoRoute` tree, `part 'app_router.gr.dart'` |
-| **`AuthGuard` / `DebouncerGuard`** | `core/router/guards/` — block unauthenticated routes or rapid duplicate navigation |
+| **`AuthGuard` / `DebouncerGuard`** | `core/router/guards/` — block unauthenticated routes (dual-mode) or rapid duplicate navigation |
 | **`router_provider.dart`** | Exposes router instance to Riverpod / MaterialApp |
 
 Pages use **`@RoutePage()`** on widgets; after changes, run codegen to refresh **`app_router.gr.dart`**.
+
+### AuthGuard Dual Mode
+
+`AuthGuard` reads **`AppConfig.authMode`** (sourced from the `AUTH_MODE` env variable) to decide how strictly to enforce authentication:
+
+| Mode | Behavior |
+|------|----------|
+| `AuthMode.required` | Every route (except `unauthRequiredRoutes`) requires a valid token. Unauthenticated users are redirected to `LoginRoute`. |
+| `AuthMode.optional` | Only routes listed in `AuthGuard.authRequiredRoutes` (e.g. `ProfileRoute`) require login. All other routes are freely accessible. |
+
+To protect additional routes in `optional` mode, add their route names to the `authRequiredRoutes` list in `auth_guard.dart`.
+
+### Mock Authentication
+
+When **`AppConfig.mockAuth`** is `true` (`MOCK_AUTH=true` in `.env`):
+
+- `AuthRepositoryImpl.phoneLogin()` returns a hardcoded mock token instead of calling the remote API.
+- `AuthRepositoryImpl.getCurrentUser()` returns a mock user profile.
+- The **Login page** displays a "Demo Login" button for one-tap access.
+- `logout()` skips the remote logout call and only clears local tokens.
+
+This allows the template to function end-to-end without a live backend.
 
 ## DI (GetIt + Injectable)
 

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_clean_arch_template/core/env/app_config.dart';
 import 'package:flutter_clean_arch_template/core/router/app_router.dart';
 import 'package:flutter_clean_arch_template/features/auth/presentation/providers/auth_provider.dart';
 import 'package:flutter_clean_arch_template/features/auth/presentation/providers/models/auth_state.dart';
@@ -88,6 +89,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       : const Text('Sign In'),
                 ),
               ),
+              if (AppConfig.mockAuth) ...[
+                SizedBox(height: 16.h),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48.h,
+                  child: OutlinedButton.icon(
+                    onPressed: _isLoading ? null : _handleDemoLogin,
+                    icon: const Icon(Icons.play_circle_outline),
+                    label: const Text('Demo Login'),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -104,6 +117,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     await ref.read(authProvider.notifier).phoneLogin(
       phonenumber: _phoneController.text,
       smsCode: _codeController.text,
+    );
+  }
+
+  Future<void> _handleDemoLogin() async {
+    setState(() => _isLoading = true);
+    await ref.read(authProvider.notifier).phoneLogin(
+      phonenumber: '13800138000',
+      smsCode: '888888',
     );
   }
 }

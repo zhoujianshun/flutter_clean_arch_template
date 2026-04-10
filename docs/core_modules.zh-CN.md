@@ -43,10 +43,32 @@ Dio 请求日志通过 `ApiClient` 中的 **`talker_dio_logger`** 实现。模�
 | 组件 | 路径 / 职责 |
 |------|------------|
 | **`app_router.dart`** | 声明 `AutoRoute` 路由树，`part 'app_router.gr.dart'` |
-| **`AuthGuard` / `DebouncerGuard`** | `core/router/guards/` — 拦截未认证路由或防止快速重复导航 |
+| **`AuthGuard` / `DebouncerGuard`** | `core/router/guards/` — 拦截未认证路由（双模式）或防止快速重复导航 |
 | **`router_provider.dart`** | 通过 Riverpod 暴露路由实例给 MaterialApp |
 
 页面使用 **`@RoutePage()`** 注解；修改后运行代码生成以刷新 **`app_router.gr.dart`**。
+
+### AuthGuard 双认证模式
+
+`AuthGuard` 读取 **`AppConfig.authMode`**（来源于 `AUTH_MODE` 环境变量）决定认证的严格程度：
+
+| 模式 | 行为 |
+|------|------|
+| `AuthMode.required` | 除 `unauthRequiredRoutes` 外，所有路由均需有效 Token。未认证用户跳转到 `LoginRoute` |
+| `AuthMode.optional` | 仅 `AuthGuard.authRequiredRoutes` 中列出的路由（如 `ProfileRoute`）需要登录。其余路由自由访问 |
+
+在 `optional` 模式下保护更多路由，只需将路由名称添加到 `auth_guard.dart` 的 `authRequiredRoutes` 列表中。
+
+### Mock 认证
+
+当 **`AppConfig.mockAuth`** 为 `true`（`.env` 中 `MOCK_AUTH=true`）时：
+
+- `AuthRepositoryImpl.phoneLogin()` 返回硬编码的 Mock Token，不调用远程 API
+- `AuthRepositoryImpl.getCurrentUser()` 返回 Mock 用户信息
+- **登录页**显示「Demo Login」按钮，一键即可登录
+- `logout()` 跳过远程登出调用，仅清除本地 Token
+
+这使得模版无需真实后端即可完整运行。
 
 ## 依赖注入（GetIt + Injectable）
 

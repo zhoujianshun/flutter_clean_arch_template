@@ -19,6 +19,8 @@ A production-ready Flutter project template featuring **Feature-First** structur
 - **Freezed** — immutable models and algebraic data types
 - **Dartz `Either`** — explicit success/failure flows in repositories
 - **Multi-environment** — `development` / `staging` / `production` via `--dart-define`
+- **Dual auth modes** — `required` (must login) or `optional` (guest-friendly, selective page protection) via `AUTH_MODE` env variable
+- **Demo login** — one-tap mock login for development/demo builds (`MOCK_AUTH=true`)
 - **30+ reusable UI components** — buttons, lists, states, dialogs, and more under `lib/shared/widgets/`
 - **Talker** — structured logging, Dio integration, and optional Riverpod observer
 - **flutter_screenutil** — responsive layout against a design baseline
@@ -111,6 +113,25 @@ Reference implementations:
 Dependency rule: **Presentation → Domain ← Data**. The UI never depends on concrete repository or datasource classes—only on abstractions and shared/core utilities.
 
 See [docs/architecture.md](docs/architecture.md) for a deeper walkthrough.
+
+## Authentication Modes
+
+The template ships with two configurable authentication modes, controlled by the `AUTH_MODE` environment variable in `assets/env/.env*`:
+
+| Mode | `AUTH_MODE` | Behavior |
+|------|-------------|----------|
+| **Required** | `required` (default) | All routes require login. Unauthenticated users are redirected to the login page on launch. |
+| **Optional** | `optional` | App launches into the home page. Only routes listed in `AuthGuard.authRequiredRoutes` (e.g. Profile) require login. |
+
+### Demo Login
+
+When `MOCK_AUTH=true` (default in `development`), the login page shows a **"Demo Login"** button that simulates authentication with mock tokens — no real API needed. This is useful for:
+
+- First-time template evaluation
+- UI development without a backend
+- Automated testing
+
+Set `MOCK_AUTH=false` in staging/production to use real API authentication.
 
 ## Available Commands
 
