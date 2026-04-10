@@ -1,0 +1,77 @@
+---
+description: Flutter Clean Architecture Template - Cursor AI Rules
+globs:
+alwaysApply: true
+---
+
+# Flutter Clean Architecture Template - Cursor AI Rules
+
+## Architecture
+
+**Pattern**: Feature-First + DDD + Clean Architecture
+**Layers**: `lib/core/` (infrastructure) → `lib/shared/` (reusable business) → `lib/features/` (feature modules)
+
+### Feature Structure
+```
+lib/features/{feature_name}/
+├── data/          # DataSource, Repository impl, Models
+├── domain/        # Repository interfaces, Entities (optional)
+└── presentation/  # Pages, Widgets, Providers
+```
+
+### Dependency Direction
+```
+Presentation → Domain ← Data
+(Provider → Repository interface ← Repository impl)
+```
+
+## Tech Stack
+
+- **State Management**: Riverpod 3.0+ (`@riverpod` annotation)
+- **Navigation**: AutoRoute 11+ (type-safe routes)
+- **DI**: GetIt + Injectable (`getIt<T>()`)
+- **Network**: Dio 5.9+
+- **Models**: Freezed 3.2+ (abstract class for data, sealed class for unions)
+- **Error Handling**: Dartz Either (`Future<Either<Failure, T>>`)
+- **Screen Adaptation**: flutter_screenutil (375x812 design)
+
+## Key Rules
+
+### File Naming (snake_case)
+- Provider: `{name}_provider.dart`
+- DataSource: `{name}_remote_datasource.dart`
+- Request: `{action}_{feature}_request.dart`
+- Model: `{feature}_model.dart`
+- Page: `{name}_page.dart`
+
+### Import Order
+1. `dart:*`
+2. `package:flutter/*`
+3. Third-party packages (alphabetical)
+4. Project imports (alphabetical)
+
+### Provider Pattern
+```dart
+@Riverpod(keepAlive: true)
+class Auth extends _$Auth {
+  late final AuthRepository _repo = getIt<AuthRepository>();
+  // Directly call repository, no UseCase layer
+}
+```
+
+### Freezed Pattern
+- Single data class: `@freezed abstract class Foo with _$Foo`
+- Union type: `@freezed sealed class Bar with _$Bar`
+
+### Error Handling
+```dart
+Future<Either<Failure, T>> someMethod() async {
+  try { ... return Right(result); }
+  catch (e) { return Left(Failure.unknown(message: e.toString())); }
+}
+```
+
+## Code Generation
+```bash
+dart run build_runner build --delete-conflicting-outputs
+```

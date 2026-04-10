@@ -1,0 +1,14 @@
+targets:
+  $default:
+    builders:
+      json_serializable:
+        options:
+          explicit_to_json: true
+          include_if_null: false
+          field_rename: none
+          generic_argument_factories: true
+
+      injectable_generator:injectable_builder:
+        options:
+          auto_register: true
+          file_name_pattern: '_api$|_bloc$'
