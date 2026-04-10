@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "dart-code.flutter",
+    "dart-code.dart-code",
+    "robert-brunhage.flutter-riverpod-snippets",
+    "alexisvt.flutter-snippets",
+    "nash.awesome-flutter-snippets",
+    "pflannery.vscode-versionlens",
+    "usernamehw.errorlens",
+    "bradlc.vscode-tailwindcss",
+    "ms-ceintl.vscode-language-pack-zh-hans"
+  ]
+}
