@@ -1,0 +1,56 @@
+# flutter_native_splash — Native Splash Screen Generator
+#
+# Usage:
+#   just gen-splash
+#   or: dart run flutter_native_splash:create --path=flutter_native_splash.yaml
+#
+# To restore Flutter's default white splash:
+#   dart run flutter_native_splash:remove
+#
+# Docs: https://pub.dev/packages/flutter_native_splash
+
+flutter_native_splash:
+  # ── Background ───────────────────────────────────────────
+  # Use `color` for a solid background, OR `background_image` for a PNG.
+  # Only one may be set at a time.
+  color: '#ffffff'
+  # background_image: 'assets/splash/splash_bg.png'
+
+  # ── Splash image (centered) ─────────────────────────────
+  # Optional PNG overlaid on the background. Size for 4x pixel density.
+  # image: 'assets/splash/splash_logo.png'
+
+  # ── Branding (bottom of screen) ─────────────────────────
+  # branding: 'assets/splash/branding.png'
+  # branding_mode: bottom
+  # branding_bottom_padding: 24
+
+  # ── Dark mode variants ──────────────────────────────────
+  # color_dark: '#121212'
+  # background_image_dark: 'assets/splash/splash_bg_dark.png'
+  # image_dark: 'assets/splash/splash_logo_dark.png'
+  # branding_dark: 'assets/splash/branding_dark.png'
+
+  # ── Android 12+ (separate configuration) ────────────────
+  # Android 12 uses a different splash mechanism with a centered icon
+  # clipped to a circle. See: https://developer.android.com/guide/topics/ui/splash-screen
+  android_12:
+    # Icon: 960x960 (with background) or 1152x1152 (without background)
+    # image: 'assets/splash/android12_splash.png'
+    color: '#ffffff'
+    # icon_background_color: '#ffffff'
+    # image_dark: 'assets/splash/android12_splash_dark.png'
+    # color_dark: '#121212'
+
+  # ── Platform toggles (set false to skip) ────────────────
+  # android: false
+  # ios: false
+  # web: false
+
+  # ── Layout control ──────────────────────────────────────
+  # android_gravity: center
+  # ios_content_mode: center
+  # web_image_mode: center
+
+  # ── Fullscreen (hide notification bar) ──────────────────
+  # fullscreen: true

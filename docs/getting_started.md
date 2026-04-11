@@ -114,6 +114,20 @@ MOCK_AUTH=true
 
 Never commit secrets; use CI variables or local untracked overrides for sensitive values.
 
+## App Resources (Icons & Splash)
+
+The template includes configuration for two code-generation tools that produce platform-native assets:
+
+- **`flutter_launcher_icons.yaml`** — generates launcher icons for all platforms from a single source PNG.
+- **`flutter_native_splash.yaml`** — generates native splash screens displayed before Flutter renders.
+
+```bash
+just gen-icon     # Generate launcher icons
+just gen-splash   # Generate native splash screens
+```
+
+Place your source images under `assets/icon/` and `assets/splash/`. For detailed configuration options, asset preparation, and platform-specific notes, see [app_resources.md](app_resources.md).
+
 ## Development Workflow
 
 1. Create a branch for your work.

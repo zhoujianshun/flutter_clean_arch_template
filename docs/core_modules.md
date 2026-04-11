@@ -108,3 +108,16 @@ Widgets should read colors and text styles from **`Theme.of(context)`** whenever
 | **`global_error_handler.dart`**, **`error_recovery.dart`**, **`error_utils.dart`** | Centralized handling, mapping, recovery helpers |
 
 **Guideline:** throw **exceptions** at the IO boundary; return **`Either<Failure, T>`** from repositories so presentation stays declarative.
+
+## App Resources (Launcher Icons & Native Splash)
+
+| Piece | Path / role |
+|-------|-------------|
+| **`flutter_launcher_icons.yaml`** | Config for generating platform launcher icons from a single source image |
+| **`flutter_native_splash.yaml`** | Config for generating native splash screens (shown before Flutter renders) |
+| **`AppInitializer`** | `core/initializers/app_initializer.dart` — calls `FlutterNativeSplash.preserve()` to keep the native splash visible during async setup |
+| **`SplashPage`** | `features/app/.../splash_page.dart` — calls `FlutterNativeSplash.remove()` when initialization completes |
+
+Commands: **`just gen-icon`** for icons, **`just gen-splash`** for splash screens.
+
+For detailed usage, asset preparation, and platform-specific notes, see [app_resources.md](app_resources.md).

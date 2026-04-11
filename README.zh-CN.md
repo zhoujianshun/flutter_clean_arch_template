@@ -176,6 +176,7 @@ UI 层永远不依赖具体的 Repository 或 DataSource 实现类 — 仅依赖
 | [docs/create_new_feature.zh-CN.md](docs/create_new_feature.zh-CN.md) | 端到端功能开发教程 |
 | [docs/conventions.zh-CN.md](docs/conventions.zh-CN.md) | 命名规范、导入顺序、Freezed 模式、Provider 模式 |
 | [docs/core_modules.zh-CN.md](docs/core_modules.zh-CN.md) | Core 层模块说明（网络、存储、路由等） |
+| [docs/app_resources.zh-CN.md](docs/app_resources.zh-CN.md) | 启动图标 & 原生启动屏配置 |
 
 ## 开源协议
 

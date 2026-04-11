@@ -108,3 +108,16 @@ Dio 请求日志通过 `ApiClient` 中的 **`talker_dio_logger`** 实现。模�
 | **`global_error_handler.dart`** / **`error_recovery.dart`** / **`error_utils.dart`** | 集中处理、映射、恢复助手 |
 
 **原则：** 在 IO 边界抛出 **异常**；从 Repository 返回 **`Either<Failure, T>`**，使表现层保持声明式。
+
+## 应用资源（启动图标 & 原生启动屏）
+
+| 组件 | 路径 / 职责 |
+|------|------------|
+| **`flutter_launcher_icons.yaml`** | 从单一源图片生成各平台启动图标的配置文件 |
+| **`flutter_native_splash.yaml`** | 生成原生启动屏（在 Flutter 渲染前显示）的配置文件 |
+| **`AppInitializer`** | `core/initializers/app_initializer.dart` — 调用 `FlutterNativeSplash.preserve()` 在异步初始化期间保持原生启动屏可见 |
+| **`SplashPage`** | `features/app/.../splash_page.dart` — 初始化完成后调用 `FlutterNativeSplash.remove()` |
+
+命令：**`just gen-icon`** 生成图标，**`just gen-splash`** 生成启动屏。
+
+详细用法、素材准备和平台特殊说明见 [app_resources.zh-CN.md](app_resources.zh-CN.md)。

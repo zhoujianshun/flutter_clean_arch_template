@@ -180,6 +180,7 @@ Step-by-step tutorial: [docs/create_new_feature.md](docs/create_new_feature.md).
 | [docs/create_new_feature.md](docs/create_new_feature.md) | End-to-end feature tutorial |
 | [docs/conventions.md](docs/conventions.md) | Naming, imports, Freezed, providers |
 | [docs/core_modules.md](docs/core_modules.md) | Core packages (network, storage, router, …) |
+| [docs/app_resources.md](docs/app_resources.md) | Launcher icons & native splash screen setup |
 
 ## License
 

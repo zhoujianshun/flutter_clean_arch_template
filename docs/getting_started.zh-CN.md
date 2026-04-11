@@ -114,6 +114,20 @@ MOCK_AUTH=true
 
 **请勿提交敏感信息。** 使用 CI 变量或本地未跟踪的覆盖文件存放敏感值。
 
+## 应用资源（图标 & 启动屏）
+
+模版包含两个代码生成工具的配置文件，用于生成平台原生资源：
+
+- **`flutter_launcher_icons.yaml`** — 从单一源 PNG 为所有平台生成启动图标
+- **`flutter_native_splash.yaml`** — 生成在 Flutter 渲染前显示的原生启动屏
+
+```bash
+just gen-icon     # 生成启动图标
+just gen-splash   # 生成原生启动屏
+```
+
+将源图片放在 `assets/icon/` 和 `assets/splash/` 目录下。详细配置选项、素材准备和平台特殊说明见 [app_resources.zh-CN.md](app_resources.zh-CN.md)。
+
 ## 开发流程
 
 1. 为你的工作创建分支
