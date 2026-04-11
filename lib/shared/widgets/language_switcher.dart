@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_clean_arch_template/core/l10n/app_language.dart';
 import 'package:flutter_clean_arch_template/core/l10n/language_provider.dart';
 import 'package:flutter_clean_arch_template/generated/l10n/app_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// 语言切换器组件
 class LanguageSwitcher extends ConsumerWidget {
@@ -45,8 +45,8 @@ class LanguageSwitcher extends ConsumerWidget {
           Text(
             l10n.profile_language,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 12),
         ],
@@ -98,9 +98,9 @@ class LanguageSwitcher extends ConsumerWidget {
                       child: Text(
                         language.displayName,
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                              color: isSelected ? Theme.of(context).colorScheme.primary : null,
-                            ),
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                          color: isSelected ? Theme.of(context).colorScheme.primary : null,
+                        ),
                       ),
                     ),
                     // 选中指示器

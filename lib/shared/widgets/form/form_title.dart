@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_clean_arch_template/core/theme/app_theme.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class FormTitle extends StatelessWidget {
   const FormTitle({required this.title, super.key, this.isRequired = false});
@@ -20,7 +20,11 @@ class FormTitle extends StatelessWidget {
         style: style,
         TextSpan(
           children: [
-            if (isRequired) TextSpan(text: '*', style: style.copyWith(color: AppAdaptiveColors.error500(context))),
+            if (isRequired)
+              TextSpan(
+                text: '*',
+                style: style.copyWith(color: AppAdaptiveColors.error500(context)),
+              ),
             TextSpan(text: title, style: style),
           ],
         ),

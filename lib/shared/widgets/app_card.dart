@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_clean_arch_template/core/theme/app_theme.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AppCard extends StatelessWidget {
   const AppCard({
@@ -34,7 +34,8 @@ class AppCard extends StatelessWidget {
       clipBehavior: clipBehavior,
       padding: padding ?? EdgeInsets.symmetric(horizontal: 16.w, vertical: 24.w),
       margin: margin,
-      decoration: decoration ??
+      decoration:
+          decoration ??
           BoxDecoration(
             color: AppAdaptiveColors.neutral100(context),
             borderRadius: BorderRadius.circular(16.r),

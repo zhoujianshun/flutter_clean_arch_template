@@ -1,4 +1,3 @@
-// ignore_for_file: avoid_print
 import 'dart:io';
 
 /// Interactive setup script for the Flutter Clean Architecture Template.
@@ -214,16 +213,12 @@ String? _validateOrgName(String value) {
 }
 
 String _snakeCaseToTitle(String input) {
-  return input
-      .split('_')
-      .map((w) => w.isEmpty ? '' : '${w[0].toUpperCase()}${w.substring(1)}')
-      .join(' ');
+  return input.split('_').map((w) => w.isEmpty ? '' : '${w[0].toUpperCase()}${w.substring(1)}').join(' ');
 }
 
 String _snakeCaseToCamel(String input) {
   final parts = input.split('_');
-  return parts.first +
-      parts.skip(1).map((w) => w.isEmpty ? '' : '${w[0].toUpperCase()}${w.substring(1)}').join();
+  return parts.first + parts.skip(1).map((w) => w.isEmpty ? '' : '${w[0].toUpperCase()}${w.substring(1)}').join();
 }
 
 Future<void> _replaceInFiles(

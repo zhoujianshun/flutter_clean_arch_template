@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_clean_arch_template/core/errors/exceptions.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 /// Hive service for local data storage
 class HiveService {

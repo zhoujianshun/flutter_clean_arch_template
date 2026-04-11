@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_clean_arch_template/core/theme/app_theme.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/button/my_filled_button.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 enum AppErrorType {
   /// 网络错误

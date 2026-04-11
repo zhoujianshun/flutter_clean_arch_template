@@ -9,6 +9,6 @@ class LoggerViewerPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TalkerScreen(talker: AppLogger.talker!);
+    return TalkerScreen(talker: AppLogger.talker);
   }
 }

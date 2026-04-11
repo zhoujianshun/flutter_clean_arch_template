@@ -1,5 +1,5 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:flutter_clean_arch_template/shared/models/api/api_success_policy.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'api_response.freezed.dart';
 part 'api_response.g.dart';

@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:intl/intl.dart';
 import 'package:flutter_clean_arch_template/core/logger/log_context.dart';
+import 'package:intl/intl.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 /// 日志格式化器

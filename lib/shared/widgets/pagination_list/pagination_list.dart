@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_clean_arch_template/shared/models/pagination_state.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/states/app_empty_widget.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/states/app_error_widget.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/states/app_loading_indicator.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// 通用消息列表视图组件
 class PaginationList<T> extends StatelessWidget {

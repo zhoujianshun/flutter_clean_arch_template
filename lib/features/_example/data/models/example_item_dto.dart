@@ -1,3 +1,4 @@
+import 'package:flutter_clean_arch_template/features/_example/domain/entities/example_item.dart' show ExampleItem;
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'example_item_dto.freezed.dart';
@@ -17,6 +18,5 @@ abstract class ExampleItemDto with _$ExampleItemDto {
     @JsonKey(name: 'created_at') String? createdAt,
   }) = _ExampleItemDto;
 
-  factory ExampleItemDto.fromJson(Map<String, dynamic> json) =>
-      _$ExampleItemDtoFromJson(json);
+  factory ExampleItemDto.fromJson(Map<String, dynamic> json) => _$ExampleItemDtoFromJson(json);
 }

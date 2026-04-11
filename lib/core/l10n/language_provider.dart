@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:flutter_clean_arch_template/core/l10n/app_language.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'language_provider.g.dart';
 

@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/button/my_button.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// 底部选择器助手类
 /// 提供统一的底部选择器显示接口
@@ -26,7 +26,7 @@ class BottomPickerHelper {
   static Future<T?> showMyModalPop<T>({required BuildContext context, required Widget child}) {
     return showCupertinoModalPopup<T>(
       context: context,
-      builder: (BuildContext context) => Column(
+      builder: (context) => Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           Container(
@@ -111,12 +111,12 @@ class BottomPicker<T> extends StatelessWidget {
               // This sets the initial item.
               scrollController: scrollController,
               // This is called when selected item is changed.
-              onSelectedItemChanged: (int selectedItem) {
+              onSelectedItemChanged: (selectedItem) {
                 // setState(() {
                 //   _selectedFruit = selectedItem;
                 // });
               },
-              children: List<Widget>.generate(items.length, (int index) {
+              children: List<Widget>.generate(items.length, (index) {
                 return Center(child: Text(items[index].label));
               }),
             ),

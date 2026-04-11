@@ -1,0 +1,41 @@
+{
+  "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
+  "version": "0.2",
+  "language": "en,en-US",
+  "allowCompoundWords": true,
+  "words": [
+    "LTWH",
+    "navi",
+    "iosamap",
+    "qqmap",
+    "dlat",
+    "dlon",
+    "dirflg",
+    "daddr",
+    "BGVIS1",
+    "slon",
+    "sname",
+    "BGVIS2",
+    "tocoord",
+    "dartz",
+    "cupertino",
+    "screenutil",
+    "checkin",
+    "Prefs",
+    "unionid",
+    "Umeng",
+    "bver",
+    "Debouncer",
+    "sukangyang",
+    "webp",
+    "dotenv"
+  ],
+  "ignorePaths": [
+    "**/web/**",
+    "**/macos/**",
+    "**/windows/**",
+    "**/linux/**",
+    "**/android/**",
+    "**/ios/**"
+  ]
+}

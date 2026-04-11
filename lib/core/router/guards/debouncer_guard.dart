@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:injectable/injectable.dart';
 import 'package:flutter_clean_arch_template/core/router/utils/navigation_debouncer.dart';
+import 'package:injectable/injectable.dart';
 
 /// 导航防抖动守卫
 ///

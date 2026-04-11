@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:path_provider/path_provider.dart';
 import 'package:flutter_clean_arch_template/core/logger/formatters/log_formatter.dart';
 import 'package:flutter_clean_arch_template/core/logger/log_context.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 /// 文件日志观察器

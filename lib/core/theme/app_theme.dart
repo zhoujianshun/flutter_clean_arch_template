@@ -69,7 +69,6 @@ class AppTheme {
       brightness: Brightness.light,
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.primary,
-        brightness: Brightness.light,
       ),
       scaffoldBackgroundColor: AppColors.backgroundSecondary,
       appBarTheme: AppBarTheme(
@@ -178,31 +177,24 @@ class AppAdaptiveColors {
   }
 
   // Brand
-  static Color primary(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF9B8CC7) : AppColors.primary;
-  static Color primary50(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF2D2640) : AppColors.primary50;
+  static Color primary(BuildContext context) => _isDarkMode(context) ? const Color(0xFF9B8CC7) : AppColors.primary;
+  static Color primary50(BuildContext context) => _isDarkMode(context) ? const Color(0xFF2D2640) : AppColors.primary50;
   static Color primary500(BuildContext context) => primary(context);
   static Color primary700(BuildContext context) =>
       _isDarkMode(context) ? const Color(0xFFB39DDB) : AppColors.primary700;
 
   // Functional
-  static Color success50(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF1B3D1B) : AppColors.success50;
+  static Color success50(BuildContext context) => _isDarkMode(context) ? const Color(0xFF1B3D1B) : AppColors.success50;
   static Color success500(BuildContext context) =>
       _isDarkMode(context) ? const Color(0xFF66BB6A) : AppColors.success500;
-  static Color warning50(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF3D2E00) : AppColors.warning50;
+  static Color warning50(BuildContext context) => _isDarkMode(context) ? const Color(0xFF3D2E00) : AppColors.warning50;
   static Color warning500(BuildContext context) =>
       _isDarkMode(context) ? const Color(0xFFFFB74D) : AppColors.warning500;
-  static Color error50(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF3D1B1B) : AppColors.error50;
-  static Color error500(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFFEF5350) : AppColors.error500;
+  static Color error50(BuildContext context) => _isDarkMode(context) ? const Color(0xFF3D1B1B) : AppColors.error50;
+  static Color error500(BuildContext context) => _isDarkMode(context) ? const Color(0xFFEF5350) : AppColors.error500;
 
   // Neutral scale
-  static Color neutral50(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF303030) : AppColors.neutral50;
+  static Color neutral50(BuildContext context) => _isDarkMode(context) ? const Color(0xFF303030) : AppColors.neutral50;
   static Color neutral100(BuildContext context) =>
       _isDarkMode(context) ? const Color(0xFF2A2A2A) : AppColors.neutral100;
   static Color neutral150(BuildContext context) =>
@@ -229,12 +221,10 @@ class AppAdaptiveColors {
       _isDarkMode(context) ? const Color(0xFFF0F0F0) : AppColors.neutral900;
 
   // Text
-  static Color textPrimary(BuildContext context) =>
-      _isDarkMode(context) ? Colors.white : AppColors.textPrimary;
+  static Color textPrimary(BuildContext context) => _isDarkMode(context) ? Colors.white : AppColors.textPrimary;
   static Color textSecondary(BuildContext context) =>
       _isDarkMode(context) ? const Color(0xFFAAAAAA) : AppColors.textSecondary;
-  static Color textHint(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF777777) : AppColors.textHint;
+  static Color textHint(BuildContext context) => _isDarkMode(context) ? const Color(0xFF777777) : AppColors.textHint;
   static Color textDisabled(BuildContext context) =>
       _isDarkMode(context) ? const Color(0xFF555555) : AppColors.textDisabled;
 
@@ -245,18 +235,14 @@ class AppAdaptiveColors {
       _isDarkMode(context) ? const Color(0xFF121212) : AppColors.backgroundSecondary;
 
   // Surface
-  static Color surface(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF1E1E1E) : Colors.white;
+  static Color surface(BuildContext context) => _isDarkMode(context) ? const Color(0xFF1E1E1E) : Colors.white;
 
   // Functional extended
-  static Color error700(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFFEF5350) : AppColors.error700;
+  static Color error700(BuildContext context) => _isDarkMode(context) ? const Color(0xFFEF5350) : AppColors.error700;
 
   // Border & Divider
-  static Color border(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF333333) : AppColors.border;
-  static Color divider(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF2A2A2A) : AppColors.divider;
+  static Color border(BuildContext context) => _isDarkMode(context) ? const Color(0xFF333333) : AppColors.border;
+  static Color divider(BuildContext context) => _isDarkMode(context) ? const Color(0xFF2A2A2A) : AppColors.divider;
 }
 
 /// Pre-defined text styles for consistent typography.

@@ -46,7 +46,7 @@ class MyModalBottomSheetHelper {
       backgroundColor: backgroundColor ?? AppAdaptiveColors.neutral100(context),
       shape:
           shape ??
-          RoundedRectangleBorder(
+          const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
           ),
       builder: (context) => PopScope(

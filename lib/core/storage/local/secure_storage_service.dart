@@ -1,6 +1,6 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_clean_arch_template/core/errors/exceptions.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Secure storage service for sensitive data
 class SecureStorageService {
@@ -29,7 +29,7 @@ class SecureStorageService {
   }
 
   /// Read data from secure storage
-  /// 
+  ///
   /// Returns null if key doesn't exist or read fails (follows consistent error handling)
   Future<String?> read(String key) async {
     try {
@@ -68,7 +68,7 @@ class SecureStorageService {
   }
 
   /// Get all keys from secure storage
-  /// 
+  ///
   /// ⚠️ WARNING: This method loads all secure data into memory at once.
   /// Use with caution and only when absolutely necessary.
   /// Consider using [containsKey] and [read] for specific keys instead.
@@ -89,7 +89,7 @@ class SecureStorageService {
   }
 
   /// Get all keys from secure storage (without values)
-  /// 
+  ///
   /// This is a safer alternative to [readAll] when you only need the keys.
   Future<Set<String>> getAllKeys() async {
     try {

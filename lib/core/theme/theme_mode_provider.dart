@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:flutter_clean_arch_template/core/di/service_locator.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
 import 'package:flutter_clean_arch_template/core/storage/storage_service.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'theme_mode_provider.g.dart';
 

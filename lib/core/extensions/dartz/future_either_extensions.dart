@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_clean_arch_template/core/errors/failures.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 extension FutureEitherExtensions<L, R> on Future<Either<L, R>> {
   /// 异步 map 操作

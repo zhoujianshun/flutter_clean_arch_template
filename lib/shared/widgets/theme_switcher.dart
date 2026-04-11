@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_clean_arch_template/core/theme/theme_mode_provider.dart';
 import 'package:flutter_clean_arch_template/generated/l10n/app_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// 主题切换Widget - 支持多种样式
 class ThemeSwitcher extends ConsumerWidget {
@@ -97,7 +97,7 @@ class ThemeSwitcher extends ConsumerWidget {
             ),
           ],
           selected: {themeMode},
-          onSelectionChanged: (Set<ThemeMode> newSelection) {
+          onSelectionChanged: (newSelection) {
             if (newSelection.isNotEmpty) {
               notifier.setThemeMode(newSelection.first);
             }
@@ -162,7 +162,7 @@ class ThemeSwitcher extends ConsumerWidget {
               ),
             ),
           ],
-          onChanged: (ThemeMode? newValue) {
+          onChanged: (newValue) {
             if (newValue != null) {
               notifier.setThemeMode(newValue);
             }
@@ -181,7 +181,7 @@ class ThemeSwitcher extends ConsumerWidget {
   ) async {
     final result = await showDialog<ThemeMode>(
       context: context,
-      builder: (BuildContext context) {
+      builder: (context) {
         return AlertDialog(
           title: Text(l10n.profile_theme),
           content: Column(
@@ -238,7 +238,7 @@ class ThemeSwitcher extends ConsumerWidget {
     return RadioListTile<ThemeMode>(
       value: mode,
       groupValue: currentMode,
-      onChanged: (ThemeMode? value) {
+      onChanged: (value) {
         if (value != null) {
           Navigator.of(context).pop(value);
         }

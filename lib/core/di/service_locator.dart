@@ -1,8 +1,6 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-import 'package:get_it/get_it.dart';
-import 'package:injectable/injectable.dart';
 import 'package:flutter_clean_arch_template/core/di/service_locator.config.dart';
 import 'package:flutter_clean_arch_template/core/env/app_config.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
@@ -17,6 +15,8 @@ import 'package:flutter_clean_arch_template/core/storage/local/shared_prefs_serv
 import 'package:flutter_clean_arch_template/core/storage/storage_service.dart';
 import 'package:flutter_clean_arch_template/shared/cache/cache_service.dart';
 import 'package:flutter_clean_arch_template/shared/services/app_info_service/app_info_service.dart';
+import 'package:get_it/get_it.dart';
+import 'package:injectable/injectable.dart';
 
 /// Global service locator instance
 ///
@@ -136,8 +136,7 @@ class ServiceLocator {
   }
 
   static T get<T extends Object>() => getIt<T>();
-  static T? getOrNull<T extends Object>() =>
-      getIt.isRegistered<T>() ? getIt<T>() : null;
+  static T? getOrNull<T extends Object>() => getIt.isRegistered<T>() ? getIt<T>() : null;
   static bool isRegistered<T extends Object>() => getIt.isRegistered<T>();
   static Future<T> getAsync<T extends Object>() => getIt.getAsync<T>();
 }

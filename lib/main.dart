@@ -1,8 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_clean_arch_template/core/initializers/app_initializer.dart';
 import 'package:flutter_clean_arch_template/core/l10n/language_provider.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
@@ -11,6 +7,10 @@ import 'package:flutter_clean_arch_template/core/theme/app_theme.dart';
 import 'package:flutter_clean_arch_template/core/theme/theme_mode_provider.dart';
 import 'package:flutter_clean_arch_template/features/auth/presentation/widgets/auth_navigation_listener.dart';
 import 'package:flutter_clean_arch_template/generated/l10n/app_localizations.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 void main() async {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();

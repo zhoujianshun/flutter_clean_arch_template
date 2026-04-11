@@ -1,8 +1,8 @@
 import 'dart:async';
 
+import 'package:flutter_clean_arch_template/shared/services/app_info_service/app_info_model.dart';
 import 'package:injectable/injectable.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:flutter_clean_arch_template/shared/services/app_info_service/app_info_model.dart';
 
 export 'package:flutter_clean_arch_template/shared/services/app_info_service/app_info_model.dart';
 

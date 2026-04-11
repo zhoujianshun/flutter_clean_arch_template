@@ -1,8 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_clean_arch_template/core/di/service_locator.dart';
 import 'package:flutter_clean_arch_template/core/theme/app_theme.dart';
 import 'package:flutter_clean_arch_template/features/auth/data/datasources/user_remote_datasource.dart';
@@ -10,6 +8,8 @@ import 'package:flutter_clean_arch_template/features/auth/data/models/send_verif
 import 'package:flutter_clean_arch_template/shared/utils/validators.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/button/primary_button.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/pop/my_easy_pop_message.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// 验证码按钮控制器
 /// 用于外部控制验证码按钮的状态和发送验证码

@@ -1,10 +1,10 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:injectable/injectable.dart';
 import 'package:flutter_clean_arch_template/core/constants/auth_mode.dart';
 import 'package:flutter_clean_arch_template/core/env/app_config.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
 import 'package:flutter_clean_arch_template/core/router/app_router.dart';
 import 'package:flutter_clean_arch_template/features/auth/domain/repositories/auth_repository.dart';
+import 'package:injectable/injectable.dart';
 
 @singleton
 class AuthGuard extends AutoRouteGuard {

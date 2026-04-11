@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/my_circular_progress_indicator.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 // 无背景色，类ios按钮
 class MyButton extends StatelessWidget {

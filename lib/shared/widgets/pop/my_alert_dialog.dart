@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/button/my_button.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/button/my_filled_button.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/button/my_outlined_button.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/pop/widgets/default_alert_title.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/svg.dart';
 
 /// 弹窗助手类
 ///

@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/pop/my_cupertino_alert_dialog.dart';
+import 'package:permission_handler/permission_handler.dart';
 // 状态	含义	处理方式
 // granted	已授权	✅ 直接使用
 // denied	拒绝/首次	🔄 尝试请求

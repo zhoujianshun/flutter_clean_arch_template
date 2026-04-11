@@ -40,8 +40,8 @@ class LogLevelFilter extends TalkerFilter {
   final LogLevel _minLevel;
 
   @override
-  bool filter(TalkerData data) {
-    final dataLevel = _getLogLevel(data);
+  bool filter(TalkerData item) {
+    final dataLevel = _getLogLevel(item);
     // 返回 true 表示保留该日志，false 表示过滤掉
     return dataLevel.level >= _minLevel.level;
   }

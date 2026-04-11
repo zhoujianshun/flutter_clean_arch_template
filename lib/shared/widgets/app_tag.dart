@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_clean_arch_template/core/theme/app_theme.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AppTag extends StatelessWidget {
   const AppTag({
@@ -27,7 +27,8 @@ class AppTag extends StatelessWidget {
       height: wHeight,
       alignment: Alignment.center,
       constraints: constraints,
-      padding: padding ??
+      padding:
+          padding ??
           EdgeInsets.symmetric(
             horizontal: 10.w,
             // vertical: 1.w,

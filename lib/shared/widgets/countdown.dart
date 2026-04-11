@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_clean_arch_template/core/theme/app_theme.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// 接单倒计时头部组件
 class Countdown extends StatefulWidget {
@@ -123,7 +123,8 @@ class _CountdownState extends State<Countdown> {
           if (widget.title != null) ...[
             Text(
               widget.title!,
-              style: widget.titleStyle ??
+              style:
+                  widget.titleStyle ??
                   AppTextStyles.bodyMedium.copyWith(
                     color: AppAdaptiveColors.neutral900(context),
                   ),
@@ -139,7 +140,7 @@ class _CountdownState extends State<Countdown> {
               // fontFeatures: const [FontFeature.tabularFigures()],
               // height: 1.2,
             ),
-          )
+          ),
         ],
       ),
     );

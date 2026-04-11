@@ -172,7 +172,7 @@ class PlatformChannelErrorHandler {
       return;
     }
 
-    channel.setMessageHandler((ByteData? message) async {
+    channel.setMessageHandler((message) async {
       try {
         return await handler(message);
       } catch (error, stackTrace) {

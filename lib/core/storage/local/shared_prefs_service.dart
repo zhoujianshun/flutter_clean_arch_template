@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_clean_arch_template/core/errors/exceptions.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// SharedPreferences service for simple key-value storage
 class SharedPrefsService {
