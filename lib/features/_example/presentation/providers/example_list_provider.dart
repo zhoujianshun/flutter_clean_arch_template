@@ -19,13 +19,15 @@ class ExampleList extends _$ExampleList {
   FutureOr<List<ExampleItem>> build() async {
     _currentPage = 1;
     _items.clear();
+    _hasMore = true;
     return _loadPage(1);
   }
 
   Future<List<ExampleItem>> _loadPage(int page) async {
     final result = await _repository.getList(pageNum: page);
+
     return result.fold(
-      (failure) => throw Exception(failure.message),
+      (failure) => throw failure,
       (data) {
         _hasMore = _items.length + data.rows.length < data.total;
         _items.addAll(data.rows);

@@ -2,6 +2,9 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/core/router/guards/auth_guard.dart';
 import 'package:flutter_clean_arch_template/core/router/guards/debouncer_guard.dart';
+import 'package:flutter_clean_arch_template/features/_example/presentation/pages/example_detail_page.dart';
+import 'package:flutter_clean_arch_template/features/_example/presentation/pages/example_list_page.dart';
+import 'package:flutter_clean_arch_template/features/_example_simple/presentation/pages/todo_list_page.dart';
 import 'package:flutter_clean_arch_template/features/app/presentation/pages/app_shell.dart';
 import 'package:flutter_clean_arch_template/features/app/presentation/pages/config_management_page/config_management_page.dart';
 import 'package:flutter_clean_arch_template/features/app/presentation/pages/onboarding_page/onboarding_page.dart';
@@ -10,8 +13,6 @@ import 'package:flutter_clean_arch_template/features/app/presentation/pages/sett
 import 'package:flutter_clean_arch_template/features/app/presentation/pages/splash_page/splash_page.dart';
 import 'package:flutter_clean_arch_template/features/auth/presentation/pages/login_page/login_page.dart';
 import 'package:flutter_clean_arch_template/features/auth/presentation/pages/profile_page/profile_page.dart';
-import 'package:flutter_clean_arch_template/features/_example/presentation/pages/example_list_page.dart';
-import 'package:flutter_clean_arch_template/features/_example/presentation/pages/example_detail_page.dart';
 
 part 'app_router.gr.dart';
 
@@ -52,6 +53,12 @@ class AppRouter extends RootStackRouter {
     AutoRoute(
       page: ExampleDetailRoute.page,
       path: '/example-detail/:itemId',
+    ),
+
+    // Simple example (pragmatic pattern)
+    AutoRoute(
+      page: TodoListRoute.page,
+      path: '/todos',
     ),
 
     // Dev tools

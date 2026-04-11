@@ -50,10 +50,8 @@ class ExampleListPage extends ConsumerWidget {
           );
         },
         loading: () => const AppLoadingIndicator(),
-        error: (error, stack) => AppErrorWidget(
-          error: error.toString(),
-          onRetry: () => ref.invalidate(exampleListProvider),
-        ),
+        error: (error, stack) =>
+            AppErrorWidget(error: error.toString(), onRetry: () => ref.invalidate(exampleListProvider)),
       ),
     );
   }

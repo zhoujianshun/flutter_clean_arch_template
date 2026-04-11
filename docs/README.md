@@ -33,6 +33,7 @@
 | [FREEZED_SEALED_VS_ABSTRACT.md](architecture/FREEZED_SEALED_VS_ABSTRACT.md) | Freezed 3.0 sealed vs abstract 规则 |
 | [NETWORK_ERROR_NOTIFICATION_SYSTEM.md](architecture/NETWORK_ERROR_NOTIFICATION_SYSTEM.md) | 网络错误通知系统设计 |
 | [NETWORK_ERROR_QUICK_REFERENCE.md](architecture/NETWORK_ERROR_QUICK_REFERENCE.md) | 网络错误处理快速参考 |
+| [CLEAN_ARCH_TWO_MODES.md](architecture/CLEAN_ARCH_TWO_MODES.md) | **Clean Architecture 标准型 vs 务实型对比与选择指南** |
 
 ### 路由导航 (`architecture/route/`)
 

@@ -70,6 +70,11 @@ class AppConfig {
     return EnvConfigManager.getBool('MOCK_AUTH', defaultValue: false);
   }
 
+  /// When true, example/todo features return mock data without network calls.
+  static bool get mockData {
+    return EnvConfigManager.getBool('MOCK_DATA', defaultValue: false);
+  }
+
   static bool get isProduction => environment == 'production';
   static bool get isDevelopment => environment == 'development';
   static bool get isStaging => environment == 'staging';
