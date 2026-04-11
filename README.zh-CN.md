@@ -169,6 +169,8 @@ UI 层永远不依赖具体的 Repository 或 DataSource 实现类 — 仅依赖
 
 ## 文档
 
+### 核心文档
+
 | 文档 | 说明 |
 |------|------|
 | [docs/getting_started.zh-CN.md](docs/getting_started.zh-CN.md) | 前置条件、安装配置、代码生成、运行、环境切换 |
@@ -177,6 +179,23 @@ UI 层永远不依赖具体的 Repository 或 DataSource 实现类 — 仅依赖
 | [docs/conventions.zh-CN.md](docs/conventions.zh-CN.md) | 命名规范、导入顺序、Freezed 模式、Provider 模式 |
 | [docs/core_modules.zh-CN.md](docs/core_modules.zh-CN.md) | Core 层模块说明（网络、存储、路由等） |
 | [docs/app_resources.zh-CN.md](docs/app_resources.zh-CN.md) | 启动图标 & 原生启动屏配置 |
+
+### 深入指南（36 篇）
+
+| 分类 | 主题 |
+|------|------|
+| [架构设计](docs/architecture/) | 认证系统、Dartz/Either、Freezed、依赖注入、网络错误处理 |
+| [路由导航](docs/architecture/route/) | AutoRoute 系统指南、防抖守卫 |
+| [状态管理](docs/state-management/) | Riverpod 完整指南、迁移、Provider 组织 |
+| [日志系统](docs/logging/) | Talker 体系、集成步骤、性能监控 |
+| [错误监控](docs/monitoring/) | 全局错误处理、Platform Channel、Firebase vs Sentry |
+| [UI 设计](docs/ui-design/) | ScreenUtil、自定义主题、主题切换 |
+| [权限管理](docs/permission/) | 权限管理指南、问题排错 |
+| [工具配置](docs/tools-config/) | 开发工具链、环境配置、iOS plist、蒲公英分发 |
+| [开发流程](docs/development/) | CI/CD 配置、开发规范 |
+| [应用上架](docs/app-store-release/) | 完整上架指南（Android + iOS，共 10 章） |
+
+完整索引：[docs/README.md](docs/README.md)
 
 ## 开源协议
 

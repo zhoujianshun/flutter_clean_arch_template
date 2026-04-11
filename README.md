@@ -173,6 +173,8 @@ Step-by-step tutorial: [docs/create_new_feature.md](docs/create_new_feature.md).
 
 ## Documentation
 
+### Core Docs
+
 | Document | Description |
 |----------|-------------|
 | [docs/getting_started.md](docs/getting_started.md) | Prerequisites, setup, codegen, run, env |
@@ -181,6 +183,23 @@ Step-by-step tutorial: [docs/create_new_feature.md](docs/create_new_feature.md).
 | [docs/conventions.md](docs/conventions.md) | Naming, imports, Freezed, providers |
 | [docs/core_modules.md](docs/core_modules.md) | Core packages (network, storage, router, …) |
 | [docs/app_resources.md](docs/app_resources.md) | Launcher icons & native splash screen setup |
+
+### Deep Dive Guides (36 articles)
+
+| Category | Topics |
+|----------|--------|
+| [Architecture](docs/architecture/) | Authentication, Dartz/Either, Freezed, DI, Network Error Handling |
+| [Routing](docs/architecture/route/) | AutoRoute system guide, Debouncer guard |
+| [State Management](docs/state-management/) | Riverpod complete guide, migration, provider organization |
+| [Logging](docs/logging/) | Talker system, integration, performance monitoring |
+| [Monitoring](docs/monitoring/) | Global error handling, Platform Channel, Firebase vs Sentry |
+| [UI Design](docs/ui-design/) | ScreenUtil, custom themes, theme switching |
+| [Permission](docs/permission/) | Permission management, troubleshooting |
+| [Tools & Config](docs/tools-config/) | Dev tools, env config, iOS plist, Pgyer distribution |
+| [Development](docs/development/) | CI/CD setup, development workflow |
+| [App Store Release](docs/app-store-release/) | Full release guide (Android + iOS, 10 chapters) |
+
+Full index: [docs/README.md](docs/README.md)
 
 ## License
 
