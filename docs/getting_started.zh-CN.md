@@ -137,3 +137,27 @@ just gen-splash   # 生成原生启动屏
 5. 如果代码生成或插件状态不同步，使用 **`just clean`** 然后重新 **`just gen`**
 
 功能开发完整教程：[create_new_feature.zh-CN.md](create_new_feature.zh-CN.md)
+
+## 已知问题与兼容性说明
+
+### iOS Swift Package Manager 兼容性警告
+
+运行 `flutter pub get` 时可能出现以下警告：
+
+```
+The following plugins do not support Swift Package Manager for ios:
+  - permission_handler_apple
+  - flutter_keyboard_visibility
+This will become an error in a future version of Flutter.
+```
+
+**原因**：这两个插件尚未适配 iOS 的 Swift Package Manager (SPM)。目前仅为警告，不影响编译和运行，但在未来 Flutter 版本中会变为错误。
+
+**解决方案**：
+
+| 方案 | 命令 / 操作 | 说明 |
+|------|------------|------|
+| **方案一（推荐）**：关闭 SPM | `flutter config --no-enable-swift-package-manager` | 让 iOS 继续使用 CocoaPods，快速消除警告 |
+| **方案二**：升级插件 | 检查 `permission_handler` 和 `flutter_keyboard_visibility` 是否有支持 SPM 的新版本，更新 `pubspec.yaml` | 根本解决，但需等待插件维护者适配 |
+
+> **注意**：选择方案一后，如需恢复 SPM，运行 `flutter config --enable-swift-package-manager`。

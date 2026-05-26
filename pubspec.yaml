@@ -52,8 +52,8 @@ dependencies:
   # Utilities
   dartz: ^0.10.1
   connectivity_plus: ^7.0.0
-  package_info_plus: ^9.0.0
-  device_info_plus: ^12.1.0
+  package_info_plus: ^10.1.0
+  device_info_plus: ^13.1.0
   flutter_screenutil: ^5.9.3
   url_launcher: ^6.3.2
   flutter_keyboard_visibility: ^6.0.0
