@@ -1,0 +1,79 @@
+---
+description: "Flutter/Dart 官方最佳实践规则，适用于所有 .dart 文件"
+globs: "**/*.dart"
+alwaysApply: false
+---
+# AI Rules for Flutter (基于 Flutter 官方规则，已适配本项目)
+
+You are an expert Flutter and Dart developer. Your goal is to build beautiful, performant, and maintainable applications following modern best practices.
+
+## Interaction Guidelines
+* **Explanations:** When generating code, provide explanations for Dart-specific features like null safety, futures, and streams.
+* **Clarification:** If a request is ambiguous, ask for clarification on the intended functionality and the target platform.
+* **Dependencies:** When suggesting new dependencies from `pub.dev`, explain their benefits.
+* **Formatting:** ALWAYS use `dart format` to ensure consistent code formatting.
+* **Fixes:** Use `dart fix` to automatically fix many common errors.
+
+## Flutter Style Guide
+* **SOLID Principles:** Apply SOLID principles throughout the codebase.
+* **Concise and Declarative:** Write concise, modern, technical Dart code. Prefer functional and declarative patterns.
+* **Composition over Inheritance:** Favor composition for building complex widgets and logic.
+* **Immutability:** Prefer immutable data structures. Widgets (especially `StatelessWidget`) should be immutable.
+* **Widgets are for UI:** Compose complex UIs from smaller, reusable widgets.
+
+## Package Management
+* **Pub Tool:** Use `flutter pub add`.
+* **Dev Dependencies:** Use `flutter pub add dev:<package>`.
+* **Removal:** `dart pub remove <package>`.
+
+## Code Quality
+* **Structure:** Adhere to maintainable code structure and separation of concerns.
+* **Naming:** Avoid abbreviations. Use `PascalCase` (classes), `camelCase` (members), `snake_case` (files).
+* **Conciseness:** Functions should be short (<20 lines) and single-purpose.
+* **Error Handling:** Anticipate and handle potential errors. Don't let code fail silently.
+* **Logging:** Use `dart:developer` `log` instead of `print`.
+
+## Dart Best Practices
+* **Effective Dart:** Follow official guidelines.
+* **Async/Await:** Use `Future`, `async`, `await` for operations. Use `Stream` for events.
+* **Null Safety:** Write sound null-safe code. Avoid `!` operator unless guaranteed.
+* **Pattern Matching:** Use switch expressions and pattern matching (Dart 3).
+* **Records:** Use records for multiple return values.
+* **Sealed Classes:** Use sealed class for exhaustive pattern matching.
+* **Exception Handling:** Use custom exceptions for specific situations.
+* **Arrow Functions:** Use `=>` for one-line functions.
+
+## Flutter Best Practices
+* **Immutability:** Widgets are immutable. Rebuild, don't mutate.
+* **Composition:** Compose smaller private widgets over helper methods.
+* **Lists:** Use `ListView.builder` or `SliverList` for performance.
+* **Isolates:** Use `compute()` for expensive calculations to avoid UI blocking.
+* **Const:** Use `const` constructors everywhere possible to reduce rebuilds.
+* **Build Methods:** Avoid expensive ops (network) in `build()`.
+
+## Visual Design & Theming (Material 3)
+* **Centralized Theme:** Define a centralized `ThemeData` object for consistent style.
+* **Light and Dark Themes:** Implement both using `theme` and `darkTheme`.
+* **Color Scheme Generation:** Use `ColorScheme.fromSeed` for harmonious palettes.
+* **Typography:** Use clear font hierarchy for readability.
+* **Icons:** Incorporate icons to enhance navigation and understanding.
+
+## Layout Best Practices
+* **Expanded:** Use to fill remaining available space along the main axis.
+* **Flexible:** Use when you want a widget to shrink to fit.
+* **Wrap:** Use when widgets would overflow and should move to the next line.
+* **ListView/GridView:** Always use builder constructors for long lists.
+* **LayoutBuilder:** Use for responsive layouts based on available space.
+* **FittedBox:** Use to scale a single child within its parent.
+
+## Documentation Philosophy
+* Comment wisely: explain *why*, not *what*.
+* Use `///` for doc comments on public APIs.
+* Start with a single-sentence summary.
+* Avoid redundancy with the surrounding context.
+
+## Accessibility
+* Ensure text contrast ratio of at least 4.5:1.
+* Test with dynamic text scaling.
+* Use `Semantics` widget for clear labels.
+* Test with TalkBack (Android) and VoiceOver (iOS).

@@ -118,3 +118,6 @@ temp/
 
 # Melos
 melos_packages.yaml
+
+# AI Tools (local MCP servers)
+.tools/

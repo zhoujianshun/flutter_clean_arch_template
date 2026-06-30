@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "dart": {
+      "command": "dart",
+      "args": ["mcp-server"]
+    },
+    "flutter-devtools": {
+      "command": "node",
+      "args": [".tools/flutter-devtools-mcp/dist/index.js"]
+    }
+  }
+}
