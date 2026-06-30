@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/core/initializers/app_initializer.dart';
 import 'package:flutter_clean_arch_template/core/l10n/language_provider.dart';
@@ -40,6 +42,12 @@ class MyApp extends ConsumerWidget {
       minTextAdapt: true,
       splitScreenMode: true,
       useInheritedMediaQuery: true,
+      fontSizeResolver: (fontSize, instance) {
+        final scaleW = instance.screenWidth / 375;
+        final scaleH = instance.screenHeight / 812;
+        final scale = min(scaleW, scaleH) * 0.85 + max(scaleW, scaleH) * 0.15;
+        return fontSize * scale;
+      },
       builder: (context, child) {
         return AuthNavigationListener(
           child: KeyboardDismissOnTap(

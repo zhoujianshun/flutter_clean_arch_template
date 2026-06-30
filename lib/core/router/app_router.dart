@@ -5,6 +5,15 @@ import 'package:flutter_clean_arch_template/core/router/guards/debouncer_guard.d
 import 'package:flutter_clean_arch_template/features/_example/presentation/pages/example_detail_page.dart';
 import 'package:flutter_clean_arch_template/features/_example/presentation/pages/example_list_page.dart';
 import 'package:flutter_clean_arch_template/features/_example_simple/presentation/pages/todo_list_page.dart';
+import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/master_detail_page.dart';
+import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/responsive_dashboard_page.dart';
+import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/responsive_article_page.dart';
+import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/responsive_chat_page.dart';
+import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/responsive_demo_hub_page.dart';
+import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/responsive_form_page.dart';
+import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/responsive_gallery_page.dart';
+import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/responsive_login_page.dart';
+import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/responsive_settings_page.dart';
 import 'package:flutter_clean_arch_template/features/app/presentation/pages/app_shell.dart';
 import 'package:flutter_clean_arch_template/features/app/presentation/pages/config_management_page/config_management_page.dart';
 import 'package:flutter_clean_arch_template/features/app/presentation/pages/onboarding_page/onboarding_page.dart';
@@ -59,6 +68,44 @@ class AppRouter extends RootStackRouter {
     AutoRoute(
       page: TodoListRoute.page,
       path: '/todos',
+    ),
+
+    // Responsive demo pages
+    AutoRoute(
+      page: ResponsiveDemoHubRoute.page,
+      path: '/responsive-demo',
+    ),
+    AutoRoute(
+      page: ResponsiveDashboardRoute.page,
+      path: '/responsive-demo/dashboard',
+    ),
+    AutoRoute(
+      page: MasterDetailRoute.page,
+      path: '/responsive-demo/master-detail',
+    ),
+    AutoRoute(
+      page: ResponsiveFormRoute.page,
+      path: '/responsive-demo/form',
+    ),
+    AutoRoute(
+      page: ResponsiveGalleryRoute.page,
+      path: '/responsive-demo/gallery',
+    ),
+    AutoRoute(
+      page: ResponsiveSettingsRoute.page,
+      path: '/responsive-demo/settings',
+    ),
+    AutoRoute(
+      page: ResponsiveArticleRoute.page,
+      path: '/responsive-demo/article',
+    ),
+    AutoRoute(
+      page: ResponsiveLoginRoute.page,
+      path: '/responsive-demo/login',
+    ),
+    AutoRoute(
+      page: ResponsiveChatRoute.page,
+      path: '/responsive-demo/chat',
     ),
 
     // Dev tools

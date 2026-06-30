@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/core/router/app_router.dart';
 import 'package:flutter_clean_arch_template/features/_example/domain/entities/example_item.dart';
 import 'package:flutter_clean_arch_template/features/_example/presentation/providers/example_list_provider.dart';
+import 'package:flutter_clean_arch_template/shared/utils/responsive_utils.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/states/app_error_widget.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/states/app_loading_indicator.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,15 +36,39 @@ class ExampleListPage extends ConsumerWidget {
           }
           return RefreshIndicator(
             onRefresh: () => ref.read(exampleListProvider.notifier).refresh(),
-            child: ListView.separated(
-              padding: EdgeInsets.all(16.w),
-              itemCount: items.length,
-              separatorBuilder: (context, index) => SizedBox(height: 8.h),
-              itemBuilder: (context, index) {
-                final item = items[index];
-                return _ExampleItemCard(
-                  item: item,
-                  onTap: () => unawaited(context.router.push(ExampleDetailRoute(itemId: item.id))),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final columns = ResponsiveUtils.gridColumns(constraints);
+                if (columns > 1) {
+                  return GridView.builder(
+                    padding: EdgeInsets.all(16.w),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: columns,
+                      crossAxisSpacing: 8.w,
+                      mainAxisSpacing: 8.w,
+                      childAspectRatio: 3.5,
+                    ),
+                    itemCount: items.length,
+                    itemBuilder: (context, index) {
+                      final item = items[index];
+                      return _ExampleItemCard(
+                        item: item,
+                        onTap: () => unawaited(context.router.push(ExampleDetailRoute(itemId: item.id))),
+                      );
+                    },
+                  );
+                }
+                return ListView.separated(
+                  padding: EdgeInsets.all(16.w),
+                  itemCount: items.length,
+                  separatorBuilder: (context, index) => SizedBox(height: 8.h),
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    return _ExampleItemCard(
+                      item: item,
+                      onTap: () => unawaited(context.router.push(ExampleDetailRoute(itemId: item.id))),
+                    );
+                  },
                 );
               },
             ),

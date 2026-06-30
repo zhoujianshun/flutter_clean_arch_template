@@ -6,6 +6,8 @@ import 'package:flutter_clean_arch_template/core/env/app_config.dart';
 import 'package:flutter_clean_arch_template/core/router/app_router.dart';
 import 'package:flutter_clean_arch_template/features/auth/presentation/providers/auth_provider.dart';
 import 'package:flutter_clean_arch_template/features/auth/presentation/providers/models/auth_state.dart';
+import 'package:flutter_clean_arch_template/shared/utils/responsive_utils.dart';
+import 'package:flutter_clean_arch_template/shared/widgets/content_constraint.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/pop/my_easy_pop_message.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -44,10 +46,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     });
 
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24.w),
-          child: Column(
+      body: ContentConstraint(
+        maxWidth: ResponsiveUtils.maxWidthForm,
+        child: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24.w),
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 80.h),
@@ -104,6 +108,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

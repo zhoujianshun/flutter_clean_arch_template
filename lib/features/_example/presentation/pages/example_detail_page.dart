@@ -1,6 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/features/_example/presentation/providers/example_detail_provider.dart';
+import 'package:flutter_clean_arch_template/shared/utils/responsive_utils.dart';
+import 'package:flutter_clean_arch_template/shared/widgets/content_constraint.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/states/app_error_widget.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/states/app_loading_indicator.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,9 +24,11 @@ class ExampleDetailPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text('Item #$itemId')),
       body: asyncItem.when(
-        data: (item) => Padding(
-          padding: EdgeInsets.all(16.w),
-          child: Column(
+        data: (item) => ContentConstraint(
+          maxWidth: ResponsiveUtils.maxWidthDetail,
+          child: Padding(
+            padding: EdgeInsets.all(16.w),
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
@@ -53,6 +57,7 @@ class ExampleDetailPage extends ConsumerWidget {
               ],
             ],
           ),
+        ),
         ),
         loading: () => const AppLoadingIndicator(),
         error: (error, stack) => AppErrorWidget(
