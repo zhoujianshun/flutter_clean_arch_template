@@ -1,7 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_clean_arch_template/shared/utils/responsive_utils.dart';
-import 'package:flutter_clean_arch_template/shared/widgets/content_constraint.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/adaptive_builder.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/content_constraint.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/responsive_utils.dart';
 
 /// 响应式设置页示例
 ///
@@ -77,13 +78,9 @@ class _ResponsiveSettingsPageState extends State<ResponsiveSettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('响应式设置示例')),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          if (ResponsiveUtils.isCompact(constraints)) {
-            return _buildCompactLayout(context);
-          }
-          return _buildSplitLayout(context, constraints);
-        },
+      body: AdaptiveLayoutBuilder(
+        compact: (_) => _buildCompactLayout(context),
+        medium: (constraints) => _buildSplitLayout(context, constraints),
       ),
     );
   }

@@ -7,7 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
 import 'package:flutter_clean_arch_template/core/router/app_router.dart';
-import 'package:flutter_clean_arch_template/shared/utils/responsive_utils.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/adaptive_builder.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/responsive_utils.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/pop/my_easy_pop_message.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -53,13 +54,9 @@ class _AppShellPageState extends ConsumerState<AppShellPage> {
         ],
         builder: (context, child) {
           final tabsRouter = AutoTabsRouter.of(context);
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              if (ResponsiveUtils.isCompact(constraints)) {
-                return _buildCompactShell(tabsRouter, child);
-              }
-              return _buildMediumShell(tabsRouter, child, constraints);
-            },
+          return AdaptiveLayoutBuilder(
+            compact: (_) => _buildCompactShell(tabsRouter, child),
+            medium: (constraints) => _buildMediumShell(tabsRouter, child, constraints),
           );
         },
       ),

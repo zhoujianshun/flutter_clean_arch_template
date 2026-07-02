@@ -5,6 +5,7 @@ import 'package:flutter_clean_arch_template/core/router/guards/debouncer_guard.d
 import 'package:flutter_clean_arch_template/features/_example/presentation/pages/example_detail_page.dart';
 import 'package:flutter_clean_arch_template/features/_example/presentation/pages/example_list_page.dart';
 import 'package:flutter_clean_arch_template/features/_example_simple/presentation/pages/todo_list_page.dart';
+import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/master_detail_detail_page.dart';
 import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/master_detail_page.dart';
 import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/responsive_dashboard_page.dart';
 import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/responsive_article_page.dart';
@@ -82,6 +83,10 @@ class AppRouter extends RootStackRouter {
     AutoRoute(
       page: MasterDetailRoute.page,
       path: '/responsive-demo/master-detail',
+    ),
+    AutoRoute(
+      page: MasterDetailDetailRoute.page,
+      path: '/responsive-demo/master-detail/detail',
     ),
     AutoRoute(
       page: ResponsiveFormRoute.page,

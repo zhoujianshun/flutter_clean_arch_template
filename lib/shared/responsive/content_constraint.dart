@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_clean_arch_template/shared/utils/responsive_utils.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/responsive_utils.dart';
 
 /// 内容宽度约束组件
 ///

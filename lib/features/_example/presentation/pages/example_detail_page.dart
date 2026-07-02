@@ -1,8 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/features/_example/presentation/providers/example_detail_provider.dart';
-import 'package:flutter_clean_arch_template/shared/utils/responsive_utils.dart';
-import 'package:flutter_clean_arch_template/shared/widgets/content_constraint.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/content_constraint.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/responsive_utils.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/states/app_error_widget.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/states/app_loading_indicator.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

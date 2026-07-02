@@ -7,6 +7,7 @@
 - [断点定义](#断点定义)
 - [ResponsiveUtils 工具类](#responsiveutils-工具类)
 - [AdaptiveBuilder 自适应构建器](#adaptivebuilder-自适应构建器)
+- [AdaptiveLayoutBuilder 自适应布局构建器](#adaptivelayoutbuilder-自适应布局构建器)
 - [ContentConstraint 内容约束](#contentconstraint-内容约束)
 - [ResponsiveBuilder 响应式构建器](#responsivebuilder-响应式构建器)
 - [AppShellPage 自适应导航](#appshellpage-自适应导航)
@@ -29,7 +30,7 @@
 
 ## ResponsiveUtils 工具类
 
-**路径**: `lib/shared/utils/responsive_utils.dart`
+**路径**: `lib/shared/responsive/responsive_utils.dart`
 
 ### 基于约束的方法（推荐）
 
@@ -95,9 +96,9 @@ ResponsiveUtils.getCardSpacing(context);
 
 ## AdaptiveBuilder 自适应构建器
 
-**路径**: `lib/shared/widgets/adaptive_builder.dart`
+**路径**: `lib/shared/responsive/adaptive_builder.dart`
 
-声明式地在不同断点切换整个子组件树：
+声明式地在不同断点切换整个子组件树（子组件不需要 `constraints` 时使用）：
 
 ```dart
 // 基础用法：手机 vs 平板
@@ -119,40 +120,68 @@ AdaptiveBuilder(
 - expanded 宽度但 `expanded` 为 null → 使用 `medium`
 - medium 宽度但 `medium` 为 null → 使用 `expanded`（如有）或 `compact`
 
-### vs LayoutBuilder
+### 三者对比
 
-| | AdaptiveBuilder | LayoutBuilder |
-|-|:---:|:---:|
-| 用途 | 整体布局切换 | 细粒度约束控制 |
-| 参数 | Widget | BoxConstraints |
-| 适合 | 页面级布局 | 组件级尺寸调整 |
+| | AdaptiveBuilder | AdaptiveLayoutBuilder | LayoutBuilder |
+|-|:---:|:---:|:---:|
+| 用途 | 纯布局切换 | 布局切换 + 约束计算 | 连续值计算 |
+| 参数 | Widget | Widget Function(BoxConstraints) | BoxConstraints |
+| 适合 | 子组件不需要 constraints | 子组件需要 constraints 做分栏/比例 | 列数/间距等非分支场景 |
+
+---
+
+## AdaptiveLayoutBuilder 自适应布局构建器
+
+**路径**: `lib/shared/responsive/adaptive_builder.dart`
+
+与 `AdaptiveBuilder` 相同的断点逻辑和回退规则，但通过回调传递 `BoxConstraints`，
+允许子组件根据约束值做进一步的布局计算（如分栏比例、宽度值等）：
+
+```dart
+// 子组件需要 constraints 计算分栏宽度
+AdaptiveLayoutBuilder(
+  compact: (_) => MobileList(),
+  medium: (c) => SplitLayout(masterWidth: c.maxWidth * 0.4),
+)
+
+// 三级布局
+AdaptiveLayoutBuilder(
+  compact: (_) => CompactView(),
+  medium: (c) => MediumView(constraints: c),
+  expanded: (c) => ExpandedView(constraints: c),
+)
+```
+
+### 何时选择 AdaptiveLayoutBuilder 而非 AdaptiveBuilder
+
+- 子组件需要 `constraints` 来决定分栏宽度、flex 比例等 → `AdaptiveLayoutBuilder`
+- 子组件不需要 `constraints`，纯切换 → `AdaptiveBuilder`（更简洁）
+- 不是离散分支，而是用 constraints 做连续计算（如列数、间距）→ 直接用 `LayoutBuilder`
 
 ---
 
 ## ContentConstraint 内容约束
 
-**路径**: `lib/shared/widgets/content_constraint.dart`
+**路径**: `lib/shared/responsive/content_constraint.dart`
 
 在大屏上限制内容最大宽度并居中。手机上无视觉影响。
 
 ```dart
-// 登录页 —— 最大宽度 480dp
-Scaffold(
-  body: ContentConstraint(
-    maxWidth: 480,
-    child: LoginForm(),
-  ),
+// 登录页 —— 使用语义化常量
+ContentConstraint(
+  maxWidth: ResponsiveUtils.maxWidthForm,     // 480dp
+  child: LoginForm(),
 )
 
 // 详情页 —— 限制阅读宽度
 ContentConstraint(
-  maxWidth: 680,
+  maxWidth: ResponsiveUtils.maxWidthDetail,   // 680dp
   child: ArticleContent(),
 )
 
 // 设置页 —— 带外边距
 ContentConstraint(
-  maxWidth: 600,
+  maxWidth: ResponsiveUtils.maxWidthList,     // 600dp
   padding: EdgeInsets.all(16),
   child: SettingsList(),
 )
@@ -169,17 +198,18 @@ ContentConstraint(
 
 ### 推荐 maxWidth 值
 
-| 页面类型 | maxWidth | 说明 |
-|---------|---------|------|
-| 表单页（登录/注册） | 480 | 表单不宜过宽 |
-| 列表/设置页 | 600 | 标准内容宽度 |
-| 详情/文章页 | 680 | 适合长文阅读 |
+| 页面类型 | 常量 | 值 | 说明 |
+|---------|------|-----|------|
+| 窄表单（登录右侧） | `ResponsiveUtils.maxWidthFormNarrow` | 420dp | 分栏登录的表单侧 |
+| 标准表单（登录/注册） | `ResponsiveUtils.maxWidthForm` | 480dp | 表单不宜过宽 |
+| 列表/设置页 | `ResponsiveUtils.maxWidthList` | 600dp | 标准内容宽度 |
+| 详情/文章页 | `ResponsiveUtils.maxWidthDetail` | 680dp | 适合长文阅读 |
 
 ---
 
 ## ResponsiveBuilder 响应式构建器
 
-**路径**: `lib/shared/utils/responsive_utils.dart`
+**路径**: `lib/shared/responsive/responsive_utils.dart`
 
 基于 `MediaQuery` 屏幕宽度切换子组件（vs AdaptiveBuilder 基于 LayoutBuilder）：
 
@@ -242,7 +272,7 @@ routes: const [
 | 单列卡片列表 | 2 列统计网格 + 动态列表 | 左侧主面板（65%）+ 右侧动态边栏（35%） |
 
 **学习要点**：
-- 使用 `LayoutBuilder` + `ResponsiveUtils` 切换三种完全不同的布局
+- 使用 `AdaptiveLayoutBuilder` 的三级回调（compact/medium/expanded）切换三种完全不同的布局
 - `GridView.count` 配合 `shrinkWrap: true` 嵌套在 `ListView` 中
 - `Row` + `Expanded(flex:)` 实现按比例分栏
 
@@ -255,7 +285,10 @@ routes: const [
 | 列表页 → push 全屏详情页 | 左侧列表面板 + 右侧详情面板 |
 
 **学习要点**：
-- 手机用 `Navigator.push()`，平板用 `setState` 更新右侧面板
+- 使用 `AdaptiveLayoutBuilder` 切换手机/平板布局
+- 手机用 `context.router.push(MasterDetailDetailRoute(...))` 通过 AutoRoute 导航到独立详情页
+- 详情页提取为独立 `@RoutePage`（`master_detail_detail_page.dart`），支持路由守卫和 deep link
+- 平板用 `setState` 更新右侧面板（不走路由）
 - 列表项选中态高亮（`isSelected` → `primaryContainer` 背景色）
 - 详情面板使用 `ContentConstraint` 限制阅读宽度
 - `masterRatio` 根据 expanded/medium 动态调整
@@ -269,6 +302,7 @@ routes: const [
 | 全宽单列字段 | 居中卡片 + 关联字段双列排列 |
 
 **学习要点**：
+- 使用 `AdaptiveBuilder`（纯 Widget 版）切换布局——子组件不需要 constraints
 - 手机用 `.w` / `.h` 扩展做间距
 - 平板用固定 dp + `ContentConstraint` + `Card` 容器
 - 关联字段（姓/名、省/市）用 `Row` + `Expanded` 双列排列
@@ -348,20 +382,31 @@ routes: const [
 - 在线状态圆点（`Stack` + `Positioned` 叠加在头像上）
 - 未读消息数角标
 - 底部输入框固定在键盘上方（`SafeArea(top: false)`）
-- 手机用 `Navigator.push()` 进入对话，平板用 `setState` 切换右侧面板
+- 手机用 `Navigator.push()` 进入对话（有意保留原生导航，因为对话页是内部临时视图），平板用 `setState` 切换右侧面板
+- 对比 `MasterDetailPage` 的 AutoRoute 方案，了解两种导航选择的取舍
 
 ---
 
 ## 最佳实践
 
-### 1. 优先使用 LayoutBuilder，而非 MediaQuery
+### 1. 优先使用 AdaptiveBuilder / AdaptiveLayoutBuilder
 
 ```dart
-// ✅ 推荐：响应父约束
+// ✅ 最简洁：子组件不需要 constraints
+AdaptiveBuilder(
+  compact: MobileView(),
+  medium: TabletView(),
+)
+
+// ✅ 子组件需要 constraints
+AdaptiveLayoutBuilder(
+  compact: (_) => MobileView(),
+  medium: (c) => SplitView(masterWidth: c.maxWidth * 0.4),
+)
+
+// ✅ 连续计算（列数/间距）：直接用 LayoutBuilder
 LayoutBuilder(
-  builder: (context, constraints) {
-    if (ResponsiveUtils.isCompact(constraints)) { ... }
-  },
+  builder: (context, c) => GridView(crossAxisCount: ResponsiveUtils.gridColumns(c)),
 )
 
 // ❌ 避免：使用全屏宽度判断局部布局
@@ -397,9 +442,9 @@ if (1.sw > 600) { ... }  // 不要这样
 
 | 页面类型 | 最小适配（推荐所有页面） | 进阶适配（重要页面） |
 |---------|:---:|:---:|
-| 表单页 | `ContentConstraint(maxWidth: 480)` | 双列字段布局 |
-| 列表页 | `ContentConstraint(maxWidth: 600)` | 多列网格 / Master-Detail |
-| 详情页 | `ContentConstraint(maxWidth: 680)` | — |
+| 表单页 | `ContentConstraint(maxWidth: ResponsiveUtils.maxWidthForm)` | 双列字段布局 |
+| 列表页 | `ContentConstraint(maxWidth: ResponsiveUtils.maxWidthList)` | 多列网格 / Master-Detail |
+| 详情页 | `ContentConstraint(maxWidth: ResponsiveUtils.maxWidthDetail)` | — |
 | Dashboard | — | 多面板 + 边栏 |
 
 ### 5. 页面布局变体的文件组织

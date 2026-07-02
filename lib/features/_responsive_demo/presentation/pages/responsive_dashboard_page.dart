@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_clean_arch_template/shared/utils/responsive_utils.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/adaptive_builder.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// 响应式 Dashboard 示例
@@ -17,16 +17,10 @@ class ResponsiveDashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Dashboard 示例')),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          if (ResponsiveUtils.isExpanded(constraints)) {
-            return _ExpandedDashboard(constraints: constraints);
-          }
-          if (ResponsiveUtils.isMedium(constraints)) {
-            return _MediumDashboard(constraints: constraints);
-          }
-          return const _CompactDashboard();
-        },
+      body: AdaptiveLayoutBuilder(
+        compact: (_) => const _CompactDashboard(),
+        medium: (constraints) => _MediumDashboard(constraints: constraints),
+        expanded: (constraints) => _ExpandedDashboard(constraints: constraints),
       ),
     );
   }

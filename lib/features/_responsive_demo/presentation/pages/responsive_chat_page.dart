@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_clean_arch_template/shared/utils/responsive_utils.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/adaptive_builder.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/responsive_utils.dart';
 
 /// 响应式聊天/对话示例
 ///
@@ -35,13 +36,9 @@ class _ResponsiveChatPageState extends State<ResponsiveChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('聊天示例')),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          if (ResponsiveUtils.isCompact(constraints)) {
-            return _buildContactList(context, isCompact: true);
-          }
-          return _buildSplitLayout(context, constraints);
-        },
+      body: AdaptiveLayoutBuilder(
+        compact: (_) => _buildContactList(context, isCompact: true),
+        medium: (constraints) => _buildSplitLayout(context, constraints),
       ),
     );
   }
@@ -96,6 +93,15 @@ class _ResponsiveChatPageState extends State<ResponsiveChatPage> {
     );
   }
 
+  /// 手机模式：使用 Navigator.push 打开全屏对话页
+  ///
+  /// 此处有意保留原生 Navigator.push 而非 AutoRoute，原因：
+  /// 1. 对话页是页面内部的临时视图，不是全局导航目的地
+  /// 2. 接收的 [_Contact] 是页面私有数据类，不适合作为路由参数序列化
+  /// 3. 不需要 deep link、路由守卫等 AutoRoute 特性
+  ///
+  /// 如果业务中需要支持 deep link 或路由守卫，应参考 [MasterDetailPage]
+  /// 将详情页提取为独立的 @RoutePage 并通过 context.router.push() 导航。
   void _pushChatPage(BuildContext context, _Contact contact) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(

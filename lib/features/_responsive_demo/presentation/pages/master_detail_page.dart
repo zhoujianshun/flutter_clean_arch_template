@@ -1,7 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_clean_arch_template/shared/utils/responsive_utils.dart';
-import 'package:flutter_clean_arch_template/shared/widgets/content_constraint.dart';
+import 'package:flutter_clean_arch_template/core/router/app_router.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/adaptive_builder.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/content_constraint.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/responsive_utils.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// Master-Detail 分栏示例
@@ -37,13 +39,9 @@ class _MasterDetailPageState extends State<MasterDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Master-Detail 示例')),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          if (ResponsiveUtils.isCompact(constraints)) {
-            return _buildCompactLayout();
-          }
-          return _buildSplitLayout(constraints);
-        },
+      body: AdaptiveLayoutBuilder(
+        compact: (_) => _buildCompactLayout(),
+        medium: (constraints) => _buildSplitLayout(constraints),
       ),
     );
   }
@@ -106,13 +104,21 @@ class _MasterDetailPageState extends State<MasterDetailPage> {
     );
   }
 
+  /// 手机模式：通过 AutoRoute 导航到独立的详情页面
+  ///
+  /// 使用 AutoRoute 而非 Navigator.push 的好处：
+  /// - 经过路由守卫（AuthGuard、DebouncerGuard 等）
+  /// - 支持 deep link
+  /// - 统一转场动画
+  /// - 路由观察器可追踪
   void _showDetailPage(BuildContext context, int index) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => Scaffold(
-          appBar: AppBar(title: Text(_items[index].subject)),
-          body: _DetailPanel(item: _items[index]),
-        ),
+    final item = _items[index];
+    context.router.push(
+      MasterDetailDetailRoute(
+        sender: item.sender,
+        subject: item.subject,
+        preview: item.preview,
+        time: item.time,
       ),
     );
   }

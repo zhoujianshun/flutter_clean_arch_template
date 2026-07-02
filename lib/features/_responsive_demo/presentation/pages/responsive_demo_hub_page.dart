@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/core/router/app_router.dart';
-import 'package:flutter_clean_arch_template/shared/utils/responsive_utils.dart';
-import 'package:flutter_clean_arch_template/shared/widgets/content_constraint.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/content_constraint.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/responsive_utils.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// 响应式适配示例入口页面

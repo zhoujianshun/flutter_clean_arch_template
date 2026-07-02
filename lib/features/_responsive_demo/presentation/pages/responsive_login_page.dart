@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_clean_arch_template/shared/utils/responsive_utils.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/adaptive_builder.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/responsive_utils.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// 响应式登录页示例
@@ -18,13 +19,9 @@ class ResponsiveLoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          if (ResponsiveUtils.isCompact(constraints)) {
-            return const _CompactLogin();
-          }
-          return _MediumLogin(constraints: constraints);
-        },
+      body: AdaptiveLayoutBuilder(
+        compact: (_) => const _CompactLogin(),
+        medium: (constraints) => _MediumLogin(constraints: constraints),
       ),
     );
   }

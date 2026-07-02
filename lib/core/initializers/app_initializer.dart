@@ -7,7 +7,7 @@ import 'package:flutter_clean_arch_template/core/env/app_config.dart';
 import 'package:flutter_clean_arch_template/core/env/env_config_manager.dart';
 import 'package:flutter_clean_arch_template/core/initializers/refresh_init.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
-import 'package:flutter_clean_arch_template/shared/utils/responsive_utils.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/responsive_utils.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
 /// Handles all application initialization in the correct order.

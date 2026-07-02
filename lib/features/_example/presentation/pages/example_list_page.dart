@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/core/router/app_router.dart';
 import 'package:flutter_clean_arch_template/features/_example/domain/entities/example_item.dart';
 import 'package:flutter_clean_arch_template/features/_example/presentation/providers/example_list_provider.dart';
-import 'package:flutter_clean_arch_template/shared/utils/responsive_utils.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/responsive_utils.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/states/app_error_widget.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/states/app_loading_indicator.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
