@@ -8,7 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
 import 'package:flutter_clean_arch_template/core/router/app_router.dart';
 import 'package:flutter_clean_arch_template/shared/responsive/adaptive_builder.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/responsive_utils.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/layout_semantics.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/pop/my_easy_pop_message.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -36,7 +36,11 @@ class _AppShellPageState extends ConsumerState<AppShellPage> {
   /// 导航目的地配置（共享给 NavigationBar 和 NavigationRail）
   static const _destinations = <({IconData icon, IconData selectedIcon, String label})>[
     (icon: Icons.home_outlined, selectedIcon: Icons.home, label: 'Home'),
-    (icon: Icons.person_outline, selectedIcon: Icons.person, label: 'Profile'),
+    (
+      icon: Icons.person_outline,
+      selectedIcon: Icons.person,
+      label: 'Profile',
+    ),
   ];
 
   @override
@@ -132,9 +136,7 @@ class _AppShellPageState extends ConsumerState<AppShellPage> {
           NavigationRail(
             selectedIndex: tabsRouter.activeIndex,
             onDestinationSelected: tabsRouter.setActiveIndex,
-            labelType: ResponsiveUtils.isExpanded(constraints)
-                ? NavigationRailLabelType.all
-                : NavigationRailLabelType.selected,
+            labelType: LayoutSemantics.railLabelType(constraints),
             destinations: _destinations
                 .map(
                   (d) => NavigationRailDestination(

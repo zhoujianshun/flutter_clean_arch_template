@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/responsive_tokens.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/my_circular_progress_indicator.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 // 背景色是主题色，类ios按钮，默认圆角
 class MyFilledButton extends StatelessWidget {
@@ -126,18 +126,25 @@ class MyFilledButton extends StatelessWidget {
       child: Builder(
         builder: (context) {
           final theme = Theme.of(context);
-          final buttonForegroundColor = foregroundColor ?? theme.colorScheme.onPrimary;
-          final buttonDisableForegroundColor = disableForegroundColor ?? (buttonForegroundColor.withValues(alpha: 0.6));
+          final buttonForegroundColor =
+              foregroundColor ?? theme.colorScheme.onPrimary;
+          final buttonDisableForegroundColor =
+              disableForegroundColor ??
+              (buttonForegroundColor.withValues(alpha: 0.6));
           final isDisabled = onPressed == null || isLoading;
 
           var mainTextStyle =
               textStyle ??
               theme.textTheme.bodyMedium?.copyWith(
-                fontSize: fontSize ?? 14.sp,
+                fontSize:
+                    fontSize ??
+                    ResponsiveTokens.font(14, medium: 14, expanded: 14),
               );
           mainTextStyle = mainTextStyle?.copyWith(
             decoration: TextDecoration.none,
-            color: !isDisabled ? buttonForegroundColor : buttonDisableForegroundColor,
+            color: !isDisabled
+                ? buttonForegroundColor
+                : buttonDisableForegroundColor,
             height: 1,
           );
 
@@ -152,7 +159,8 @@ class MyFilledButton extends StatelessWidget {
               children: [
                 icon,
                 SizedBox(
-                  width: space ?? 4.sp,
+                  width:
+                      space ?? ResponsiveTokens.size(4, medium: 4, expanded: 4),
                 ),
                 child,
               ],
@@ -192,7 +200,8 @@ class MyFilledButton extends StatelessWidget {
   }
 
   Widget _buildButton(BuildContext context) {
-    final buttonBackgroundColor = backgroundColor ?? Theme.of(context).primaryColor;
+    final buttonBackgroundColor =
+        backgroundColor ?? Theme.of(context).primaryColor;
     final buttonDisableBackgroundColor =
         disableBackgroundColor ??
         (buttonBackgroundColor == Colors.transparent
@@ -201,7 +210,12 @@ class MyFilledButton extends StatelessWidget {
     final isDisabled = onPressed == null || isLoading;
     final actualPadding =
         padding ??
-        (width == null || height == null ? EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.w) : EdgeInsets.zero);
+        (width == null || height == null
+            ? EdgeInsets.symmetric(
+                horizontal: ResponsiveTokens.size(12, medium: 12, expanded: 12),
+                vertical: ResponsiveTokens.size(4, medium: 4, expanded: 4),
+              )
+            : EdgeInsets.zero);
 
     final Widget widget = CupertinoButton.filled(
       onPressed: isDisabled ? null : onPressed,

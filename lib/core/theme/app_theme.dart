@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/responsive_tokens.dart';
 
 /// Application color palette
 ///
@@ -79,7 +79,7 @@ class AppTheme {
         foregroundColor: AppColors.textPrimary,
         titleTextStyle: TextStyle(
           color: AppColors.textPrimary,
-          fontSize: 17.sp,
+          fontSize: ResponsiveTokens.font(17, medium: 17, expanded: 17),
           fontWeight: FontWeight.w600,
         ),
         systemOverlayStyle: SystemUiOverlayStyle.dark,
@@ -87,18 +87,25 @@ class AppTheme {
       cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(
+            ResponsiveTokens.size(12, medium: 12, expanded: 12),
+          ),
         ),
         color: AppColors.backgroundPrimary,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          minimumSize: Size(double.infinity, 48.h),
+          minimumSize: Size(
+            double.infinity,
+            ResponsiveTokens.size(48, medium: 48, expanded: 48),
+          ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: BorderRadius.circular(
+              ResponsiveTokens.size(12, medium: 12, expanded: 12),
+            ),
           ),
           textStyle: TextStyle(
-            fontSize: 16.sp,
+            fontSize: ResponsiveTokens.font(16, medium: 16, expanded: 16),
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -107,21 +114,30 @@ class AppTheme {
         filled: true,
         fillColor: AppColors.neutral100,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(
+            ResponsiveTokens.size(12, medium: 12, expanded: 12),
+          ),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(
+            ResponsiveTokens.size(12, medium: 12, expanded: 12),
+          ),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(
+            ResponsiveTokens.size(12, medium: 12, expanded: 12),
+          ),
           borderSide: const BorderSide(color: AppColors.primary),
         ),
-        contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: ResponsiveTokens.size(16, medium: 16, expanded: 16),
+          vertical: ResponsiveTokens.size(14, medium: 14, expanded: 14),
+        ),
         hintStyle: TextStyle(
           color: AppColors.textHint,
-          fontSize: 14.sp,
+          fontSize: ResponsiveTokens.font(14, medium: 14, expanded: 14),
         ),
       ),
       dividerTheme: const DividerThemeData(
@@ -134,8 +150,13 @@ class AppTheme {
         backgroundColor: AppColors.backgroundPrimary,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.neutral500,
-        selectedLabelStyle: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w600),
-        unselectedLabelStyle: TextStyle(fontSize: 11.sp),
+        selectedLabelStyle: TextStyle(
+          fontSize: ResponsiveTokens.font(11, medium: 11, expanded: 11),
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: TextStyle(
+          fontSize: ResponsiveTokens.font(11, medium: 11, expanded: 11),
+        ),
         type: BottomNavigationBarType.fixed,
       ),
     );
@@ -157,7 +178,7 @@ class AppTheme {
         backgroundColor: const Color(0xFF1E1E1E),
         titleTextStyle: TextStyle(
           color: Colors.white,
-          fontSize: 17.sp,
+          fontSize: ResponsiveTokens.font(17, medium: 17, expanded: 17),
           fontWeight: FontWeight.w600,
         ),
         systemOverlayStyle: SystemUiOverlayStyle.light,
@@ -177,24 +198,31 @@ class AppAdaptiveColors {
   }
 
   // Brand
-  static Color primary(BuildContext context) => _isDarkMode(context) ? const Color(0xFF9B8CC7) : AppColors.primary;
-  static Color primary50(BuildContext context) => _isDarkMode(context) ? const Color(0xFF2D2640) : AppColors.primary50;
+  static Color primary(BuildContext context) =>
+      _isDarkMode(context) ? const Color(0xFF9B8CC7) : AppColors.primary;
+  static Color primary50(BuildContext context) =>
+      _isDarkMode(context) ? const Color(0xFF2D2640) : AppColors.primary50;
   static Color primary500(BuildContext context) => primary(context);
   static Color primary700(BuildContext context) =>
       _isDarkMode(context) ? const Color(0xFFB39DDB) : AppColors.primary700;
 
   // Functional
-  static Color success50(BuildContext context) => _isDarkMode(context) ? const Color(0xFF1B3D1B) : AppColors.success50;
+  static Color success50(BuildContext context) =>
+      _isDarkMode(context) ? const Color(0xFF1B3D1B) : AppColors.success50;
   static Color success500(BuildContext context) =>
       _isDarkMode(context) ? const Color(0xFF66BB6A) : AppColors.success500;
-  static Color warning50(BuildContext context) => _isDarkMode(context) ? const Color(0xFF3D2E00) : AppColors.warning50;
+  static Color warning50(BuildContext context) =>
+      _isDarkMode(context) ? const Color(0xFF3D2E00) : AppColors.warning50;
   static Color warning500(BuildContext context) =>
       _isDarkMode(context) ? const Color(0xFFFFB74D) : AppColors.warning500;
-  static Color error50(BuildContext context) => _isDarkMode(context) ? const Color(0xFF3D1B1B) : AppColors.error50;
-  static Color error500(BuildContext context) => _isDarkMode(context) ? const Color(0xFFEF5350) : AppColors.error500;
+  static Color error50(BuildContext context) =>
+      _isDarkMode(context) ? const Color(0xFF3D1B1B) : AppColors.error50;
+  static Color error500(BuildContext context) =>
+      _isDarkMode(context) ? const Color(0xFFEF5350) : AppColors.error500;
 
   // Neutral scale
-  static Color neutral50(BuildContext context) => _isDarkMode(context) ? const Color(0xFF303030) : AppColors.neutral50;
+  static Color neutral50(BuildContext context) =>
+      _isDarkMode(context) ? const Color(0xFF303030) : AppColors.neutral50;
   static Color neutral100(BuildContext context) =>
       _isDarkMode(context) ? const Color(0xFF2A2A2A) : AppColors.neutral100;
   static Color neutral150(BuildContext context) =>
@@ -221,51 +249,69 @@ class AppAdaptiveColors {
       _isDarkMode(context) ? const Color(0xFFF0F0F0) : AppColors.neutral900;
 
   // Text
-  static Color textPrimary(BuildContext context) => _isDarkMode(context) ? Colors.white : AppColors.textPrimary;
+  static Color textPrimary(BuildContext context) =>
+      _isDarkMode(context) ? Colors.white : AppColors.textPrimary;
   static Color textSecondary(BuildContext context) =>
       _isDarkMode(context) ? const Color(0xFFAAAAAA) : AppColors.textSecondary;
-  static Color textHint(BuildContext context) => _isDarkMode(context) ? const Color(0xFF777777) : AppColors.textHint;
+  static Color textHint(BuildContext context) =>
+      _isDarkMode(context) ? const Color(0xFF777777) : AppColors.textHint;
   static Color textDisabled(BuildContext context) =>
       _isDarkMode(context) ? const Color(0xFF555555) : AppColors.textDisabled;
 
   // Background
-  static Color backgroundPrimary(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF1E1E1E) : AppColors.backgroundPrimary;
-  static Color backgroundSecondary(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF121212) : AppColors.backgroundSecondary;
+  static Color backgroundPrimary(BuildContext context) => _isDarkMode(context)
+      ? const Color(0xFF1E1E1E)
+      : AppColors.backgroundPrimary;
+  static Color backgroundSecondary(BuildContext context) => _isDarkMode(context)
+      ? const Color(0xFF121212)
+      : AppColors.backgroundSecondary;
 
   // Surface
-  static Color surface(BuildContext context) => _isDarkMode(context) ? const Color(0xFF1E1E1E) : Colors.white;
+  static Color surface(BuildContext context) =>
+      _isDarkMode(context) ? const Color(0xFF1E1E1E) : Colors.white;
 
   // Functional extended
-  static Color error700(BuildContext context) => _isDarkMode(context) ? const Color(0xFFEF5350) : AppColors.error700;
+  static Color error700(BuildContext context) =>
+      _isDarkMode(context) ? const Color(0xFFEF5350) : AppColors.error700;
 
   // Border & Divider
-  static Color border(BuildContext context) => _isDarkMode(context) ? const Color(0xFF333333) : AppColors.border;
-  static Color divider(BuildContext context) => _isDarkMode(context) ? const Color(0xFF2A2A2A) : AppColors.divider;
+  static Color border(BuildContext context) =>
+      _isDarkMode(context) ? const Color(0xFF333333) : AppColors.border;
+  static Color divider(BuildContext context) =>
+      _isDarkMode(context) ? const Color(0xFF2A2A2A) : AppColors.divider;
 }
 
 /// Pre-defined text styles for consistent typography.
 /// Pre-defined spacing constants
 class AppSpacing {
   AppSpacing._();
-  static double get xs => 4.w;
-  static double get sm => 8.w;
-  static double get md => 12.w;
-  static double get lg => 16.w;
-  static double get xl => 24.w;
-  static double get xxl => 32.w;
+  static double get xs => ResponsiveTokens.size(4, medium: 4, expanded: 4);
+  static double get sm => ResponsiveTokens.size(8, medium: 8, expanded: 8);
+  static double get md => ResponsiveTokens.size(12, medium: 12, expanded: 12);
+  static double get lg => ResponsiveTokens.size(16, medium: 16, expanded: 16);
+  static double get xl => ResponsiveTokens.size(24, medium: 24, expanded: 24);
+  static double get xxl => ResponsiveTokens.size(32, medium: 32, expanded: 32);
 }
 
 /// Pre-defined border radius constants
 class AppBorderRadius {
   AppBorderRadius._();
-  static BorderRadius get xs => BorderRadius.circular(4.r);
-  static BorderRadius get sm => BorderRadius.circular(8.r);
-  static BorderRadius get md => BorderRadius.circular(12.r);
-  static BorderRadius get lg => BorderRadius.circular(16.r);
-  static BorderRadius get xl => BorderRadius.circular(24.r);
-  static BorderRadius get full => BorderRadius.circular(999.r);
+  static BorderRadius get xs =>
+      BorderRadius.circular(ResponsiveTokens.size(4, medium: 4, expanded: 4));
+  static BorderRadius get sm =>
+      BorderRadius.circular(ResponsiveTokens.size(8, medium: 8, expanded: 8));
+  static BorderRadius get md => BorderRadius.circular(
+    ResponsiveTokens.size(12, medium: 12, expanded: 12),
+  );
+  static BorderRadius get lg => BorderRadius.circular(
+    ResponsiveTokens.size(16, medium: 16, expanded: 16),
+  );
+  static BorderRadius get xl => BorderRadius.circular(
+    ResponsiveTokens.size(24, medium: 24, expanded: 24),
+  );
+  static BorderRadius get full => BorderRadius.circular(
+    ResponsiveTokens.size(999, medium: 999, expanded: 999),
+  );
 }
 
 /// Pre-defined text styles for consistent typography.
@@ -276,103 +322,103 @@ class AppTextStyles {
   static const String fontFamilyRegular = '';
 
   static TextStyle get h1 => TextStyle(
-    fontSize: 32.sp,
+    fontSize: ResponsiveTokens.font(32, medium: 32, expanded: 32),
     fontWeight: FontWeight.w700,
     height: 1.2,
     letterSpacing: -0.5,
   );
 
   static TextStyle get h2 => TextStyle(
-    fontSize: 28.sp,
+    fontSize: ResponsiveTokens.font(28, medium: 28, expanded: 28),
     fontWeight: FontWeight.w700,
     height: 1.25,
     letterSpacing: -0.25,
   );
 
   static TextStyle get h3 => TextStyle(
-    fontSize: 24.sp,
+    fontSize: ResponsiveTokens.font(24, medium: 24, expanded: 24),
     fontWeight: FontWeight.w700,
     height: 1.5,
   );
 
   static TextStyle get h4 => TextStyle(
-    fontSize: 20.sp,
+    fontSize: ResponsiveTokens.font(20, medium: 20, expanded: 20),
     fontWeight: FontWeight.w700,
     height: 1.5,
   );
 
   static TextStyle get h5 => TextStyle(
-    fontSize: 18.sp,
+    fontSize: ResponsiveTokens.font(18, medium: 18, expanded: 18),
     fontWeight: FontWeight.w500,
     height: 1.5,
   );
 
   static TextStyle get h6 => TextStyle(
-    fontSize: 16.sp,
+    fontSize: ResponsiveTokens.font(16, medium: 16, expanded: 16),
     fontWeight: FontWeight.w500,
     height: 1.5,
   );
 
   static TextStyle get bodyLarge => TextStyle(
-    fontSize: 18.sp,
+    fontSize: ResponsiveTokens.font(18, medium: 18, expanded: 18),
     fontWeight: FontWeight.w400,
     height: 1.5,
   );
 
   static TextStyle get bodyMedium => TextStyle(
-    fontSize: 16.sp,
+    fontSize: ResponsiveTokens.font(16, medium: 16, expanded: 16),
     fontWeight: FontWeight.w400,
     height: 1.5,
   );
 
   static TextStyle get bodySmall => TextStyle(
-    fontSize: 14.sp,
+    fontSize: ResponsiveTokens.font(14, medium: 14, expanded: 14),
     fontWeight: FontWeight.w400,
     height: 1.5,
   );
 
   static TextStyle get bodyXSmall => TextStyle(
-    fontSize: 12.sp,
+    fontSize: ResponsiveTokens.font(12, medium: 12, expanded: 12),
     fontWeight: FontWeight.w400,
     height: 1.5,
   );
 
   static TextStyle get caption => TextStyle(
-    fontSize: 11.sp,
+    fontSize: ResponsiveTokens.font(11, medium: 11, expanded: 11),
     fontWeight: FontWeight.w400,
     height: 1.5,
   );
 
   static TextStyle get labelLarge => TextStyle(
-    fontSize: 14.sp,
+    fontSize: ResponsiveTokens.font(14, medium: 14, expanded: 14),
     fontWeight: FontWeight.w500,
     height: 1.5,
     letterSpacing: 0.1,
   );
 
   static TextStyle get labelMedium => TextStyle(
-    fontSize: 12.sp,
+    fontSize: ResponsiveTokens.font(12, medium: 12, expanded: 12),
     fontWeight: FontWeight.w500,
     height: 1.5,
     letterSpacing: 0.5,
   );
 
   static TextStyle get labelSmall => TextStyle(
-    fontSize: 10.sp,
+    fontSize: ResponsiveTokens.font(10, medium: 10, expanded: 10),
     fontWeight: FontWeight.w500,
     height: 1.5,
     letterSpacing: 0.5,
   );
 
   static TextStyle get overline => TextStyle(
-    fontSize: 10.sp,
+    fontSize: ResponsiveTokens.font(10, medium: 10, expanded: 10),
     fontWeight: FontWeight.w400,
     height: 1.5,
     letterSpacing: 1.5,
   );
 
   static TextStyle get elderlyBodyLarge => TextStyle(
-    fontSize: 20.sp,
+    fontSize: ResponsiveTokens.font(20, medium: 20, expanded: 20),
     fontWeight: FontWeight.w400,
     height: 1.5,
   );

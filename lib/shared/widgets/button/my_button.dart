@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/responsive_tokens.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/my_circular_progress_indicator.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 // 无背景色，类ios按钮
 class MyButton extends StatelessWidget {
@@ -85,19 +85,23 @@ class MyButton extends StatelessWidget {
       child: Builder(
         builder: (context) {
           final theme = Theme.of(context);
-          final buttonForegroundColor = foregroundColor ?? theme.textTheme.bodyMedium?.color;
+          final buttonForegroundColor =
+              foregroundColor ?? theme.textTheme.bodyMedium?.color;
           final isDisabled = onPressed == null || isLoading;
 
           var mainTextStyle =
               textStyle ??
               theme.textTheme.bodyMedium?.copyWith(
-                fontSize: fontSize ?? 14.sp,
+                fontSize:
+                    fontSize ??
+                    ResponsiveTokens.font(14, medium: 14, expanded: 14),
               );
           mainTextStyle = mainTextStyle?.copyWith(
             decoration: TextDecoration.none,
             color: !isDisabled
                 ? buttonForegroundColor
-                : (disableForegroundColor ?? buttonForegroundColor?.withValues(alpha: 0.6)),
+                : (disableForegroundColor ??
+                      buttonForegroundColor?.withValues(alpha: 0.6)),
           );
           Widget child = Text(
             text,
@@ -108,7 +112,8 @@ class MyButton extends StatelessWidget {
               children: [
                 icon,
                 SizedBox(
-                  width: space ?? 4.sp,
+                  width:
+                      space ?? ResponsiveTokens.size(4, medium: 4, expanded: 4),
                 ),
                 child,
               ],
@@ -149,12 +154,18 @@ class MyButton extends StatelessWidget {
     // final theme = Theme.of(context);
     final isDisabled = onPressed == null || isLoading;
 
-    final foregroundColor = this.foregroundColor ?? DefaultTextStyle.of(context).style.color;
+    final foregroundColor =
+        this.foregroundColor ?? DefaultTextStyle.of(context).style.color;
 
     // 如果没有设置 minimumSize，则使用默认内边距
     final actualPadding =
         padding ??
-        (width == null || height == null ? EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.w) : EdgeInsets.zero);
+        (width == null || height == null
+            ? EdgeInsets.symmetric(
+                horizontal: ResponsiveTokens.size(12, medium: 12, expanded: 12),
+                vertical: ResponsiveTokens.size(4, medium: 4, expanded: 4),
+              )
+            : EdgeInsets.zero);
 
     final Widget widget = CupertinoButton(
       onPressed: isDisabled ? null : onPressed,
@@ -162,12 +173,15 @@ class MyButton extends StatelessWidget {
       color: backgroundColor,
       foregroundColor: foregroundColor,
       borderRadius: borderRadius,
-      disabledColor: disableBackgroundColor ?? CupertinoColors.quaternarySystemFill,
+      disabledColor:
+          disableBackgroundColor ?? CupertinoColors.quaternarySystemFill,
       alignment: alignment,
       minimumSize: minimumSize,
       child: isLoading
           ? MyCircularProgressIndicator(
-              color: isDisabled ? foregroundColor?.withValues(alpha: 0.6) : foregroundColor,
+              color: isDisabled
+                  ? foregroundColor?.withValues(alpha: 0.6)
+                  : foregroundColor,
             )
           : child,
     );

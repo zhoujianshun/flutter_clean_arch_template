@@ -5,7 +5,10 @@
 ## 目录
 
 - [断点定义](#断点定义)
-- [ResponsiveUtils 工具类](#responsiveutils-工具类)
+- [ResponsiveBreakpoints 断点工具](#responsivebreakpoints-断点工具)
+- [ResponsiveTokens 设计 Token](#responsivetokens-设计-token)
+- [ResponsiveContextX 扩展](#responsivecontextx-扩展)
+- [LayoutSemantics 语义决策](#layoutsemantics-语义决策)
 - [AdaptiveBuilder 自适应构建器](#adaptivebuilder-自适应构建器)
 - [AdaptiveLayoutBuilder 自适应布局构建器](#adaptivelayoutbuilder-自适应布局构建器)
 - [StatefulAdaptiveBuilder 有状态自适应构建器](#statefuladaptivebuilder-有状态自适应构建器)
@@ -24,89 +27,168 @@
 
 | 尺寸类 | 宽度范围 | 典型设备 | 常量 |
 |--------|---------|---------|------|
-| Compact（紧凑） | < 600dp | 手机 | `ResponsiveUtils.compactBreakpoint` |
+| Compact（紧凑） | < 600dp | 手机 | `ResponsiveBreakpoints.compact` |
 | Medium（中等） | 600-839dp | 平板竖屏、折叠屏 | — |
-| Expanded（扩展） | ≥ 840dp | 平板横屏、桌面 | `ResponsiveUtils.expandedBreakpoint` |
+| Expanded（扩展） | ≥ 840dp | 平板横屏、桌面 | `ResponsiveBreakpoints.expanded` |
 
 ---
 
-## ResponsiveUtils 工具类
+## ResponsiveBreakpoints 断点工具
 
-**路径**: `lib/shared/responsive/responsive_utils.dart`
+**路径**: `lib/shared/responsive/breakpoints.dart`
 
-配合 `LayoutBuilder` 使用，响应父组件的实际约束（而非全屏宽度），折叠屏/分屏友好：
+断点判定的**单一真值源**，提供两套方法：
+
+### 基于 BoxConstraints（推荐）
+
+配合 `LayoutBuilder` 使用，响应父约束（折叠屏/分屏友好）：
 
 ```dart
 LayoutBuilder(
   builder: (context, constraints) {
-    // 判断当前尺寸类
-    if (ResponsiveUtils.isCompact(constraints)) { ... }
-    if (ResponsiveUtils.isMedium(constraints)) { ... }
-    if (ResponsiveUtils.isExpanded(constraints)) { ... }
+    if (ResponsiveBreakpoints.isCompact(constraints)) { ... }
+    if (ResponsiveBreakpoints.isMedium(constraints)) { ... }
+    if (ResponsiveBreakpoints.isExpanded(constraints)) { ... }
 
-    // 根据尺寸类返回不同的值
-    final columns = ResponsiveUtils.valueOf(
+    final columns = ResponsiveBreakpoints.valueOf(
       constraints,
-      compact: 1,    // 手机
-      medium: 2,     // 平板竖屏
-      expanded: 3,   // 平板横屏/桌面
+      compactValue: 1,
+      mediumValue: 2,
+      expandedValue: 3,
     );
-
-    // 快捷方法
-    final listColumns = ResponsiveUtils.gridColumns(constraints);    // 1/2/3
-    final itemColumns = ResponsiveUtils.itemGridColumns(constraints); // 2/3/4
   },
 )
 ```
 
-### 基于约束的方法（推荐）
+### 基于 BuildContext
 
-配合 `LayoutBuilder` 使用，响应父组件的实际约束（折叠屏/分屏友好）：
-
-| 方法 | 参数 | 返回 | 说明 |
-|------|------|------|------|
-| `isCompact` | `BoxConstraints` | `bool` | 宽度 < 600dp |
-| `isMedium` | `BoxConstraints` | `bool` | 宽度 600-839dp |
-| `isExpanded` | `BoxConstraints` | `bool` | 宽度 >= 840dp |
-| `valueOf<T>` | `BoxConstraints`, `compact`, `medium?`, `expanded?` | `T` | 按断点返回值 |
-| `gridColumns` | `BoxConstraints` | `int` | 列表列数 1/2/3 |
-| `itemGridColumns` | `BoxConstraints` | `int` | 网格列数 2/3/4 |
-
-### 基于 Context 的方法
-
-使用 `MediaQuery` 获取全屏宽度。适用于无法获取 `BoxConstraints` 的场景：
+使用 `MediaQuery` 获取全屏宽度，适用于无法获取 `BoxConstraints` 的场景：
 
 ```dart
-// 判断设备类型
-ResponsiveUtils.isCompactScreen(context);   // < 600dp
-ResponsiveUtils.isMediumScreen(context);    // 600-839dp
-ResponsiveUtils.isExpandedScreen(context);  // >= 840dp
+ResponsiveBreakpoints.isCompactScreen(context);   // < 600dp
+ResponsiveBreakpoints.isMediumScreen(context);    // 600-839dp
+ResponsiveBreakpoints.isExpandedScreen(context);  // >= 840dp
 
-// 根据设备类型返回不同的值
-final padding = ResponsiveUtils.screenValueOf(
+final padding = ResponsiveBreakpoints.screenValueOf(
   context,
-  compact: 16.w,
-  medium: 32,
-  expanded: 48,
+  compactValue: 16.0,
+  mediumValue: 32.0,
+  expandedValue: 48.0,
 );
 ```
 
+### WindowSizeClass 枚举
+
+```dart
+final sizeClass = ResponsiveBreakpoints.fromConstraints(constraints);
+// 或
+final sizeClass = ResponsiveBreakpoints.fromContext(context);
+
+switch (sizeClass) {
+  case WindowSizeClass.compact: ...
+  case WindowSizeClass.medium: ...
+  case WindowSizeClass.expanded: ...
+}
+```
+
+### 方法列表
+
 | 方法 | 参数 | 返回 | 说明 |
 |------|------|------|------|
+| `fromWidth` | `double` | `WindowSizeClass` | 根据宽度返回尺寸类 |
+| `fromConstraints` | `BoxConstraints` | `WindowSizeClass` | 根据约束返回尺寸类 |
+| `fromContext` | `BuildContext` | `WindowSizeClass` | 根据屏幕宽度返回尺寸类 |
+| `isCompact` | `BoxConstraints` | `bool` | 宽度 < 600dp |
+| `isMedium` | `BoxConstraints` | `bool` | 宽度 600-839dp |
+| `isExpanded` | `BoxConstraints` | `bool` | 宽度 >= 840dp |
 | `isCompactScreen` | `BuildContext` | `bool` | 屏幕宽度 < 600dp |
 | `isMediumScreen` | `BuildContext` | `bool` | 屏幕宽度 600-839dp |
 | `isExpandedScreen` | `BuildContext` | `bool` | 屏幕宽度 >= 840dp |
-| `screenValueOf<T>` | `BuildContext`, `compact`, `medium?`, `expanded?` | `T` | 按屏幕宽度返回值 |
+| `valueOf<T>` | `BoxConstraints`, `compactValue`, `mediumValue?`, `expandedValue?` | `T` | 按约束返回值 |
+| `screenValueOf<T>` | `BuildContext`, `compactValue`, `mediumValue?`, `expandedValue?` | `T` | 按屏幕宽度返回值 |
 
 ### 两套方法的选择
 
 | 场景 | 推荐方法 | 原因 |
 |------|---------|------|
 | 页面布局切换（分栏/单列） | `isCompact(constraints)` | 响应父约束，折叠屏/分屏友好 |
-| 网格列数 | `gridColumns(constraints)` | 同上 |
-| 主题 / 全局配置 | `screenValueOf(context)` | 无 LayoutBuilder 可用 |
+| 网格列数 / 间距 | `valueOf(constraints, ...)` | 同上 |
+| 主题 / 全局配置 | `screenValueOf(context, ...)` | 无 LayoutBuilder 可用 |
 | 导航策略 | `isCompactScreen(context)` | 全局导航取决于物理屏幕 |
-| 间距 / 字体等微观值 | `screenValueOf(context)` | 关心设备类型而非局部约束 |
+
+---
+
+## ResponsiveTokens 设计 Token
+
+**路径**: `lib/shared/responsive/responsive_tokens.dart`
+
+管理设计稿尺寸、内容宽度常量和缩放方法：
+
+### 设计稿尺寸
+
+| 常量 | 值 | 说明 |
+|------|-----|------|
+| `phoneDesignWidth` | 375 | 手机设计稿宽度 |
+| `phoneDesignHeight` | 812 | 手机设计稿高度 |
+| `tabletDesignWidth` | 768 | 平板设计稿宽度 |
+| `tabletDesignHeight` | 1024 | 平板设计稿高度 |
+
+### 内容最大宽度
+
+| 常量 | 值 | 适用场景 |
+|------|-----|------|
+| `maxWidthFormNarrow` | 420dp | 窄表单（登录右侧、搜索框） |
+| `maxWidthForm` | 480dp | 标准表单（登录/注册） |
+| `maxWidthList` | 600dp | 列表/设置页 |
+| `maxWidthDetail` | 680dp | 详情/文章页 |
+
+### 缩放方法
+
+| 方法 | 说明 | 适用场景 |
+|------|------|---------|
+| `compact(value)` | 按手机设计稿宽度缩放，clamp 0.85-1.15 | 仅手机端的间距 |
+| `aw(value)` | 自适应宽度，clamp 0.85-1.2 | 手机端代码可能在大屏运行 |
+| `tw(value)` | 按平板设计稿宽度缩放，clamp 0.8-1.3 | 有平板独立设计稿时 |
+| `size(compact, medium?, expanded?)` | 按断点返回尺寸值 | 不同断点不同间距 |
+| `font(compact, medium?, expanded?)` | 按断点返回字体值 | 不同断点不同字体大小 |
+
+---
+
+## ResponsiveContextX 扩展
+
+**路径**: `lib/shared/responsive/responsive_context.dart`
+
+`BuildContext` 的语义化扩展，简化断点读取：
+
+```dart
+if (context.isCompactWindow) { ... }
+if (context.isMediumWindow) { ... }
+if (context.isExpandedWindow) { ... }
+
+final sizeClass = context.windowSizeClass;
+```
+
+---
+
+## LayoutSemantics 语义决策
+
+**路径**: `lib/shared/responsive/layout_semantics.dart`
+
+封装常见的页面层布局语义决策，避免在业务代码中重复判断：
+
+```dart
+// NavigationRail 标签策略
+NavigationRail(
+  labelType: LayoutSemantics.railLabelType(constraints),
+  // expanded: all, compact/medium: selected
+)
+
+// Master-Detail 左侧面板比例
+SizedBox(
+  width: constraints.maxWidth * LayoutSemantics.masterPaneRatio(constraints),
+  // expanded: 0.35, medium: 0.4
+)
+```
 
 ---
 
@@ -201,7 +283,7 @@ StatefulAdaptiveBuilder(
 |-|:---:|:---:|:---:|:---:|
 | 用途 | 纯布局切换 | 布局切换 + 约束计算 | 布局切换 + 状态保持 | 连续值计算 |
 | 参数 | Widget | Widget Function(BoxConstraints) | Widget | BoxConstraints |
-| 状态保持 | ❌ 切换时销毁 | ❌ 切换时销毁 | ✅ IndexedStack 保持 | — |
+| 状态保持 | 切换时销毁 | 切换时销毁 | IndexedStack 保持 | — |
 | 内存 | 轻量 | 轻量 | 较重（同时持有所有子组件） | 最轻 |
 
 ---
@@ -215,19 +297,19 @@ StatefulAdaptiveBuilder(
 ```dart
 // 登录页 —— 使用语义化常量
 ContentConstraint(
-  maxWidth: ResponsiveUtils.maxWidthForm,     // 480dp
+  maxWidth: ResponsiveTokens.maxWidthForm,     // 480dp
   child: LoginForm(),
 )
 
 // 详情页 —— 限制阅读宽度
 ContentConstraint(
-  maxWidth: ResponsiveUtils.maxWidthDetail,   // 680dp
+  maxWidth: ResponsiveTokens.maxWidthDetail,   // 680dp
   child: ArticleContent(),
 )
 
 // 设置页 —— 带外边距
 ContentConstraint(
-  maxWidth: ResponsiveUtils.maxWidthList,     // 600dp
+  maxWidth: ResponsiveTokens.maxWidthList,     // 600dp
   padding: EdgeInsets.all(16),
   child: SettingsList(),
 )
@@ -238,7 +320,7 @@ ContentConstraint(
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | `child` | Widget | 必填 | 子组件 |
-| `maxWidth` | double | 600 | 最大宽度限制（dp） |
+| `maxWidth` | double | `ResponsiveTokens.maxWidthList`（600） | 最大宽度限制（dp） |
 | `alignment` | Alignment | topCenter | 对齐方式 |
 | `padding` | EdgeInsets? | null | 可选外边距 |
 
@@ -246,10 +328,10 @@ ContentConstraint(
 
 | 页面类型 | 常量 | 值 | 说明 |
 |---------|------|-----|------|
-| 窄表单（登录右侧） | `ResponsiveUtils.maxWidthFormNarrow` | 420dp | 分栏登录的表单侧 |
-| 标准表单（登录/注册） | `ResponsiveUtils.maxWidthForm` | 480dp | 表单不宜过宽 |
-| 列表/设置页 | `ResponsiveUtils.maxWidthList` | 600dp | 标准内容宽度 |
-| 详情/文章页 | `ResponsiveUtils.maxWidthDetail` | 680dp | 适合长文阅读 |
+| 窄表单（登录右侧） | `ResponsiveTokens.maxWidthFormNarrow` | 420dp | 分栏登录的表单侧 |
+| 标准表单（登录/注册） | `ResponsiveTokens.maxWidthForm` | 480dp | 表单不宜过宽 |
+| 列表/设置页 | `ResponsiveTokens.maxWidthList` | 600dp | 标准内容宽度 |
+| 详情/文章页 | `ResponsiveTokens.maxWidthDetail` | 680dp | 适合长文阅读 |
 
 ---
 
@@ -264,6 +346,8 @@ ContentConstraint(
 | < 600dp | NavigationBar（底部） | 图标 + 标签 |
 | 600-839dp | NavigationRail（左侧） | 图标 + 选中标签 |
 | ≥ 840dp | NavigationRail（左侧） | 图标 + 所有标签 |
+
+标签显示策略通过 `LayoutSemantics.railLabelType(constraints)` 统一管理。
 
 ### 添加新的导航目的地
 
@@ -289,9 +373,9 @@ routes: const [
 
 ## 自适应缩放方法
 
-**路径**: `lib/shared/responsive/responsive_utils.dart`
+**路径**: `lib/shared/responsive/responsive_tokens.dart`
 
-### `ResponsiveUtils.aw(num value)` — 自适应宽度值
+### `ResponsiveTokens.aw(num value)` — 自适应宽度值
 
 解决 ScreenUtil `.w` 在大屏上缩放比过大的问题。给缩放比设置上限（1.2 倍），
 大屏上 `aw(16)` 最大只到 19.2dp。
@@ -299,8 +383,8 @@ routes: const [
 ```dart
 // .w 在 iPad Pro 上 16.w ≈ 44dp，过大
 // aw() 限制缩放比，16 * 1.2 = 19.2dp 最大值
-SizedBox(width: ResponsiveUtils.aw(16))
-Padding(padding: EdgeInsets.all(ResponsiveUtils.aw(12)))
+SizedBox(width: ResponsiveTokens.aw(16))
+Padding(padding: EdgeInsets.all(ResponsiveTokens.aw(12)))
 ```
 
 | 场景 | 推荐 | 说明 |
@@ -309,7 +393,7 @@ Padding(padding: EdgeInsets.all(ResponsiveUtils.aw(12)))
 | 手机端代码但可能在大屏显示 | `aw()` | 大屏上不过度放大 |
 | 平板端独立布局 | 直接用 dp 或 `tw()` | 不需要手机 designSize 缩放 |
 
-### `ResponsiveUtils.tw(num value)` — 平板设计稿宽度值
+### `ResponsiveTokens.tw(num value)` — 平板设计稿宽度值
 
 以平板设计稿宽度（768dp）为基准做缩放。与 `.w` 以手机 375 为基准是对称关系。
 **仅在有两套独立设计稿时使用**；如果平板没有独立设计稿，直接用 dp 值即可。
@@ -318,8 +402,20 @@ Padding(padding: EdgeInsets.all(ResponsiveUtils.aw(12)))
 // 手机设计稿标注 16，平板设计稿标注 20
 AdaptiveLayoutBuilder(
   compact: (_) => Padding(padding: EdgeInsets.all(16.w)),             // 手机稿
-  medium: (_) => Padding(padding: EdgeInsets.all(ResponsiveUtils.tw(20))),  // 平板稿
+  medium: (_) => Padding(padding: EdgeInsets.all(ResponsiveTokens.tw(20))),  // 平板稿
 )
+```
+
+### `ResponsiveTokens.size()` / `ResponsiveTokens.font()` — 断点 Token
+
+为不同断点返回不同的尺寸/字体值。compact 端自动缩放，medium/expanded 使用固定 dp。
+
+```dart
+// 间距：手机 16 缩放，平板 24 固定
+padding: EdgeInsets.all(ResponsiveTokens.size(16, medium: 24)),
+
+// 字体：手机 14sp 缩放，平板 16 固定
+fontSize: ResponsiveTokens.font(14, medium: 16),
 ```
 
 ---
@@ -338,7 +434,7 @@ AdaptiveLayoutBuilder(
 平板端（>= 600dp）:
   fontSizeResolver 返回原始 dp 值（不缩放字体）
   布局中直接用设计稿标注的 dp 值：16、14 等
-  需要按平板稿缩放时使用 ResponsiveUtils.tw()
+  需要按平板稿缩放时使用 ResponsiveTokens.tw()
 ```
 
 ### 为什么平板端不用 ScreenUtil 缩放？
@@ -368,10 +464,10 @@ Text('标题', style: TextStyle(fontSize: 20))
 
 | 常量 | 值 | 说明 |
 |------|-----|------|
-| `ResponsiveUtils.phoneDesignWidth` | 375 | 手机设计稿宽度 |
-| `ResponsiveUtils.phoneDesignHeight` | 812 | 手机设计稿高度 |
-| `ResponsiveUtils.tabletDesignWidth` | 768 | 平板设计稿宽度 |
-| `ResponsiveUtils.tabletDesignHeight` | 1024 | 平板设计稿高度 |
+| `ResponsiveTokens.phoneDesignWidth` | 375 | 手机设计稿宽度 |
+| `ResponsiveTokens.phoneDesignHeight` | 812 | 手机设计稿高度 |
+| `ResponsiveTokens.tabletDesignWidth` | 768 | 平板设计稿宽度 |
+| `ResponsiveTokens.tabletDesignHeight` | 1024 | 平板设计稿高度 |
 
 > 如果你的设计稿尺寸不同（如 360x780、834x1194），修改这些常量即可。
 
@@ -409,7 +505,7 @@ Text('标题', style: TextStyle(fontSize: 20))
 - 平板用 `setState` 更新右侧面板（不走路由）
 - 列表项选中态高亮（`isSelected` → `primaryContainer` 背景色）
 - 详情面板使用 `ContentConstraint` 限制阅读宽度
-- `masterRatio` 根据 expanded/medium 动态调整
+- `LayoutSemantics.masterPaneRatio(constraints)` 获取分栏比例
 
 ### 3. 响应式表单
 
@@ -435,8 +531,7 @@ Text('标题', style: TextStyle(fontSize: 20))
 | 2 列 | 3 列 | 4 列 |
 
 **学习要点**：
-- `ResponsiveUtils.itemGridColumns(constraints)` 一行获取列数
-- `ResponsiveUtils.valueOf` 获取响应式间距
+- `ResponsiveBreakpoints.valueOf(constraints, compactValue: 2, ...)` 一行获取列数
 - `GridView.builder` + `SliverGridDelegateWithFixedCrossAxisCount`
 
 ### 5. 设置页分栏
@@ -524,7 +619,10 @@ AdaptiveLayoutBuilder(
 
 // ✅ 连续计算（列数/间距）：直接用 LayoutBuilder
 LayoutBuilder(
-  builder: (context, c) => GridView(crossAxisCount: ResponsiveUtils.gridColumns(c)),
+  builder: (context, c) {
+    final columns = ResponsiveBreakpoints.valueOf(c, compactValue: 2, mediumValue: 3, expandedValue: 4);
+    return GridView(crossAxisCount: columns);
+  },
 )
 
 // ❌ 避免：使用全屏宽度判断局部布局
@@ -538,7 +636,7 @@ if (MediaQuery.sizeOf(context).width < 600) { ... }
 if (Platform.isAndroid && isTabletDevice()) { ... }
 
 // ✅ 基于可用空间
-if (constraints.maxWidth >= 600) { ... }
+if (ResponsiveBreakpoints.isCompact(constraints)) { ... }
 ```
 
 ### 3. ScreenUtil 只管微观尺寸
@@ -550,7 +648,7 @@ fontSize: 14.sp,
 borderRadius: BorderRadius.circular(8.r),
 
 // ✅ 担心大屏上 .w 过大时，用 aw() 替代
-padding: EdgeInsets.all(ResponsiveUtils.aw(16)),
+padding: EdgeInsets.all(ResponsiveTokens.aw(16)),
 
 // ✅ 平板端（AdaptiveBuilder 的 medium/expanded 回调中）：直接用 dp
 padding: EdgeInsets.all(20),
@@ -566,9 +664,9 @@ if (1.sw > 600) { ... }  // 不要这样
 
 | 页面类型 | 最小适配（推荐所有页面） | 进阶适配（重要页面） |
 |---------|:---:|:---:|
-| 表单页 | `ContentConstraint(maxWidth: ResponsiveUtils.maxWidthForm)` | 双列字段布局 |
-| 列表页 | `ContentConstraint(maxWidth: ResponsiveUtils.maxWidthList)` | 多列网格 / Master-Detail |
-| 详情页 | `ContentConstraint(maxWidth: ResponsiveUtils.maxWidthDetail)` | — |
+| 表单页 | `ContentConstraint(maxWidth: ResponsiveTokens.maxWidthForm)` | 双列字段布局 |
+| 列表页 | `ContentConstraint(maxWidth: ResponsiveTokens.maxWidthList)` | 多列网格 / Master-Detail |
+| 详情页 | `ContentConstraint(maxWidth: ResponsiveTokens.maxWidthDetail)` | — |
 | Dashboard | — | 多面板 + 边栏 |
 
 ### 5. 页面布局变体的文件组织
@@ -577,10 +675,10 @@ if (1.sw > 600) { ... }  // 不要这样
 
 ```
 lib/features/xxx/presentation/pages/
-├── xxx_page.dart                  # 入口（LayoutBuilder 分发）
+├── xxx_page.dart                  # 入口（AdaptiveBuilder 分发）
 ├── layouts/
-│   ├── xxx_mobile.dart            # 手机布局
-│   └── xxx_tablet.dart            # 平板布局
+│   ├── xxx_compact_layout.dart    # 手机布局
+│   └── xxx_tablet_layout.dart     # 平板布局
 ```
 
 入口文件：
@@ -591,8 +689,8 @@ class XxxPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AdaptiveBuilder(
-      compact: const XxxMobile(),
-      medium: const XxxTablet(),
+      compact: const XxxCompactLayout(),
+      medium: const XxxTabletLayout(),
     );
   }
 }

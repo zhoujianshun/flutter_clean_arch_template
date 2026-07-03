@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/responsive_utils.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/breakpoints.dart';
 
 /// 自适应布局构建器
 ///
 /// 基于 [LayoutBuilder] 的父组件约束宽度，在不同断点返回不同的子组件。
-/// 内部使用 [ResponsiveUtils] 的断点常量（compact < 600dp, expanded >= 840dp）。
+/// 内部使用 [ResponsiveBreakpoints] 的断点常量（compact < 600dp, expanded >= 840dp）。
 ///
 /// 回退规则：
 /// - expanded 宽度但 [expanded] 为 null → 使用 [medium]
@@ -45,10 +45,10 @@ class AdaptiveBuilder extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (ResponsiveUtils.isExpanded(constraints) && expanded != null) {
+        if (ResponsiveBreakpoints.isExpanded(constraints) && expanded != null) {
           return expanded!;
         }
-        if (!ResponsiveUtils.isCompact(constraints)) {
+        if (!ResponsiveBreakpoints.isCompact(constraints)) {
           return medium ?? expanded ?? compact;
         }
         return compact;
@@ -103,10 +103,10 @@ class AdaptiveLayoutBuilder extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (ResponsiveUtils.isExpanded(constraints) && expanded != null) {
+        if (ResponsiveBreakpoints.isExpanded(constraints) && expanded != null) {
           return expanded!(constraints);
         }
-        if (!ResponsiveUtils.isCompact(constraints)) {
+        if (!ResponsiveBreakpoints.isCompact(constraints)) {
           final builder = medium ?? expanded ?? compact;
           return builder(constraints);
         }
@@ -156,18 +156,18 @@ class StatefulAdaptiveBuilder extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final children = [
+        final children = <Widget>[
           compact,
           medium ?? expanded ?? compact,
-          ?expanded,
+          expanded ?? medium ?? compact,
         ];
         final index =
-            ResponsiveUtils.isExpanded(constraints) && expanded != null
-                ? 2
-                : !ResponsiveUtils.isCompact(constraints) &&
-                        (medium ?? expanded) != null
-                    ? 1
-                    : 0;
+            ResponsiveBreakpoints.isExpanded(constraints) && expanded != null
+            ? 2
+            : !ResponsiveBreakpoints.isCompact(constraints) &&
+                  (medium ?? expanded) != null
+            ? 1
+            : 0;
         return IndexedStack(index: index, children: children);
       },
     );

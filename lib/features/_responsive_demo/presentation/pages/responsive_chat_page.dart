@@ -1,7 +1,9 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/shared/responsive/adaptive_builder.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/responsive_utils.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/breakpoints.dart';
 
 /// 响应式聊天/对话示例
 ///
@@ -23,13 +25,62 @@ class _ResponsiveChatPageState extends State<ResponsiveChatPage> {
   int? _selectedContact;
 
   static const _contacts = [
-    _Contact(name: '张三', avatar: '张', lastMessage: '好的，明天见！', time: '10:30', unread: 2, online: true),
-    _Contact(name: '李四', avatar: '李', lastMessage: '设计稿已更新', time: '09:15', unread: 0, online: true),
-    _Contact(name: '产品群', avatar: '产', lastMessage: '王五：下周发版计划确认', time: '昨天', unread: 5, online: false),
-    _Contact(name: '王五', avatar: '王', lastMessage: '收到，我看一下', time: '昨天', unread: 0, online: false),
-    _Contact(name: '赵六', avatar: '赵', lastMessage: '[图片]', time: '前天', unread: 0, online: true),
-    _Contact(name: '技术群', avatar: '技', lastMessage: '孙七：Flutter 4.0 要来了', time: '前天', unread: 12, online: false),
-    _Contact(name: '孙七', avatar: '孙', lastMessage: '周末一起吃饭？', time: '3天前', unread: 0, online: false),
+    _Contact(
+      name: '张三',
+      avatar: '张',
+      lastMessage: '好的，明天见！',
+      time: '10:30',
+      unread: 2,
+      online: true,
+    ),
+    _Contact(
+      name: '李四',
+      avatar: '李',
+      lastMessage: '设计稿已更新',
+      time: '09:15',
+      unread: 0,
+      online: true,
+    ),
+    _Contact(
+      name: '产品群',
+      avatar: '产',
+      lastMessage: '王五：下周发版计划确认',
+      time: '昨天',
+      unread: 5,
+      online: false,
+    ),
+    _Contact(
+      name: '王五',
+      avatar: '王',
+      lastMessage: '收到，我看一下',
+      time: '昨天',
+      unread: 0,
+      online: false,
+    ),
+    _Contact(
+      name: '赵六',
+      avatar: '赵',
+      lastMessage: '[图片]',
+      time: '前天',
+      unread: 0,
+      online: true,
+    ),
+    _Contact(
+      name: '技术群',
+      avatar: '技',
+      lastMessage: '孙七：Flutter 4.0 要来了',
+      time: '前天',
+      unread: 12,
+      online: false,
+    ),
+    _Contact(
+      name: '孙七',
+      avatar: '孙',
+      lastMessage: '周末一起吃饭？',
+      time: '3天前',
+      unread: 0,
+      online: false,
+    ),
   ];
 
   @override
@@ -66,7 +117,9 @@ class _ResponsiveChatPageState extends State<ResponsiveChatPage> {
 
   /// 平板布局：联系人 + 对话窗口
   Widget _buildSplitLayout(BuildContext context, BoxConstraints constraints) {
-    final contactWidth = ResponsiveUtils.isExpanded(constraints) ? 360.0 : 300.0;
+    final contactWidth = ResponsiveBreakpoints.isExpanded(constraints)
+        ? 360.0
+        : 300.0;
 
     return Row(
       children: [
@@ -82,9 +135,16 @@ class _ResponsiveChatPageState extends State<ResponsiveChatPage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.chat_bubble_outline, size: 64, color: Theme.of(context).colorScheme.outline),
+                      Icon(
+                        Icons.chat_bubble_outline,
+                        size: 64,
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
                       const SizedBox(height: 16),
-                      Text('选择一个对话', style: Theme.of(context).textTheme.bodyLarge),
+                      Text(
+                        '选择一个对话',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
                     ],
                   ),
                 ),
@@ -103,21 +163,30 @@ class _ResponsiveChatPageState extends State<ResponsiveChatPage> {
   /// 如果业务中需要支持 deep link 或路由守卫，应参考 [MasterDetailPage]
   /// 将详情页提取为独立的 @RoutePage 并通过 context.router.push() 导航。
   void _pushChatPage(BuildContext context, _Contact contact) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => Scaffold(
-          appBar: AppBar(
-            title: Row(
-              children: [
-                Text(contact.name),
-                if (contact.online) ...[
-                  const SizedBox(width: 8),
-                  Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle)),
+    unawaited(
+      Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => Scaffold(
+            appBar: AppBar(
+              title: Row(
+                children: [
+                  Text(contact.name),
+                  if (contact.online) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Colors.green,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
+            body: _ChatPanel(contact: contact),
           ),
-          body: _ChatPanel(contact: contact),
         ),
       ),
     );
@@ -145,7 +214,11 @@ class _Contact {
 }
 
 class _ContactTile extends StatelessWidget {
-  const _ContactTile({required this.contact, required this.isSelected, required this.onTap});
+  const _ContactTile({
+    required this.contact,
+    required this.isSelected,
+    required this.onTap,
+  });
   final _Contact contact;
   final bool isSelected;
   final VoidCallback onTap;
@@ -153,7 +226,11 @@ class _ContactTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: isSelected ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3) : null,
+      color: isSelected
+          ? Theme.of(
+              context,
+            ).colorScheme.primaryContainer.withValues(alpha: 0.3)
+          : null,
       child: ListTile(
         leading: Stack(
           children: [
@@ -171,14 +248,28 @@ class _ContactTile extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.green,
                     shape: BoxShape.circle,
-                    border: Border.all(color: Theme.of(context).colorScheme.surface, width: 2),
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.surface,
+                      width: 2,
+                    ),
                   ),
                 ),
               ),
           ],
         ),
-        title: Text(contact.name, style: TextStyle(fontWeight: contact.unread > 0 ? FontWeight.bold : FontWeight.normal)),
-        subtitle: Text(contact.lastMessage, maxLines: 1, overflow: TextOverflow.ellipsis),
+        title: Text(
+          contact.name,
+          style: TextStyle(
+            fontWeight: contact.unread > 0
+                ? FontWeight.bold
+                : FontWeight.normal,
+          ),
+        ),
+        subtitle: Text(
+          contact.lastMessage,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -188,8 +279,14 @@ class _ContactTile extends StatelessWidget {
               const SizedBox(height: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(color: Theme.of(context).colorScheme.error, borderRadius: BorderRadius.circular(10)),
-                child: Text('${contact.unread}', style: const TextStyle(color: Colors.white, fontSize: 11)),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.error,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '${contact.unread}',
+                  style: const TextStyle(color: Colors.white, fontSize: 11),
+                ),
               ),
             ],
           ],
@@ -210,8 +307,16 @@ class _ChatPanel extends StatelessWidget {
     final messages = [
       _Message(text: '你好！最近项目进展怎么样？', isMe: false, time: '10:20'),
       _Message(text: '还不错，正在做平板适配的功能', isMe: true, time: '10:22'),
-      _Message(text: '用的什么方案？ScreenUtil 还是 responsive_framework？', isMe: false, time: '10:23'),
-      _Message(text: '用的 LayoutBuilder + ScreenUtil 组合方案，渐进式增强', isMe: true, time: '10:25'),
+      _Message(
+        text: '用的什么方案？ScreenUtil 还是 responsive_framework？',
+        isMe: false,
+        time: '10:23',
+      ),
+      _Message(
+        text: '用的 LayoutBuilder + ScreenUtil 组合方案，渐进式增强',
+        isMe: true,
+        time: '10:25',
+      ),
       _Message(text: '这种方案不错，折叠屏也能支持', isMe: false, time: '10:26'),
       _Message(text: '是的，基于可用空间而非设备类型来做判断', isMe: true, time: '10:28'),
       _Message(text: '好的，明天见！', isMe: false, time: '10:30'),
@@ -224,7 +329,8 @@ class _ChatPanel extends StatelessWidget {
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             itemCount: messages.length,
-            itemBuilder: (context, index) => _MessageBubble(message: messages[index]),
+            itemBuilder: (context, index) =>
+                _MessageBubble(message: messages[index]),
           ),
         ),
         // 底部输入框
@@ -232,25 +338,39 @@ class _ChatPanel extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
-            border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
+            border: Border(
+              top: BorderSide(color: Theme.of(context).dividerColor),
+            ),
           ),
           child: SafeArea(
             top: false,
             child: Row(
               children: [
-                IconButton(onPressed: () {}, icon: const Icon(Icons.add_circle_outline)),
+                IconButton(
+                  onPressed: () {},
+                  icon: const Icon(Icons.add_circle_outline),
+                ),
                 Expanded(
                   child: TextField(
                     decoration: InputDecoration(
                       hintText: '输入消息...',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide.none,
+                      ),
                       filled: true,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
-                IconButton.filled(onPressed: () {}, icon: const Icon(Icons.send)),
+                IconButton.filled(
+                  onPressed: () {},
+                  icon: const Icon(Icons.send),
+                ),
               ],
             ),
           ),
@@ -276,18 +396,25 @@ class _MessageBubble extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
-        mainAxisAlignment: message.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: message.isMe
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!message.isMe) ...[
-            CircleAvatar(radius: 14, child: Text('友', style: Theme.of(context).textTheme.bodySmall)),
+            CircleAvatar(
+              radius: 14,
+              child: Text('友', style: Theme.of(context).textTheme.bodySmall),
+            ),
             const SizedBox(width: 8),
           ],
           Flexible(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: message.isMe ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.surfaceContainerHighest,
+                color: message.isMe
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(16),
                   topRight: const Radius.circular(16),
@@ -300,12 +427,21 @@ class _MessageBubble extends StatelessWidget {
                 children: [
                   Text(
                     message.text,
-                    style: TextStyle(color: message.isMe ? Colors.white : Theme.of(context).colorScheme.onSurface),
+                    style: TextStyle(
+                      color: message.isMe
+                          ? Colors.white
+                          : Theme.of(context).colorScheme.onSurface,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     message.time,
-                    style: TextStyle(fontSize: 10, color: message.isMe ? Colors.white70 : Theme.of(context).colorScheme.outline),
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: message.isMe
+                          ? Colors.white70
+                          : Theme.of(context).colorScheme.outline,
+                    ),
                   ),
                 ],
               ),

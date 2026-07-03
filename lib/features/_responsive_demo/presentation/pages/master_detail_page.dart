@@ -1,10 +1,12 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/core/router/app_router.dart';
 import 'package:flutter_clean_arch_template/shared/responsive/adaptive_builder.dart';
 import 'package:flutter_clean_arch_template/shared/responsive/content_constraint.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/responsive_utils.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/layout_semantics.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/responsive_tokens.dart';
 
 /// Master-Detail 分栏示例
 ///
@@ -25,14 +27,54 @@ class _MasterDetailPageState extends State<MasterDetailPage> {
   int? _selectedIndex;
 
   static const _items = [
-    _MessageItem(sender: '张三', subject: '项目进展更新', preview: '本周完成了用户模块的开发，下周计划开始测试...', time: '10:30'),
-    _MessageItem(sender: '李四', subject: '设计稿评审', preview: '新版设计稿已上传到 Figma，请各位抽空评审...', time: '09:15'),
-    _MessageItem(sender: '王五', subject: '线上问题反馈', preview: '用户反馈在 iOS 14 上出现闪退，已定位到...', time: '昨天'),
-    _MessageItem(sender: '赵六', subject: '会议纪要', preview: '本次迭代目标确认：完成平板适配和性能优化...', time: '昨天'),
-    _MessageItem(sender: '系统通知', subject: 'CI/CD 构建成功', preview: 'Build #256 已成功部署到测试环境...', time: '前天'),
-    _MessageItem(sender: '孙七', subject: '技术方案讨论', preview: '关于状态管理方案，建议从 Provider 迁移到 Riverpod...', time: '前天'),
-    _MessageItem(sender: '周八', subject: '代码评审建议', preview: '在 PR #89 中发现几个可以优化的地方...', time: '3天前'),
-    _MessageItem(sender: '吴九', subject: '新功能需求', preview: '产品希望在下个版本中加入暗色模式切换...', time: '3天前'),
+    _MessageItem(
+      sender: '张三',
+      subject: '项目进展更新',
+      preview: '本周完成了用户模块的开发，下周计划开始测试...',
+      time: '10:30',
+    ),
+    _MessageItem(
+      sender: '李四',
+      subject: '设计稿评审',
+      preview: '新版设计稿已上传到 Figma，请各位抽空评审...',
+      time: '09:15',
+    ),
+    _MessageItem(
+      sender: '王五',
+      subject: '线上问题反馈',
+      preview: '用户反馈在 iOS 14 上出现闪退，已定位到...',
+      time: '昨天',
+    ),
+    _MessageItem(
+      sender: '赵六',
+      subject: '会议纪要',
+      preview: '本次迭代目标确认：完成平板适配和性能优化...',
+      time: '昨天',
+    ),
+    _MessageItem(
+      sender: '系统通知',
+      subject: 'CI/CD 构建成功',
+      preview: 'Build #256 已成功部署到测试环境...',
+      time: '前天',
+    ),
+    _MessageItem(
+      sender: '孙七',
+      subject: '技术方案讨论',
+      preview: '关于状态管理方案，建议从 Provider 迁移到 Riverpod...',
+      time: '前天',
+    ),
+    _MessageItem(
+      sender: '周八',
+      subject: '代码评审建议',
+      preview: '在 PR #89 中发现几个可以优化的地方...',
+      time: '3天前',
+    ),
+    _MessageItem(
+      sender: '吴九',
+      subject: '新功能需求',
+      preview: '产品希望在下个版本中加入暗色模式切换...',
+      time: '3天前',
+    ),
   ];
 
   @override
@@ -49,7 +91,8 @@ class _MasterDetailPageState extends State<MasterDetailPage> {
   /// 手机布局：纯列表，点击 push 详情页
   Widget _buildCompactLayout() {
     return ListView.builder(
-      padding: EdgeInsets.all(8.w),
+      key: const PageStorageKey<String>('master_detail_compact_list'),
+      padding: EdgeInsets.all(ResponsiveTokens.size(8, medium: 8, expanded: 8)),
       itemCount: _items.length,
       itemBuilder: (context, index) {
         final item = _items[index];
@@ -64,7 +107,7 @@ class _MasterDetailPageState extends State<MasterDetailPage> {
 
   /// 平板布局：左右分栏
   Widget _buildSplitLayout(BoxConstraints constraints) {
-    final masterRatio = ResponsiveUtils.isExpanded(constraints) ? 0.35 : 0.4;
+    final masterRatio = LayoutSemantics.masterPaneRatio(constraints);
 
     return Row(
       children: [
@@ -93,9 +136,16 @@ class _MasterDetailPageState extends State<MasterDetailPage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.mail_outline, size: 64, color: Theme.of(context).colorScheme.outline),
+                      Icon(
+                        Icons.mail_outline,
+                        size: 64,
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
                       const SizedBox(height: 16),
-                      Text('选择一条消息查看详情', style: Theme.of(context).textTheme.bodyLarge),
+                      Text(
+                        '选择一条消息查看详情',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
                     ],
                   ),
                 ),
@@ -113,12 +163,14 @@ class _MasterDetailPageState extends State<MasterDetailPage> {
   /// - 路由观察器可追踪
   void _showDetailPage(BuildContext context, int index) {
     final item = _items[index];
-    context.router.push(
-      MasterDetailDetailRoute(
-        sender: item.sender,
-        subject: item.subject,
-        preview: item.preview,
-        time: item.time,
+    unawaited(
+      context.router.push(
+        MasterDetailDetailRoute(
+          sender: item.sender,
+          subject: item.subject,
+          preview: item.preview,
+          time: item.time,
+        ),
       ),
     );
   }
@@ -158,7 +210,11 @@ class _MessageListTile extends StatelessWidget {
       child: ListTile(
         leading: CircleAvatar(child: Text(item.sender[0])),
         title: Text(item.subject, maxLines: 1, overflow: TextOverflow.ellipsis),
-        subtitle: Text(item.preview, maxLines: 1, overflow: TextOverflow.ellipsis),
+        subtitle: Text(
+          item.preview,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         trailing: Text(item.time, style: Theme.of(context).textTheme.bodySmall),
         onTap: onTap,
       ),
@@ -173,7 +229,7 @@ class _DetailPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ContentConstraint(
-      maxWidth: ResponsiveUtils.maxWidthDetail,
+      maxWidth: ResponsiveTokens.maxWidthDetail,
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -181,21 +237,36 @@ class _DetailPanel extends StatelessWidget {
           children: [
             Row(
               children: [
-                CircleAvatar(radius: 24, child: Text(item.sender[0], style: const TextStyle(fontSize: 20))),
+                CircleAvatar(
+                  radius: 24,
+                  child: Text(
+                    item.sender[0],
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(item.sender, style: Theme.of(context).textTheme.titleMedium),
-                      Text(item.time, style: Theme.of(context).textTheme.bodySmall),
+                      Text(
+                        item.sender,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      Text(
+                        item.time,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 24),
-            Text(item.subject, style: Theme.of(context).textTheme.headlineSmall),
+            Text(
+              item.subject,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
             const SizedBox(height: 16),
             Text(
               '${item.preview}\n\n'
@@ -206,7 +277,9 @@ class _DetailPanel extends StatelessWidget {
               '• 聊天列表 → 对话窗口\n'
               '• 设置分类 → 设置项\n'
               '• 文件列表 → 文件预览',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.8),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(height: 1.8),
             ),
           ],
         ),

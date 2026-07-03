@@ -9,7 +9,8 @@ import 'package:flutter_clean_arch_template/core/theme/app_theme.dart';
 import 'package:flutter_clean_arch_template/core/theme/theme_mode_provider.dart';
 import 'package:flutter_clean_arch_template/features/auth/presentation/widgets/auth_navigation_listener.dart';
 import 'package:flutter_clean_arch_template/generated/l10n/app_localizations.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/responsive_utils.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/breakpoints.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/responsive_tokens.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -40,20 +41,21 @@ class MyApp extends ConsumerWidget {
 
     return ScreenUtilInit(
       designSize: const Size(
-        ResponsiveUtils.phoneDesignWidth,
-        ResponsiveUtils.phoneDesignHeight,
+        ResponsiveTokens.phoneDesignWidth,
+        ResponsiveTokens.phoneDesignHeight,
       ),
       minTextAdapt: true,
       splitScreenMode: true,
       useInheritedMediaQuery: true,
       fontSizeResolver: (fontSize, instance) {
         // 平板/桌面端（>= 600dp）：不缩放字体，直接使用设计稿 dp 值
-        if (instance.screenWidth >= ResponsiveUtils.compactBreakpoint) {
+        if (instance.screenWidth >= ResponsiveBreakpoints.compact) {
           return fontSize.toDouble();
         }
         // 手机端：宽高混合缩放，避免极端屏幕比例下字体失真
-        final scaleW = instance.screenWidth / ResponsiveUtils.phoneDesignWidth;
-        final scaleH = instance.screenHeight / ResponsiveUtils.phoneDesignHeight;
+        final scaleW = instance.screenWidth / ResponsiveTokens.phoneDesignWidth;
+        final scaleH =
+            instance.screenHeight / ResponsiveTokens.phoneDesignHeight;
         final scale = min(scaleW, scaleH) * 0.85 + max(scaleW, scaleH) * 0.15;
         return fontSize * scale;
       },

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/core/router/app_router.dart';
 import 'package:flutter_clean_arch_template/features/_example/domain/entities/example_item.dart';
 import 'package:flutter_clean_arch_template/features/_example/presentation/providers/example_list_provider.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/responsive_utils.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/breakpoints.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/states/app_error_widget.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/states/app_loading_indicator.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -38,7 +38,12 @@ class ExampleListPage extends ConsumerWidget {
             onRefresh: () => ref.read(exampleListProvider.notifier).refresh(),
             child: LayoutBuilder(
               builder: (context, constraints) {
-                final columns = ResponsiveUtils.gridColumns(constraints);
+                final columns = ResponsiveBreakpoints.valueOf(
+                  constraints,
+                  compactValue: 1,
+                  mediumValue: 2,
+                  expandedValue: 3,
+                );
                 if (columns > 1) {
                   return GridView.builder(
                     padding: EdgeInsets.all(16.w),
@@ -53,7 +58,11 @@ class ExampleListPage extends ConsumerWidget {
                       final item = items[index];
                       return _ExampleItemCard(
                         item: item,
-                        onTap: () => unawaited(context.router.push(ExampleDetailRoute(itemId: item.id))),
+                        onTap: () => unawaited(
+                          context.router.push(
+                            ExampleDetailRoute(itemId: item.id),
+                          ),
+                        ),
                       );
                     },
                   );
@@ -66,7 +75,11 @@ class ExampleListPage extends ConsumerWidget {
                     final item = items[index];
                     return _ExampleItemCard(
                       item: item,
-                      onTap: () => unawaited(context.router.push(ExampleDetailRoute(itemId: item.id))),
+                      onTap: () => unawaited(
+                        context.router.push(
+                          ExampleDetailRoute(itemId: item.id),
+                        ),
+                      ),
                     );
                   },
                 );
@@ -75,8 +88,10 @@ class ExampleListPage extends ConsumerWidget {
           );
         },
         loading: () => const AppLoadingIndicator(),
-        error: (error, stack) =>
-            AppErrorWidget(error: error.toString(), onRetry: () => ref.invalidate(exampleListProvider)),
+        error: (error, stack) => AppErrorWidget(
+          error: error.toString(),
+          onRetry: () => ref.invalidate(exampleListProvider),
+        ),
       ),
     );
   }
@@ -104,7 +119,11 @@ class _ExampleItemCard extends StatelessWidget {
         ),
         title: Text(item.title),
         subtitle: item.description != null
-            ? Text(item.description!, maxLines: 1, overflow: TextOverflow.ellipsis)
+            ? Text(
+                item.description!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              )
             : null,
         trailing: const Icon(Icons.chevron_right),
         onTap: onTap,

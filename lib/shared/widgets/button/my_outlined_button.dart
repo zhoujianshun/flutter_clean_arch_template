@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/core/theme/app_theme.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/responsive_tokens.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/my_circular_progress_indicator.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 enum MyOutlinedButtonType {
   primary,
@@ -121,7 +121,8 @@ class MyOutlinedButton extends StatelessWidget {
           final mainColor = type == MyOutlinedButtonType.primary
               ? Theme.of(context).primaryColor
               : AppAdaptiveColors.neutral700(context);
-          final buttonForegroundColor = foregroundColor ?? borderColor ?? mainColor;
+          final buttonForegroundColor =
+              foregroundColor ?? borderColor ?? mainColor;
 
           // 禁用状态判断
           final isDisabled = onPressed == null || isLoading;
@@ -129,13 +130,16 @@ class MyOutlinedButton extends StatelessWidget {
           var mainTextStyle =
               textStyle ??
               Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontSize: fontSize ?? 14.sp,
+                fontSize:
+                    fontSize ??
+                    ResponsiveTokens.font(14, medium: 14, expanded: 14),
               );
           mainTextStyle = mainTextStyle?.copyWith(
             decoration: TextDecoration.none,
             color: !isDisabled
                 ? buttonForegroundColor
-                : (disabledForegroundColor ?? buttonForegroundColor.withValues(alpha: 0.6)),
+                : (disabledForegroundColor ??
+                      buttonForegroundColor.withValues(alpha: 0.6)),
             height: 1,
           );
 
@@ -151,7 +155,10 @@ class MyOutlinedButton extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 icon,
-                SizedBox(width: space ?? 4.sp),
+                SizedBox(
+                  width:
+                      space ?? ResponsiveTokens.size(4, medium: 4, expanded: 4),
+                ),
                 child,
               ],
             );
@@ -238,12 +245,17 @@ class MyOutlinedButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final mainColor = type == MyOutlinedButtonType.primary ? theme.primaryColor : AppAdaptiveColors.neutral500(context);
+    final mainColor = type == MyOutlinedButtonType.primary
+        ? theme.primaryColor
+        : AppAdaptiveColors.neutral500(context);
 
     final effectiveBorderColor = borderColor ?? mainColor;
-    final effectiveDisabledBorderColor = disabledBorderColor ?? effectiveBorderColor.withValues(alpha: 0.6);
+    final effectiveDisabledBorderColor =
+        disabledBorderColor ?? effectiveBorderColor.withValues(alpha: 0.6);
     final effectiveBorderWidth = borderWidth ?? 1.0;
-    final effectiveBorderRadius = borderRadius ?? BorderRadius.circular(8.r);
+    final effectiveBorderRadius =
+        borderRadius ??
+        BorderRadius.circular(ResponsiveTokens.size(8, medium: 8, expanded: 8));
 
     // 禁用状态判断
     final isDisabled = onPressed == null || isLoading;
@@ -251,14 +263,24 @@ class MyOutlinedButton extends StatelessWidget {
     // 计算内边距
     final effectivePadding =
         padding ??
-        (width == null || height == null ? EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.w) : EdgeInsets.zero);
+        (width == null || height == null
+            ? EdgeInsets.symmetric(
+                horizontal: ResponsiveTokens.size(12, medium: 12, expanded: 12),
+                vertical: ResponsiveTokens.size(4, medium: 4, expanded: 4),
+              )
+            : EdgeInsets.zero);
 
     // 构建按钮内容 - 使用 Align 配合 widthFactor 实现紧凑布局
     final buttonChild = Container(
       decoration: BoxDecoration(
-        color: !isDisabled ? backgroundColor : (disabledBackgroundColor ?? backgroundColor?.withValues(alpha: 0.6)),
+        color: !isDisabled
+            ? backgroundColor
+            : (disabledBackgroundColor ??
+                  backgroundColor?.withValues(alpha: 0.6)),
         border: Border.all(
-          color: !isDisabled ? effectiveBorderColor : effectiveDisabledBorderColor,
+          color: !isDisabled
+              ? effectiveBorderColor
+              : effectiveDisabledBorderColor,
           width: effectiveBorderWidth,
         ),
         borderRadius: effectiveBorderRadius,

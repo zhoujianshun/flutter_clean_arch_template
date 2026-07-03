@@ -107,11 +107,19 @@
 | [PLATFORM_CHANNEL_ERROR_HANDLING.md](monitoring/PLATFORM_CHANNEL_ERROR_HANDLING.md) | Platform Channel 错误处理 |
 | [FIREBASE_VS_SENTRY_COMPARISON.md](monitoring/FIREBASE_VS_SENTRY_COMPARISON.md) | Firebase Crashlytics vs Sentry 对比 |
 
-### UI 设计 (`ui-design/`)
+### 响应式适配 (`responsive/`)
 
 | 文档 | 主题 |
 |------|------|
-| [SCREENUTIL_GUIDE.md](ui-design/SCREENUTIL_GUIDE.md) | ScreenUtil 与屏幕适配指南（含手机/平板适配建议） |
+| [RESPONSIVE_COMPONENTS_API.md](responsive/RESPONSIVE_COMPONENTS_API.md) | 响应式组件 API 参考（核心文档） |
+| [SCREENUTIL_GUIDE.md](responsive/SCREENUTIL_GUIDE.md) | ScreenUtil 屏幕适配指南 |
+| [TABLET_ADAPTATION_GUIDE.md](responsive/TABLET_ADAPTATION_GUIDE.md) | 平板适配架构决策记录（ADR） |
+| [RESPONSIVE_BEST_PRACTICES_COMPARISON.md](responsive/RESPONSIVE_BEST_PRACTICES_COMPARISON.md) | 企业级响应式方案对比（2026） |
+
+### UI 设计 (`ui-design/`)
+
+| 文档 | 主题 |
+|------|------|9002dc4 (feat: enhance responsive design documentation and implement orientation policy)
 | [CUSTOM_THEME_GUIDE.md](ui-design/CUSTOM_THEME_GUIDE.md) | 自定义主题设计指南 |
 | [THEME_SWITCHING_GUIDE.md](ui-design/THEME_SWITCHING_GUIDE.md) | 主题切换实现指南 |
 

@@ -54,19 +54,19 @@
 | 尺寸类 | 宽度范围 |
 |--------|---------|
 | Compact | < 600dp |
-| Medium | 600-1023dp |
-| Expanded | ≥ 1024dp |
+| Medium | 600-839dp |
+| Expanded | ≥ 840dp |
 
 ### 对比分析
 
 | 维度 | 行业最佳实践 | 当前项目 | 差距 |
 |------|------------|---------|------|
-| 断点数量 | 5 级（compact → extraLarge） | 3 级（compact → expanded） | Medium 上界不同（839 vs 1023），缺少 large/extraLarge |
-| Medium 上界 | 840dp | 1024dp | 当前将 840-1023dp 归入 Medium 而非 Expanded |
+| 断点数量 | 5 级（compact → extraLarge） | 3 级（compact → expanded） | 缺少 large/extraLarge |
+| Medium 上界 | 840dp | 840dp | 与 Material 3 一致 |
 | 大屏覆盖 | 区分 large（1200+）和 extraLarge（1600+） | 统一归入 Expanded | 桌面场景缺乏精细控制 |
-| 实现方式 | `window_size_classes` 包 / 自定义 | 自定义 `ResponsiveUtils` | 功能等价，自定义更灵活 |
+| 实现方式 | `window_size_classes` 包 / 自定义 | 自定义 `ResponsiveBreakpoints` | 功能等价，自定义更灵活 |
 
-**评估**：对于以手机+平板为目标的项目，3 级断点已经**足够**。当前 Medium 上界设为 1024 而非 839，实际上是一种简化选择——在平板竖屏（通常 768-820dp）和横屏（1024dp+）之间做二分，对移动端项目是合理的。如果未来需要支持桌面端，再扩展 large/extraLarge 即可。
+**评估**：对于以手机+平板为目标的项目，3 级断点已经**足够**。当前实现已对齐 Material 3 的 `600/840`，可继续作为企业级默认方案；若未来扩展桌面端，再追加 large/extraLarge 即可。
 
 ---
 
@@ -91,14 +91,14 @@
 - `AdaptiveBuilder`：纯 Widget 切换，子组件不需要 constraints
 - `AdaptiveLayoutBuilder`：builder 回调版，传递 constraints
 - `LayoutBuilder`：连续计算场景（列数、间距）
-- `ResponsiveUtils`：断点常量 + 工具方法
+- `ResponsiveBreakpoints`：断点常量 + 工具方法
 
 ### 对比分析
 
 | 维度 | 行业最佳实践 | 当前项目 | 评价 |
 |------|------------|---------|------|
 | 核心机制 | LayoutBuilder | LayoutBuilder（封装为 AdaptiveBuilder） | **一致** |
-| 断点集中管理 | 常量文件 | `ResponsiveUtils` 集中管理 | **一致** |
+| 断点集中管理 | 常量文件 | `ResponsiveBreakpoints` 集中管理 | **一致** |
 | 导航壳层抽象 | `adaptive_scaffold_router` 或自定义 | 自定义 `AppShellPage` | **一致**（自定义方案） |
 | API 分层 | 简单/builder 两种 | `AdaptiveBuilder` / `AdaptiveLayoutBuilder` 分层 | **优于** 多数自定义方案 |
 | 三方包依赖 | 按需选择 | 零三方依赖（响应式部分） | **优势**，完全可控 |
@@ -203,7 +203,7 @@ fontSizeResolver: (fontSize, instance) {
 ### 当前项目
 
 ```dart
-if (shortestSide >= ResponsiveUtils.compactBreakpoint) {
+if (shortestSide >= ResponsiveBreakpoints.compact) {
   // 平板：允许所有方向
 } else {
   // 手机：仅竖屏
@@ -243,7 +243,7 @@ ConstrainedBox(
 
 ```dart
 ContentConstraint(
-  maxWidth: ResponsiveUtils.maxWidthDetail,  // 680dp
+  maxWidth: ResponsiveTokens.maxWidthDetail,  // 680dp
   child: content,
 )
 ```
@@ -367,7 +367,7 @@ ContentConstraint(
 
 | 编号 | 改进项 | 理由 | 工作量 |
 |------|--------|------|--------|
-| 1 | ScreenUtil `.w` 大屏上限 | 平板上 `16.w` ≈ 22dp，间距偏大。可在 `ResponsiveUtils` 中添加一个 `adaptiveW()` 方法，大屏上 clamp 缩放比 | 小 |
+| 1 | ScreenUtil `.w` 大屏上限 | 平板上 `16.w` ≈ 22dp，间距偏大。可使用 `ResponsiveTokens.aw()` 方法，大屏上 clamp 缩放比 | 小 |
 | 2 | 断点切换状态保持 | 在 `AdaptiveLayoutBuilder` 中使用 `IndexedStack` 或 key 策略保持子组件状态 | 中 |
 | 3 | Medium 断点上界调整为 840dp | 对齐 Material 3 官方标准 | 小（但需检查所有布局） |
 
@@ -443,13 +443,13 @@ ResponsiveValue<double>(context,
 
 | 功能 | responsive_framework | 当前项目方案 | 分析 |
 |------|---------------------|-------------|------|
-| **断点定义** | `Breakpoint(start, end, name)` 全局注册，通过 `InheritedWidget` 传递 | `ResponsiveUtils` 静态常量 + `LayoutBuilder` 局部判断 | RF 基于 `MediaQuery`（全屏宽度）；当前方案基于 `LayoutBuilder`（父约束宽度）。**当前方案更优**——在分屏、折叠屏场景下更准确 |
-| **断点查询** | `ResponsiveBreakpoints.of(context).isTablet` | `ResponsiveUtils.isCompact(constraints)` | RF 更语义化；当前方案更精确（基于实际约束） |
+| **断点定义** | `Breakpoint(start, end, name)` 全局注册，通过 `InheritedWidget` 传递 | `ResponsiveBreakpoints` 静态常量 + `LayoutBuilder` 局部判断 | RF 基于 `MediaQuery`（全屏宽度）；当前方案基于 `LayoutBuilder`（父约束宽度）。**当前方案更优**——在分屏、折叠屏场景下更准确 |
+| **断点查询** | `ResponsiveBreakpoints.of(context).isTablet` | `ResponsiveBreakpoints.isCompact(constraints)` | RF 更语义化；当前方案更精确（基于实际约束） |
 | **布局切换** | 无专用组件，需自己 if/else | `AdaptiveBuilder` / `AdaptiveLayoutBuilder` | **当前方案更优**——提供声明式组件封装 |
 | **AutoScale（等比缩放）** | `ResponsiveScaledBox`：FittedBox 包裹，整个页面等比缩放 | `flutter_screenutil`：`.w`/`.h` 逐属性缩放 | **理念不同**：RF 缩放整个 Widget 树（视觉上是"放大镜"）；ScreenUtil 缩放每个具体数值。RF 的方式快速但牺牲信息密度 |
 | **最大宽度** | `MaxWidthBox(maxWidth: 1200)` | `ContentConstraint(maxWidth: ...)` + 语义化常量 | **功能等价**，当前方案的语义化常量更易维护 |
 | **Row/Column 切换** | `ResponsiveRowColumn` | 手动用 `AdaptiveBuilder` 切换 | RF 更便捷；但当前方案更灵活（可在切换时改变完全不同的 Widget 树） |
-| **条件取值** | `ResponsiveValue<T>` | `ResponsiveUtils.valueOf<T>` | **功能等价** |
+| **条件取值** | `ResponsiveValue<T>` | `ResponsiveBreakpoints.valueOf<T>` | **功能等价** |
 
 ### 12.4 AutoScale 深度分析
 
@@ -532,7 +532,7 @@ responsive_framework AutoScale:
 
 理由：
 
-1. **当前方案已覆盖其核心能力**：`ResponsiveUtils.valueOf` ≈ `ResponsiveValue`，`ContentConstraint` ≈ `MaxWidthBox`，`AdaptiveBuilder` > RF 的布局切换能力
+1. **当前方案已覆盖其核心能力**：`ResponsiveBreakpoints.valueOf` ≈ `ResponsiveValue`，`ContentConstraint` ≈ `MaxWidthBox`，`AdaptiveBuilder` > RF 的布局切换能力
 2. **AutoScale 与项目理念冲突**：项目已为平板做了结构性适配（Master-Detail、NavigationRail、多列网格），AutoScale 的"放大镜"效果反而是退步
 3. **断点来源更劣**：RF 使用 `MediaQuery`（全屏宽度），在分屏/折叠屏场景下不如 `LayoutBuilder`（父约束宽度）准确
 4. **维护风险**：22 个月未更新，42 个 open issues，Flutter 3.44 兼容性未验证

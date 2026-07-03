@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/responsive_tokens.dart';
 
 /// 带加载状态的按钮组件
 class PrimaryButton extends StatelessWidget {
@@ -66,25 +66,33 @@ class PrimaryButton extends StatelessWidget {
       disabledForegroundColor: disabledForegroundColor,
       width: width,
       height: height,
-      child: Builder(builder: (context) {
-        final theme = Theme.of(context);
-        final fgColor = foregroundColor ?? theme.colorScheme.surfaceContainerHighest;
-        var mainTextStyle = textStyle ??
-            theme.textTheme.bodyMedium?.copyWith(
-              fontSize: fontSize ?? 14.sp,
-            );
-        mainTextStyle = mainTextStyle?.copyWith(
-          decoration: TextDecoration.none,
-          color: onPressed != null ? fgColor : (disabledForegroundColor ?? fgColor.withValues(alpha: 0.6)),
-          height: 1,
-        );
-        return Text(
-          text,
-          style: mainTextStyle,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        );
-      }),
+      child: Builder(
+        builder: (context) {
+          final theme = Theme.of(context);
+          final fgColor =
+              foregroundColor ?? theme.colorScheme.surfaceContainerHighest;
+          var mainTextStyle =
+              textStyle ??
+              theme.textTheme.bodyMedium?.copyWith(
+                fontSize:
+                    fontSize ??
+                    ResponsiveTokens.font(14, medium: 14, expanded: 14),
+              );
+          mainTextStyle = mainTextStyle?.copyWith(
+            decoration: TextDecoration.none,
+            color: onPressed != null
+                ? fgColor
+                : (disabledForegroundColor ?? fgColor.withValues(alpha: 0.6)),
+            height: 1,
+          );
+          return Text(
+            text,
+            style: mainTextStyle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          );
+        },
+      ),
     );
   }
 
@@ -153,20 +161,28 @@ class PrimaryButton extends StatelessWidget {
   Widget _buildButton(BuildContext context) {
     final theme = Theme.of(context);
     // final height = this.height ?? 48;
-    final roundedBorderRadius = isRounded ? BorderRadius.circular(999999) : null;
+    final roundedBorderRadius = isRounded
+        ? BorderRadius.circular(999999)
+        : null;
 
     final bgColor = backgroundColor ?? theme.primaryColor;
-    final fgColor = foregroundColor ?? theme.colorScheme.surfaceContainerHighest;
+    final fgColor =
+        foregroundColor ?? theme.colorScheme.surfaceContainerHighest;
 
     final actualPadding = minimumSize == null && width == null && height == null
-        ? EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.w)
+        ? EdgeInsets.symmetric(
+            horizontal: ResponsiveTokens.size(12, medium: 12, expanded: 12),
+            vertical: ResponsiveTokens.size(4, medium: 4, expanded: 4),
+          )
         : padding;
 
     return ElevatedButton(
       onPressed: isLoading ? null : onPressed,
       style: ElevatedButton.styleFrom(
-        disabledBackgroundColor: disabledBackgroundColor ?? bgColor.withValues(alpha: 0.6),
-        disabledForegroundColor: disabledForegroundColor ?? fgColor.withValues(alpha: 0.7),
+        disabledBackgroundColor:
+            disabledBackgroundColor ?? bgColor.withValues(alpha: 0.6),
+        disabledForegroundColor:
+            disabledForegroundColor ?? fgColor.withValues(alpha: 0.7),
         backgroundColor: bgColor,
         foregroundColor: fgColor,
         // 去除按钮的padding
@@ -176,8 +192,8 @@ class PrimaryButton extends StatelessWidget {
         shape: roundedBorderRadius != null
             ? RoundedRectangleBorder(borderRadius: roundedBorderRadius)
             : borderRadius != null
-                ? RoundedRectangleBorder(borderRadius: borderRadius!)
-                : null,
+            ? RoundedRectangleBorder(borderRadius: borderRadius!)
+            : null,
       ),
       child: isLoading
           ? SizedBox(

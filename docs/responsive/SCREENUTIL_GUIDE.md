@@ -4,13 +4,13 @@
 
 ## 概述
 
-`flutter_screenutil` 负责**微观尺寸**的适配（间距、字体、圆角等），而**宏观布局**（分栏、导航切换）由 `ResponsiveUtils` + `AdaptiveBuilder` 体系处理。两者各司其职：
+`flutter_screenutil` 负责**微观尺寸**的适配（间距、字体、圆角等），而**宏观布局**（分栏、导航切换）由 `ResponsiveBreakpoints` + `AdaptiveBuilder` 体系处理。两者各司其职：
 
 | 职责 | 工具 | 示例 |
 |------|------|------|
 | 间距 / 字体 / 圆角缩放 | ScreenUtil `.w` `.sp` `.r` | `padding: EdgeInsets.all(16.w)` |
-| 大屏缩放上限 | `ResponsiveUtils.aw()` | `SizedBox(width: ResponsiveUtils.aw(16))` |
-| 平板设计稿缩放 | `ResponsiveUtils.tw()` | `padding: EdgeInsets.all(ResponsiveUtils.tw(20))` |
+| 大屏缩放上限 | `ResponsiveTokens.aw()` | `SizedBox(width: ResponsiveTokens.aw(16))` |
+| 平板设计稿缩放 | `ResponsiveTokens.tw()` | `padding: EdgeInsets.all(ResponsiveTokens.tw(20))` |
 | 布局结构切换 | `AdaptiveBuilder` / `AdaptiveLayoutBuilder` | 手机单列 → 平板分栏 |
 
 ## 初始化配置
@@ -28,25 +28,26 @@ dependencies:
 
 ```dart
 import 'dart:math';
-import 'package:flutter_clean_arch_template/shared/responsive/responsive_utils.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/breakpoints.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/responsive_tokens.dart';
 
 return ScreenUtilInit(
   // 使用手机端设计稿尺寸（375 × 812）
   designSize: const Size(
-    ResponsiveUtils.phoneDesignWidth,   // 375
-    ResponsiveUtils.phoneDesignHeight,  // 812
+    ResponsiveTokens.phoneDesignWidth,   // 375
+    ResponsiveTokens.phoneDesignHeight,  // 812
   ),
   minTextAdapt: true,
   splitScreenMode: true,
   useInheritedMediaQuery: true,
   fontSizeResolver: (fontSize, instance) {
     // 平板/桌面端（>= 600dp）：不缩放字体，直接用 dp 值
-    if (instance.screenWidth >= ResponsiveUtils.compactBreakpoint) {
+    if (instance.screenWidth >= ResponsiveBreakpoints.compact) {
       return fontSize.toDouble();
     }
     // 手机端：宽高混合缩放，避免极端屏幕比例下字体失真
-    final scaleW = instance.screenWidth / ResponsiveUtils.phoneDesignWidth;
-    final scaleH = instance.screenHeight / ResponsiveUtils.phoneDesignHeight;
+    final scaleW = instance.screenWidth / ResponsiveTokens.phoneDesignWidth;
+    final scaleH = instance.screenHeight / ResponsiveTokens.phoneDesignHeight;
     final scale = min(scaleW, scaleH) * 0.85 + max(scaleW, scaleH) * 0.15;
     return fontSize * scale;
   },
@@ -82,7 +83,7 @@ ScreenUtil().statusBarHeight      // 状态栏高度
 ScreenUtil().bottomBarHeight      // 底部安全区域高度
 ```
 
-## ScreenUtil 与 ResponsiveUtils 的配合
+## ScreenUtil 与响应式工具的配合
 
 ### 手机端：正常使用 `.w` / `.sp`
 
@@ -102,8 +103,8 @@ Container(
 // aw() 在手机端行为与 .w 一致
 // 在大屏端 clamp 缩放比至 1.2，防止间距/尺寸过大
 Container(
-  padding: EdgeInsets.all(ResponsiveUtils.aw(16)),  // 大屏最大 16 * 1.2 = 19.2
-  margin: EdgeInsets.symmetric(horizontal: ResponsiveUtils.aw(20)),
+  padding: EdgeInsets.all(ResponsiveTokens.aw(16)),  // 大屏最大 16 * 1.2 = 19.2
+  margin: EdgeInsets.symmetric(horizontal: ResponsiveTokens.aw(20)),
 )
 ```
 
@@ -120,7 +121,7 @@ AdaptiveLayoutBuilder(
   ),
   // 平板端：按平板设计稿（768）缩放
   medium: (_) => Padding(
-    padding: EdgeInsets.all(ResponsiveUtils.tw(24)),
+    padding: EdgeInsets.all(ResponsiveTokens.tw(24)),
     child: Text('标题', style: TextStyle(fontSize: 20)),  // 平板不缩放字体
   ),
 )
@@ -222,7 +223,7 @@ class MyFormPage extends StatelessWidget {
       appBar: AppBar(title: Text('表单')),
       // ContentConstraint 限制大屏上内容宽度
       body: ContentConstraint(
-        maxWidth: ResponsiveUtils.maxWidthForm,  // 480dp
+        maxWidth: ResponsiveTokens.maxWidthForm,  // 480dp
         child: Padding(
           padding: EdgeInsets.all(16.w),
           child: Column(
@@ -289,7 +290,7 @@ if (1.sw > 600) { ... }  // 不要这样
 // ✅ 页面布局切换：基于 BoxConstraints（推荐）
 LayoutBuilder(
   builder: (context, constraints) {
-    if (ResponsiveUtils.isCompact(constraints)) { ... }
+    if (ResponsiveBreakpoints.isCompact(constraints)) { ... }
   },
 )
 
@@ -300,11 +301,11 @@ AdaptiveBuilder(
 )
 
 // ✅ 全局配置：基于 BuildContext
-final padding = ResponsiveUtils.screenValueOf(
+final padding = ResponsiveBreakpoints.screenValueOf(
   context,
-  compact: 16.w,
-  medium: 32,
-  expanded: 48,
+  compactValue: 16.0,
+  mediumValue: 32.0,
+  expandedValue: 48.0,
 );
 
 // ❌ 不要用 ScreenUtil 判断设备类型
@@ -340,7 +341,7 @@ A: 这是有意设计。`fontSizeResolver` 在屏幕宽度 >= 600dp 时直接返
 
 A: 会。ScreenUtil 的 `.w` 基于 375 设计稿缩放，在 768dp 宽的平板上会放大约 2 倍。解决方案：
 - 平板布局中直接用固定 dp 值
-- 共用代码中用 `ResponsiveUtils.aw()` 限制缩放上限
+- 共用代码中用 `ResponsiveTokens.aw()` 限制缩放上限
 - 使用 `AdaptiveBuilder` 为平板提供独立布局
 
 ### Q: 什么时候用 `aw()` vs `.w` vs 固定 dp？
@@ -356,7 +357,7 @@ A: 按场景选择：
 
 ### Q: 如何处理横屏适配？
 
-A: 使用 `MediaQuery.orientationOf(context)` 判断方向。项目已配置平板允许横屏、手机仅竖屏（见 `app_initializer.dart`）。
+A: 方向策略由 `OrientationPolicy` 统一管理。默认是“手机锁竖屏、平板全方向”，可通过环境变量 `LOCK_PHONE_PORTRAIT` 切换。
 
 ### Q: 如何处理折叠屏？
 

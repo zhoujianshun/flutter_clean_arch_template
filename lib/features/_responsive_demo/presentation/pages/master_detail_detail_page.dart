@@ -1,11 +1,11 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/shared/responsive/content_constraint.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/responsive_utils.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/responsive_tokens.dart';
 
 /// Master-Detail 详情页（AutoRoute 版本）
 ///
-/// 从 [MasterDetailPage] 中提取的独立路由页面，接收路由参数。
+/// 从 `MasterDetailPage` 中提取的独立路由页面，接收路由参数。
 /// 仅在手机模式下作为全屏页面使用，平板模式下详情面板直接内嵌在分栏中。
 ///
 /// 此页面演示了如何将 Master-Detail 的详情视图注册为 AutoRoute 路由，
@@ -30,7 +30,7 @@ class MasterDetailDetailPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(subject)),
       body: ContentConstraint(
-        maxWidth: ResponsiveUtils.maxWidthDetail,
+        maxWidth: ResponsiveTokens.maxWidthDetail,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -38,14 +38,26 @@ class MasterDetailDetailPage extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  CircleAvatar(radius: 24, child: Text(sender[0], style: const TextStyle(fontSize: 20))),
+                  CircleAvatar(
+                    radius: 24,
+                    child: Text(
+                      sender[0],
+                      style: const TextStyle(fontSize: 20),
+                    ),
+                  ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(sender, style: Theme.of(context).textTheme.titleMedium),
-                        Text(time, style: Theme.of(context).textTheme.bodySmall),
+                        Text(
+                          sender,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        Text(
+                          time,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
                       ],
                     ),
                   ),
@@ -64,7 +76,9 @@ class MasterDetailDetailPage extends StatelessWidget {
                 '• 支持 deep link（可通过 URL 直接访问）\n'
                 '• 统一的转场动画（遵循 AppRouter.defaultRouteType）\n'
                 '• 在路由观察器（observer）中可追踪',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.8),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(height: 1.8),
               ),
             ],
           ),

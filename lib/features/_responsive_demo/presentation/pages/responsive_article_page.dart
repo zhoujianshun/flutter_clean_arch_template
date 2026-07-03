@@ -1,8 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/shared/responsive/adaptive_builder.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/breakpoints.dart';
 import 'package:flutter_clean_arch_template/shared/responsive/content_constraint.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/responsive_utils.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/responsive_tokens.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// 响应式图文详情示例
@@ -59,7 +60,9 @@ class _MediumArticle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageWidth = ResponsiveUtils.isExpanded(constraints) ? 420.0 : 340.0;
+    final imageWidth = ResponsiveBreakpoints.isExpanded(constraints)
+        ? 420.0
+        : 340.0;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,7 +94,7 @@ class _MediumArticle extends StatelessWidget {
         // 右侧文字内容
         Expanded(
           child: ContentConstraint(
-            maxWidth: ResponsiveUtils.maxWidthDetail,
+            maxWidth: ResponsiveTokens.maxWidthDetail,
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: _buildArticleContent(context),
@@ -123,11 +126,17 @@ Widget _buildImagePlaceholder(BuildContext context, {required double height}) {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.image_outlined, size: 48, color: Theme.of(context).colorScheme.onPrimaryContainer),
+          Icon(
+            Icons.image_outlined,
+            size: 48,
+            color: Theme.of(context).colorScheme.onPrimaryContainer,
+          ),
           const SizedBox(height: 8),
           Text(
             '商品主图',
-            style: TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
           ),
         ],
       ),
@@ -136,14 +145,25 @@ Widget _buildImagePlaceholder(BuildContext context, {required double height}) {
 }
 
 Widget _buildSmallImagePlaceholder(BuildContext context, int index) {
-  final colors = [Colors.blue, Colors.green, Colors.orange, Colors.purple, Colors.red, Colors.teal];
+  final colors = [
+    Colors.blue,
+    Colors.green,
+    Colors.orange,
+    Colors.purple,
+    Colors.red,
+    Colors.teal,
+  ];
   return Container(
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(8),
       color: colors[index % colors.length].withValues(alpha: 0.15),
     ),
     child: Center(
-      child: Icon(Icons.image_outlined, color: colors[index % colors.length], size: 20),
+      child: Icon(
+        Icons.image_outlined,
+        color: colors[index % colors.length],
+        size: 20,
+      ),
     ),
   );
 }
@@ -153,9 +173,20 @@ Widget _buildArticleContent(BuildContext context) {
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       // 标题 + 价格
-      Text('Flutter 整洁架构模板', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+      Text(
+        'Flutter 整洁架构模板',
+        style: Theme.of(
+          context,
+        ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+      ),
       const SizedBox(height: 8),
-      Text('¥ 199.00', style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Colors.red, fontWeight: FontWeight.bold)),
+      Text(
+        '¥ 199.00',
+        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+          color: Colors.red,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
       const SizedBox(height: 16),
 
       // 标签
@@ -181,7 +212,12 @@ Widget _buildArticleContent(BuildContext context) {
       const SizedBox(height: 24),
 
       // 详情描述
-      Text('商品详情', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+      Text(
+        '商品详情',
+        style: Theme.of(
+          context,
+        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+      ),
       const SizedBox(height: 12),
       Text(
         '这是一个完整的 Flutter 整洁架构项目模板，包含了企业级应用开发所需的全部基础设施：'
@@ -233,9 +269,16 @@ Widget _buildInfoRow(BuildContext context, String label, String value) {
     children: [
       SizedBox(
         width: 100,
-        child: Text(label, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.outline)),
+        child: Text(
+          label,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.outline,
+          ),
+        ),
       ),
-      Expanded(child: Text(value, style: Theme.of(context).textTheme.bodyMedium)),
+      Expanded(
+        child: Text(value, style: Theme.of(context).textTheme.bodyMedium),
+      ),
     ],
   );
 }
