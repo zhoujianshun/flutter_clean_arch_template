@@ -4,7 +4,7 @@ import 'package:flutter_clean_arch_template/shared/responsive/responsive_utils.d
 /// 自适应布局构建器
 ///
 /// 基于 [LayoutBuilder] 的父组件约束宽度，在不同断点返回不同的子组件。
-/// 内部使用 [ResponsiveUtils] 的断点常量（compact < 600dp, expanded >= 1024dp）。
+/// 内部使用 [ResponsiveUtils] 的断点常量（compact < 600dp, expanded >= 840dp）。
 ///
 /// 回退规则：
 /// - expanded 宽度但 [expanded] 为 null → 使用 [medium]
@@ -20,8 +20,8 @@ import 'package:flutter_clean_arch_template/shared/responsive/responsive_utils.d
 /// // 三种布局
 /// AdaptiveBuilder(
 ///   compact: PhoneLayout(),       // < 600dp
-///   medium: TabletLayout(),       // 600-1023dp
-///   expanded: DesktopLayout(),    // >= 1024dp
+///   medium: TabletLayout(),       // 600-839dp
+///   expanded: DesktopLayout(),    // >= 840dp
 /// )
 /// ```
 class AdaptiveBuilder extends StatelessWidget {
@@ -35,10 +35,10 @@ class AdaptiveBuilder extends StatelessWidget {
   /// 紧凑布局（手机），宽度 < 600dp
   final Widget compact;
 
-  /// 中等布局（平板竖屏），宽度 600-1023dp
+  /// 中等布局（平板竖屏），宽度 600-839dp
   final Widget? medium;
 
-  /// 扩展布局（平板横屏/桌面），宽度 >= 1024dp
+  /// 扩展布局（平板横屏/桌面），宽度 >= 840dp
   final Widget? expanded;
 
   @override
@@ -93,10 +93,10 @@ class AdaptiveLayoutBuilder extends StatelessWidget {
   /// 紧凑布局构建器（手机），宽度 < 600dp
   final Widget Function(BoxConstraints constraints) compact;
 
-  /// 中等布局构建器（平板竖屏），宽度 600-1023dp
+  /// 中等布局构建器（平板竖屏），宽度 600-839dp
   final Widget Function(BoxConstraints constraints)? medium;
 
-  /// 扩展布局构建器（平板横屏/桌面），宽度 >= 1024dp
+  /// 扩展布局构建器（平板横屏/桌面），宽度 >= 840dp
   final Widget Function(BoxConstraints constraints)? expanded;
 
   @override
@@ -111,6 +111,64 @@ class AdaptiveLayoutBuilder extends StatelessWidget {
           return builder(constraints);
         }
         return compact(constraints);
+      },
+    );
+  }
+}
+
+/// 有状态的自适应布局构建器
+///
+/// 与 [AdaptiveBuilder] 相同的断点逻辑，但使用 [IndexedStack] 保持
+/// 所有已构建的子组件状态。断点切换时切换显示而非销毁重建。
+///
+/// 适用场景：
+/// - 包含表单输入的页面（旋转屏幕不丢失输入内容）
+/// - 包含滚动列表的页面（旋转屏幕保持滚动位置）
+///
+/// 注意：所有断点的子组件会同时存在于内存中，不适合非常重的页面。
+/// 如果不需要状态保持，优先使用更轻量的 [AdaptiveBuilder]。
+///
+/// ```dart
+/// // 旋转屏幕后表单输入不丢失
+/// StatefulAdaptiveBuilder(
+///   compact: CompactForm(),
+///   medium: MediumForm(),
+/// )
+/// ```
+class StatefulAdaptiveBuilder extends StatelessWidget {
+  const StatefulAdaptiveBuilder({
+    required this.compact,
+    super.key,
+    this.medium,
+    this.expanded,
+  });
+
+  /// 紧凑布局（手机），宽度 < 600dp
+  final Widget compact;
+
+  /// 中等布局（平板竖屏），宽度 600-839dp
+  final Widget? medium;
+
+  /// 扩展布局（平板横屏/桌面），宽度 >= 840dp
+  final Widget? expanded;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final children = [
+          compact,
+          medium ?? expanded ?? compact,
+          ?expanded,
+        ];
+        final index =
+            ResponsiveUtils.isExpanded(constraints) && expanded != null
+                ? 2
+                : !ResponsiveUtils.isCompact(constraints) &&
+                        (medium ?? expanded) != null
+                    ? 1
+                    : 0;
+        return IndexedStack(index: index, children: children);
       },
     );
   }

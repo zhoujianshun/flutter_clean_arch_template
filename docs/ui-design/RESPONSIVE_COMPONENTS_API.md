@@ -8,10 +8,12 @@
 - [ResponsiveUtils 工具类](#responsiveutils-工具类)
 - [AdaptiveBuilder 自适应构建器](#adaptivebuilder-自适应构建器)
 - [AdaptiveLayoutBuilder 自适应布局构建器](#adaptivelayoutbuilder-自适应布局构建器)
+- [StatefulAdaptiveBuilder 有状态自适应构建器](#statefuladaptivebuilder-有状态自适应构建器)
 - [ContentConstraint 内容约束](#contentconstraint-内容约束)
-- [ResponsiveBuilder 响应式构建器](#responsivebuilder-响应式构建器)
 - [AppShellPage 自适应导航](#appshellpage-自适应导航)
 - [示例页面](#示例页面)
+- [自适应缩放方法](#自适应缩放方法)
+- [双设计稿处理](#双设计稿处理)
 - [最佳实践](#最佳实践)
 
 ---
@@ -23,8 +25,8 @@
 | 尺寸类 | 宽度范围 | 典型设备 | 常量 |
 |--------|---------|---------|------|
 | Compact（紧凑） | < 600dp | 手机 | `ResponsiveUtils.compactBreakpoint` |
-| Medium（中等） | 600-1023dp | 平板竖屏、折叠屏 | — |
-| Expanded（扩展） | ≥ 1024dp | 平板横屏、桌面 | `ResponsiveUtils.expandedBreakpoint` |
+| Medium（中等） | 600-839dp | 平板竖屏、折叠屏 | — |
+| Expanded（扩展） | ≥ 840dp | 平板横屏、桌面 | `ResponsiveUtils.expandedBreakpoint` |
 
 ---
 
@@ -32,9 +34,7 @@
 
 **路径**: `lib/shared/responsive/responsive_utils.dart`
 
-### 基于约束的方法（推荐）
-
-配合 `LayoutBuilder` 使用，响应父组件的实际约束：
+配合 `LayoutBuilder` 使用，响应父组件的实际约束（而非全屏宽度），折叠屏/分屏友好：
 
 ```dart
 LayoutBuilder(
@@ -59,38 +59,54 @@ LayoutBuilder(
 )
 ```
 
-### 基于 Context 的方法（兼容旧代码）
+### 基于约束的方法（推荐）
 
-在无法使用 `LayoutBuilder` 的场景（如主题配置）：
+配合 `LayoutBuilder` 使用，响应父组件的实际约束（折叠屏/分屏友好）：
+
+| 方法 | 参数 | 返回 | 说明 |
+|------|------|------|------|
+| `isCompact` | `BoxConstraints` | `bool` | 宽度 < 600dp |
+| `isMedium` | `BoxConstraints` | `bool` | 宽度 600-839dp |
+| `isExpanded` | `BoxConstraints` | `bool` | 宽度 >= 840dp |
+| `valueOf<T>` | `BoxConstraints`, `compact`, `medium?`, `expanded?` | `T` | 按断点返回值 |
+| `gridColumns` | `BoxConstraints` | `int` | 列表列数 1/2/3 |
+| `itemGridColumns` | `BoxConstraints` | `int` | 网格列数 2/3/4 |
+
+### 基于 Context 的方法
+
+使用 `MediaQuery` 获取全屏宽度。适用于无法获取 `BoxConstraints` 的场景：
 
 ```dart
-// 设备类型判断
-ResponsiveUtils.isMobile(context);   // < 600dp
-ResponsiveUtils.isTablet(context);   // 600-1023dp
-ResponsiveUtils.isDesktop(context);  // >= 1024dp
+// 判断设备类型
+ResponsiveUtils.isCompactScreen(context);   // < 600dp
+ResponsiveUtils.isMediumScreen(context);    // 600-839dp
+ResponsiveUtils.isExpandedScreen(context);  // >= 840dp
 
-// 响应式值
-final padding = ResponsiveUtils.responsiveValue(
+// 根据设备类型返回不同的值
+final padding = ResponsiveUtils.screenValueOf(
   context,
-  mobile: 16.w,
-  tablet: 32,
-  desktop: 48,
+  compact: 16.w,
+  medium: 32,
+  expanded: 48,
 );
-
-// 辅助方法
-ResponsiveUtils.getHorizontalPadding(context);
-ResponsiveUtils.getMaxContentWidth(context);
-ResponsiveUtils.getCardSpacing(context);
 ```
+
+| 方法 | 参数 | 返回 | 说明 |
+|------|------|------|------|
+| `isCompactScreen` | `BuildContext` | `bool` | 屏幕宽度 < 600dp |
+| `isMediumScreen` | `BuildContext` | `bool` | 屏幕宽度 600-839dp |
+| `isExpandedScreen` | `BuildContext` | `bool` | 屏幕宽度 >= 840dp |
+| `screenValueOf<T>` | `BuildContext`, `compact`, `medium?`, `expanded?` | `T` | 按屏幕宽度返回值 |
 
 ### 两套方法的选择
 
 | 场景 | 推荐方法 | 原因 |
 |------|---------|------|
-| 页面布局切换 | `isCompact(constraints)` | 响应父约束，折叠屏友好 |
+| 页面布局切换（分栏/单列） | `isCompact(constraints)` | 响应父约束，折叠屏/分屏友好 |
 | 网格列数 | `gridColumns(constraints)` | 同上 |
-| 主题/全局配置 | `responsiveValue(context)` | 无 LayoutBuilder 可用 |
-| 方向/安全区域 | `isLandscape(context)` | 这些只能通过 MediaQuery 获取 |
+| 主题 / 全局配置 | `screenValueOf(context)` | 无 LayoutBuilder 可用 |
+| 导航策略 | `isCompactScreen(context)` | 全局导航取决于物理屏幕 |
+| 间距 / 字体等微观值 | `screenValueOf(context)` | 关心设备类型而非局部约束 |
 
 ---
 
@@ -110,8 +126,8 @@ AdaptiveBuilder(
 // 三种布局
 AdaptiveBuilder(
   compact: PhoneLayout(),       // < 600dp
-  medium: TabletLayout(),       // 600-1023dp
-  expanded: DesktopLayout(),    // >= 1024dp
+  medium: TabletLayout(),       // 600-839dp
+  expanded: DesktopLayout(),    // >= 840dp
 )
 ```
 
@@ -119,14 +135,6 @@ AdaptiveBuilder(
 
 - expanded 宽度但 `expanded` 为 null → 使用 `medium`
 - medium 宽度但 `medium` 为 null → 使用 `expanded`（如有）或 `compact`
-
-### 三者对比
-
-| | AdaptiveBuilder | AdaptiveLayoutBuilder | LayoutBuilder |
-|-|:---:|:---:|:---:|
-| 用途 | 纯布局切换 | 布局切换 + 约束计算 | 连续值计算 |
-| 参数 | Widget | Widget Function(BoxConstraints) | BoxConstraints |
-| 适合 | 子组件不需要 constraints | 子组件需要 constraints 做分栏/比例 | 列数/间距等非分支场景 |
 
 ---
 
@@ -157,6 +165,44 @@ AdaptiveLayoutBuilder(
 - 子组件需要 `constraints` 来决定分栏宽度、flex 比例等 → `AdaptiveLayoutBuilder`
 - 子组件不需要 `constraints`，纯切换 → `AdaptiveBuilder`（更简洁）
 - 不是离散分支，而是用 constraints 做连续计算（如列数、间距）→ 直接用 `LayoutBuilder`
+
+---
+
+## StatefulAdaptiveBuilder 有状态自适应构建器
+
+**路径**: `lib/shared/responsive/adaptive_builder.dart`
+
+与 `AdaptiveBuilder` 相同的断点逻辑，但使用 `IndexedStack` 保持所有已构建的子组件状态。
+断点切换时（如旋转屏幕）切换显示而非销毁重建，**不丢失表单输入和滚动位置**。
+
+```dart
+// 旋转屏幕后表单输入不丢失
+StatefulAdaptiveBuilder(
+  compact: CompactForm(),
+  medium: MediumForm(),
+)
+```
+
+### 何时使用
+
+| 场景 | 推荐组件 |
+|------|---------|
+| 页面包含表单/输入框，需旋转后保持 | `StatefulAdaptiveBuilder` |
+| 页面包含长列表，需旋转后保持滚动位置 | `StatefulAdaptiveBuilder` |
+| 纯展示页面，不需要保持状态 | `AdaptiveBuilder`（更轻量） |
+| 子组件很重（大量图片/视频） | `AdaptiveBuilder`（避免同时持有多份） |
+
+> **注意**：所有断点的子组件会同时存在于内存中（IndexedStack 特性），
+> 不适合包含大量重资源的页面。
+
+### 四者对比
+
+| | AdaptiveBuilder | AdaptiveLayoutBuilder | StatefulAdaptiveBuilder | LayoutBuilder |
+|-|:---:|:---:|:---:|:---:|
+| 用途 | 纯布局切换 | 布局切换 + 约束计算 | 布局切换 + 状态保持 | 连续值计算 |
+| 参数 | Widget | Widget Function(BoxConstraints) | Widget | BoxConstraints |
+| 状态保持 | ❌ 切换时销毁 | ❌ 切换时销毁 | ✅ IndexedStack 保持 | — |
+| 内存 | 轻量 | 轻量 | 较重（同时持有所有子组件） | 最轻 |
 
 ---
 
@@ -207,24 +253,6 @@ ContentConstraint(
 
 ---
 
-## ResponsiveBuilder 响应式构建器
-
-**路径**: `lib/shared/responsive/responsive_utils.dart`
-
-基于 `MediaQuery` 屏幕宽度切换子组件（vs AdaptiveBuilder 基于 LayoutBuilder）：
-
-```dart
-ResponsiveBuilder(
-  mobile: MobileView(),
-  tablet: TabletView(),
-  desktop: DesktopView(),   // 可选
-)
-```
-
-> 大多数场景推荐使用 `AdaptiveBuilder`，因为它基于父约束而非全屏宽度，折叠屏/分屏更友好。
-
----
-
 ## AppShellPage 自适应导航
 
 **路径**: `lib/features/app/presentation/pages/app_shell.dart`
@@ -234,8 +262,8 @@ ResponsiveBuilder(
 | 屏幕宽度 | 导航形式 | 标签显示 |
 |---------|---------|---------|
 | < 600dp | NavigationBar（底部） | 图标 + 标签 |
-| 600-1023dp | NavigationRail（左侧） | 图标 + 选中标签 |
-| ≥ 1024dp | NavigationRail（左侧） | 图标 + 所有标签 |
+| 600-839dp | NavigationRail（左侧） | 图标 + 选中标签 |
+| ≥ 840dp | NavigationRail（左侧） | 图标 + 所有标签 |
 
 ### 添加新的导航目的地
 
@@ -256,6 +284,96 @@ routes: const [
   SearchRoute(),  // 新增
 ],
 ```
+
+---
+
+## 自适应缩放方法
+
+**路径**: `lib/shared/responsive/responsive_utils.dart`
+
+### `ResponsiveUtils.aw(num value)` — 自适应宽度值
+
+解决 ScreenUtil `.w` 在大屏上缩放比过大的问题。给缩放比设置上限（1.2 倍），
+大屏上 `aw(16)` 最大只到 19.2dp。
+
+```dart
+// .w 在 iPad Pro 上 16.w ≈ 44dp，过大
+// aw() 限制缩放比，16 * 1.2 = 19.2dp 最大值
+SizedBox(width: ResponsiveUtils.aw(16))
+Padding(padding: EdgeInsets.all(ResponsiveUtils.aw(12)))
+```
+
+| 场景 | 推荐 | 说明 |
+|------|------|------|
+| 纯手机端页面 | `.w` | 不需要大屏保护 |
+| 手机端代码但可能在大屏显示 | `aw()` | 大屏上不过度放大 |
+| 平板端独立布局 | 直接用 dp 或 `tw()` | 不需要手机 designSize 缩放 |
+
+### `ResponsiveUtils.tw(num value)` — 平板设计稿宽度值
+
+以平板设计稿宽度（768dp）为基准做缩放。与 `.w` 以手机 375 为基准是对称关系。
+**仅在有两套独立设计稿时使用**；如果平板没有独立设计稿，直接用 dp 值即可。
+
+```dart
+// 手机设计稿标注 16，平板设计稿标注 20
+AdaptiveLayoutBuilder(
+  compact: (_) => Padding(padding: EdgeInsets.all(16.w)),             // 手机稿
+  medium: (_) => Padding(padding: EdgeInsets.all(ResponsiveUtils.tw(20))),  // 平板稿
+)
+```
+
+---
+
+## 双设计稿处理
+
+当设计师同时提供手机和平板两套不同尺寸的设计稿时：
+
+### 核心思路
+
+```
+手机端（< 600dp）:
+  ScreenUtil designSize = 375x812
+  代码中使用 16.w、14.sp → 正常缩放
+
+平板端（>= 600dp）:
+  fontSizeResolver 返回原始 dp 值（不缩放字体）
+  布局中直接用设计稿标注的 dp 值：16、14 等
+  需要按平板稿缩放时使用 ResponsiveUtils.tw()
+```
+
+### 为什么平板端不用 ScreenUtil 缩放？
+
+1. ScreenUtil 假设所有屏幕与 designSize 成比例。手机尺寸差异小（320-428dp），缩放效果好；平板宽度跨度大（600-1366dp），等比缩放会导致极端值
+2. 平板设计稿通常已考虑绝对尺寸——标注的 16dp 在 768dp 画布上已经是合适比例
+3. 与 `AdaptiveBuilder` 完美配合——compact 回调中用 `.w`，medium/expanded 回调中用 dp
+
+### 典型用法
+
+```dart
+AdaptiveLayoutBuilder(
+  compact: (_) => _CompactView(),   // 手机设计稿 → 使用 .w/.sp
+  medium: (c) => _MediumView(),     // 平板设计稿 → 使用 dp 值或 tw()
+)
+
+// _CompactView 内部（手机设计稿 375px）
+Padding(padding: EdgeInsets.all(16.w))
+Text('标题', style: TextStyle(fontSize: 18.sp))
+
+// _MediumView 内部（平板设计稿 768px）
+Padding(padding: EdgeInsets.all(20))   // 直接用平板稿标注值
+Text('标题', style: TextStyle(fontSize: 20))
+```
+
+### 设计稿常量
+
+| 常量 | 值 | 说明 |
+|------|-----|------|
+| `ResponsiveUtils.phoneDesignWidth` | 375 | 手机设计稿宽度 |
+| `ResponsiveUtils.phoneDesignHeight` | 812 | 手机设计稿高度 |
+| `ResponsiveUtils.tabletDesignWidth` | 768 | 平板设计稿宽度 |
+| `ResponsiveUtils.tabletDesignHeight` | 1024 | 平板设计稿高度 |
+
+> 如果你的设计稿尺寸不同（如 360x780、834x1194），修改这些常量即可。
 
 ---
 
@@ -426,10 +544,16 @@ if (constraints.maxWidth >= 600) { ... }
 ### 3. ScreenUtil 只管微观尺寸
 
 ```dart
-// ✅ ScreenUtil 用于间距/字体/圆角
+// ✅ 手机端：ScreenUtil 用于间距/字体/圆角
 padding: EdgeInsets.all(16.w),
 fontSize: 14.sp,
 borderRadius: BorderRadius.circular(8.r),
+
+// ✅ 担心大屏上 .w 过大时，用 aw() 替代
+padding: EdgeInsets.all(ResponsiveUtils.aw(16)),
+
+// ✅ 平板端（AdaptiveBuilder 的 medium/expanded 回调中）：直接用 dp
+padding: EdgeInsets.all(20),
 
 // ✅ 布局结构用 Expanded/FractionallySizedBox
 Row(children: [Expanded(flex: 35, child: list), Expanded(flex: 65, child: detail)])

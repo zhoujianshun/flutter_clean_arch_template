@@ -16,8 +16,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 ///
 /// 根据屏幕宽度自动切换导航形式：
 /// - 手机（< 600dp）：底部 [NavigationBar]
-/// - 平板竖屏（600-1023dp）：左侧 [NavigationRail]（仅图标 + 选中标签）
-/// - 平板横屏/桌面（>= 1024dp）：左侧 [NavigationRail]（图标 + 所有标签）
+/// - 平板竖屏（600-839dp）：左侧 [NavigationRail]（仅图标 + 选中标签）
+/// - 平板横屏/桌面（>= 840dp）：左侧 [NavigationRail]（图标 + 所有标签）
 @RoutePage()
 class AppShellPage extends ConsumerStatefulWidget {
   const AppShellPage({super.key});

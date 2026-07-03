@@ -1,404 +1,247 @@
 # Flutter ScreenUtil 响应式设计指南
 
-本指南介绍如何在项目中使用 `flutter_screenutil` 实现响应式设计，确保应用在不同屏幕尺寸下都有完美的显示效果。
+本指南介绍如何在项目中使用 `flutter_screenutil` 实现响应式设计，以及它与项目自定义响应式工具的配合方式。
 
 ## 概述
 
-`flutter_screenutil` 是一个用于屏幕适配的 Flutter 插件，它可以让你的UI在不同尺寸的屏幕上显示一致的效果。
+`flutter_screenutil` 负责**微观尺寸**的适配（间距、字体、圆角等），而**宏观布局**（分栏、导航切换）由 `ResponsiveUtils` + `AdaptiveBuilder` 体系处理。两者各司其职：
 
-### 核心概念
-
-- **设计稿适配**：基于设计稿尺寸进行适配
-- **响应式单位**：使用 `.w`、`.h`、`.sp`、`.r` 等单位
-- **屏幕适配**：自动根据屏幕尺寸调整UI元素
-- **适老化支持**：针对老年用户优化的响应式设计
+| 职责 | 工具 | 示例 |
+|------|------|------|
+| 间距 / 字体 / 圆角缩放 | ScreenUtil `.w` `.sp` `.r` | `padding: EdgeInsets.all(16.w)` |
+| 大屏缩放上限 | `ResponsiveUtils.aw()` | `SizedBox(width: ResponsiveUtils.aw(16))` |
+| 平板设计稿缩放 | `ResponsiveUtils.tw()` | `padding: EdgeInsets.all(ResponsiveUtils.tw(20))` |
+| 布局结构切换 | `AdaptiveBuilder` / `AdaptiveLayoutBuilder` | 手机单列 → 平板分栏 |
 
 ## 初始化配置
 
-### 1. 依赖配置
+### 依赖
 
 ```yaml
 dependencies:
   flutter_screenutil: ^5.9.3
 ```
 
-### 2. 初始化设置
+### ScreenUtilInit 配置
 
-在 `main.dart` 中初始化 ScreenUtil：
+项目在 `lib/main.dart` 中配置 ScreenUtil：
 
 ```dart
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'dart:math';
+import 'package:flutter_clean_arch_template/shared/responsive/responsive_utils.dart';
 
-class MyApp extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ScreenUtilInit(
-      // 设计稿尺寸（iPhone 14 Pro）
-      designSize: const Size(393, 852),
-      // 最小文字适配
-      minTextAdapt: true,
-      // 支持分屏
-      splitScreenMode: true,
-      // 适配方向
-      useInheritedMediaQuery: true,
-      builder: (context, child) {
-        return MaterialApp.router(
-          // ... 其他配置
-        );
-      },
-    );
-  }
-}
+return ScreenUtilInit(
+  // 使用手机端设计稿尺寸（375 × 812）
+  designSize: const Size(
+    ResponsiveUtils.phoneDesignWidth,   // 375
+    ResponsiveUtils.phoneDesignHeight,  // 812
+  ),
+  minTextAdapt: true,
+  splitScreenMode: true,
+  useInheritedMediaQuery: true,
+  fontSizeResolver: (fontSize, instance) {
+    // 平板/桌面端（>= 600dp）：不缩放字体，直接用 dp 值
+    if (instance.screenWidth >= ResponsiveUtils.compactBreakpoint) {
+      return fontSize.toDouble();
+    }
+    // 手机端：宽高混合缩放，避免极端屏幕比例下字体失真
+    final scaleW = instance.screenWidth / ResponsiveUtils.phoneDesignWidth;
+    final scaleH = instance.screenHeight / ResponsiveUtils.phoneDesignHeight;
+    final scale = min(scaleW, scaleH) * 0.85 + max(scaleW, scaleH) * 0.15;
+    return fontSize * scale;
+  },
+  builder: (context, child) {
+    return MaterialApp.router(/* ... */);
+  },
+);
 ```
 
-### 3. 设计稿尺寸选择
+### 关键设计决策
 
-推荐的设计稿尺寸：
-
-- **iPhone 14 Pro**: 393 × 852
-- **iPhone 13/14**: 390 × 844  
-- **通用移动端**: 375 × 812
+1. **designSize 使用手机稿尺寸**：ScreenUtil 的 `.w`/`.sp` 在手机端正常缩放
+2. **平板端字体不缩放**：`fontSizeResolver` 在屏幕宽度 >= 600dp 时直接返回原始 dp 值，避免字体在大屏上过大
+3. **手机端混合缩放**：85% 取较小缩放比 + 15% 取较大缩放比，兼顾极端屏幕比例
 
 ## 响应式单位
 
 ### 基础单位
 
 ```dart
-// 宽度适配
-100.w  // 相对于屏幕宽度的100个单位
-
-// 高度适配
-100.h  // 相对于屏幕高度的100个单位
-
-// 字体大小适配
-16.sp  // 相对于屏幕宽度的字体大小
-
-// 圆角适配
-8.r    // 相对于屏幕宽度的圆角大小
+16.w    // 宽度适配：基于设计稿宽度（375）缩放
+16.h    // 高度适配：基于设计稿高度（812）缩放
+16.sp   // 字体适配：经 fontSizeResolver 处理（平板端不缩放）
+8.r     // 圆角适配：取 w/h 中较小的缩放比
 ```
 
-### 屏幕信息获取
+### 屏幕信息
 
 ```dart
-// 屏幕宽度
-double screenWidth = 1.sw;  // 等于 ScreenUtil().screenWidth
-
-// 屏幕高度
-double screenHeight = 1.sh; // 等于 ScreenUtil().screenHeight
-
-// 状态栏高度
-double statusBarHeight = ScreenUtil().statusBarHeight;
-
-// 底部安全区域高度
-double bottomBarHeight = ScreenUtil().bottomBarHeight;
+1.sw                              // 屏幕宽度
+1.sh                              // 屏幕高度
+ScreenUtil().statusBarHeight      // 状态栏高度
+ScreenUtil().bottomBarHeight      // 底部安全区域高度
 ```
 
-## 主题系统集成
+## ScreenUtil 与 ResponsiveUtils 的配合
 
-### 更新后的主题系统
-
-我们的主题系统已经集成了 ScreenUtil：
+### 手机端：正常使用 `.w` / `.sp`
 
 ```dart
-/// 字体样式 - 使用响应式单位
-class AppTextStyles {
-  static TextStyle get h1 => TextStyle(
-    fontSize: 32.sp,  // 响应式字体大小
-    fontWeight: FontWeight.w700,
-    height: 1.2,
-    letterSpacing: -0.5,
-  );
-
-  static TextStyle get bodyMedium => TextStyle(
-    fontSize: 16.sp,
-    fontWeight: FontWeight.w400,
-    height: 1.5,
-    letterSpacing: 0.25,
-  );
-}
-
-/// 间距系统 - 使用响应式单位
-class AppSpacing {
-  static double get xs => 4.w;
-  static double get sm => 8.w;
-  static double get md => 16.w;
-  static double get lg => 24.w;
-}
-
-/// 圆角系统 - 使用响应式单位
-class AppBorderRadius {
-  static double get xs => 4.r;
-  static double get sm => 8.r;
-  static double get md => 12.r;
-  static double get lg => 16.r;
-}
-```
-
-## 响应式工具类
-
-### ResponsiveUtils 使用
-
-```dart
-import 'package:sky_harbor_service_app/core/utils/responsive_utils.dart';
-
-class MyWidget extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    // 设备类型判断
-    bool isMobile = ResponsiveUtils.isMobile(context);
-    bool isTablet = ResponsiveUtils.isTablet(context);
-    bool isDesktop = ResponsiveUtils.isDesktop(context);
-
-    // 响应式数值
-    int columns = ResponsiveUtils.getColumns(context);
-    double padding = ResponsiveUtils.getHorizontalPadding(context);
-
-    // 适老化配置
-    double elderlyButtonHeight = ResponsiveUtils.getElderlyButtonHeight(context);
-    double touchTarget = ResponsiveUtils.getElderlyTouchTarget(context);
-
-    return Container(
-      padding: EdgeInsets.all(padding),
-      child: GridView.count(
-        crossAxisCount: columns,
-        children: [...],
-      ),
-    );
-  }
-}
-```
-
-### 响应式构建器
-
-```dart
-// 根据屏幕尺寸显示不同布局
-ResponsiveBuilder(
-  mobile: MobileLayout(),
-  tablet: TabletLayout(),
-  desktop: DesktopLayout(),
+// 手机端页面中，直接用 ScreenUtil 扩展
+Container(
+  padding: EdgeInsets.all(16.w),
+  child: Text('标题', style: TextStyle(fontSize: 18.sp)),
 )
+```
 
-// 响应式数值选择
-int columns = ResponsiveUtils.responsiveValue(
-  context,
-  mobile: 1,
-  tablet: 2,
-  desktop: 3,
-);
+### 大屏安全缩放：`aw()` 替代 `.w`
+
+当手机端代码也会在大屏上运行时，`.w` 值可能过大。用 `aw()` 限制上限：
+
+```dart
+// aw() 在手机端行为与 .w 一致
+// 在大屏端 clamp 缩放比至 1.2，防止间距/尺寸过大
+Container(
+  padding: EdgeInsets.all(ResponsiveUtils.aw(16)),  // 大屏最大 16 * 1.2 = 19.2
+  margin: EdgeInsets.symmetric(horizontal: ResponsiveUtils.aw(20)),
+)
+```
+
+### 双设计稿场景：`tw()` 用于平板稿
+
+当手机和平板有两套独立设计稿时：
+
+```dart
+AdaptiveLayoutBuilder(
+  // 手机端：按手机设计稿（375）缩放
+  compact: (_) => Padding(
+    padding: EdgeInsets.all(16.w),
+    child: Text('标题', style: TextStyle(fontSize: 18.sp)),
+  ),
+  // 平板端：按平板设计稿（768）缩放
+  medium: (_) => Padding(
+    padding: EdgeInsets.all(ResponsiveUtils.tw(24)),
+    child: Text('标题', style: TextStyle(fontSize: 20)),  // 平板不缩放字体
+  ),
+)
+```
+
+### 平板端布局：用固定 dp 值
+
+如果没有独立的平板设计稿，平板端直接用 dp 值：
+
+```dart
+AdaptiveLayoutBuilder(
+  compact: (_) => Padding(padding: EdgeInsets.all(16.w)),
+  medium: (_) => Padding(padding: EdgeInsets.all(24)),     // 直接用 dp
+)
 ```
 
 ## 实际使用示例
 
-### 1. 基础组件适配
+### 1. 基础组件
 
 ```dart
-class MyCard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 300.w,           // 响应式宽度
-      height: 200.h,          // 响应式高度
-      padding: EdgeInsets.all(AppSpacing.md),  // 响应式内边距
-      margin: EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppBorderRadius.md),  // 响应式圆角
-        color: AppAdaptiveColors.surface(context),
-      ),
-      child: Column(
-        children: [
-          Text(
-            '标题',
-            style: AppTextStyles.h4,  // 响应式字体
-          ),
-          SizedBox(height: AppSpacing.sm),  // 响应式间距
-          Text(
-            '内容文字',
-            style: AppTextStyles.bodyMedium,
-          ),
-        ],
-      ),
-    );
-  }
-}
+Container(
+  padding: EdgeInsets.all(16.w),
+  margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.w),
+  decoration: BoxDecoration(
+    borderRadius: BorderRadius.circular(12.r),
+  ),
+  child: Column(
+    children: [
+      Text('标题', style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600)),
+      SizedBox(height: 8.w),
+      Text('内容', style: TextStyle(fontSize: 14.sp)),
+    ],
+  ),
+)
 ```
 
-### 2. 按钮适配
+### 2. 响应式按钮
 
 ```dart
-class ResponsiveButton extends StatelessWidget {
-  final String text;
-  final VoidCallback? onPressed;
-  final bool isElderly;
+SizedBox(
+  width: double.infinity,
+  height: 48.h,
+  child: FilledButton(
+    onPressed: () {},
+    style: FilledButton.styleFrom(
+      textStyle: TextStyle(fontSize: 16.sp),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+    ),
+    child: Text('提交'),
+  ),
+)
+```
 
-  const ResponsiveButton({
-    super.key,
-    required this.text,
-    this.onPressed,
-    this.isElderly = false,
-  });
+### 3. 列表项
 
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: isElderly 
-          ? ResponsiveUtils.getElderlyButtonHeight(context)
-          : 48.h,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          textStyle: isElderly 
-              ? AppTextStyles.elderlyButton 
-              : AppTextStyles.button,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppBorderRadius.md),
-          ),
+```dart
+Container(
+  height: 72.h,
+  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.w),
+  child: Row(
+    children: [
+      Container(
+        width: 48.w,
+        height: 48.w,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8.r),
+          color: Colors.grey[200],
         ),
-        child: Text(text),
+        child: Icon(Icons.person, size: 24.w),
       ),
-    );
-  }
-}
+      SizedBox(width: 12.w),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('用户名', style: TextStyle(fontSize: 16.sp)),
+            SizedBox(height: 4.h),
+            Text('副标题', style: TextStyle(fontSize: 12.sp, color: Colors.grey)),
+          ],
+        ),
+      ),
+    ],
+  ),
+)
 ```
 
-### 3. 列表适配
+### 4. 表单页（手机 + 平板适配）
 
 ```dart
-class ResponsiveList extends StatelessWidget {
+@RoutePage()
+class MyFormPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
-      padding: EdgeInsets.all(ResponsiveUtils.getHorizontalPadding(context)),
-      itemCount: items.length,
-      separatorBuilder: (context, index) => SizedBox(
-        height: AppSpacing.sm,
-      ),
-      itemBuilder: (context, index) {
-        return Container(
-          height: 80.h,
-          padding: EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: AppAdaptiveColors.surface(context),
-            borderRadius: BorderRadius.circular(AppBorderRadius.md),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 48.w,
-                height: 48.w,
-                decoration: BoxDecoration(
-                  color: AppAdaptiveColors.primary100(context),
-                  borderRadius: BorderRadius.circular(AppBorderRadius.sm),
-                ),
-                child: Icon(
-                  Icons.person,
-                  size: ResponsiveUtils.getIconSize(context),
-                ),
-              ),
-              SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      items[index].title,
-                      style: AppTextStyles.bodyMedium,
-                    ),
-                    SizedBox(height: 4.h),
-                    Text(
-                      items[index].subtitle,
-                      style: AppTextStyles.bodySmall,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-```
-
-### 4. 表单适配
-
-```dart
-class ResponsiveForm extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(ResponsiveUtils.getHorizontalPadding(context)),
-      child: Column(
-        children: [
-          // 响应式输入框
-          TextField(
-            style: AppTextStyles.bodyMedium,
-            decoration: InputDecoration(
-              labelText: '用户名',
-              hintText: '请输入用户名',
-              prefixIcon: Icon(
-                Icons.person,
-                size: ResponsiveUtils.getIconSize(context),
-              ),
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: AppSpacing.md,
-                vertical: AppSpacing.md,
-              ),
-            ),
-          ),
-          
-          SizedBox(height: AppSpacing.lg),
-          
-          // 响应式按钮
-          ResponsiveButton(
-            text: '登录',
-            onPressed: () {},
-          ),
-        ],
-      ),
-    );
-  }
-}
-```
-
-## 适老化响应式设计
-
-### ElderlyResponsiveWidget 使用
-
-```dart
-class ElderlyFriendlyPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return ElderlyResponsiveWidget(
-      fontScale: 1.3,  // 字体放大30%
-      enableLargeTouch: true,  // 启用大触摸目标
-      child: Scaffold(
-        body: Padding(
-          padding: EdgeInsets.all(AppSpacing.lg),
+    return Scaffold(
+      appBar: AppBar(title: Text('表单')),
+      // ContentConstraint 限制大屏上内容宽度
+      body: ContentConstraint(
+        maxWidth: ResponsiveUtils.maxWidthForm,  // 480dp
+        child: Padding(
+          padding: EdgeInsets.all(16.w),
           child: Column(
             children: [
-              Text(
-                '适老化标题',
-                style: AppTextStyles.elderlyH1,
+              TextField(
+                style: TextStyle(fontSize: 16.sp),
+                decoration: InputDecoration(labelText: '用户名'),
               ),
-              SizedBox(height: AppSpacing.xl),
-              
-              // 适老化按钮
+              SizedBox(height: 16.w),
+              TextField(
+                style: TextStyle(fontSize: 16.sp),
+                decoration: InputDecoration(labelText: '密码'),
+                obscureText: true,
+              ),
+              SizedBox(height: 24.w),
               SizedBox(
                 width: double.infinity,
-                height: ResponsiveUtils.getElderlyButtonHeight(context),
-                child: ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    textStyle: AppTextStyles.elderlyButton,
-                  ),
-                  child: Text('大按钮'),
-                ),
+                height: 48.h,
+                child: FilledButton(onPressed: () {}, child: Text('登录')),
               ),
             ],
           ),
@@ -411,73 +254,110 @@ class ElderlyFriendlyPage extends StatelessWidget {
 
 ## 最佳实践
 
-### 1. 单位使用原则
+### 1. 单位选择原则
 
-- **宽度/高度**: 使用 `.w` 和 `.h`
-- **字体大小**: 使用 `.sp`
-- **圆角**: 使用 `.r`
-- **间距**: 优先使用 `AppSpacing` 常量
+| 用途 | 推荐单位 | 说明 |
+|------|---------|------|
+| 水平间距 / 宽度 | `.w` 或 `aw()` | 大屏共用代码用 `aw()` |
+| 垂直间距 / 高度 | `.h` 或 `.w` | 小间距用 `.w` 保持一致 |
+| 字体大小 | `.sp` | 平板端自动不缩放 |
+| 圆角 | `.r` | 取 w/h 较小缩放比 |
+| 平板设计稿值 | `tw()` | 仅双设计稿场景 |
+| 布局结构 | `Expanded` / `Flex` | 不要用 `.w` 做布局 |
 
-### 2. 响应式断点
+### 2. ScreenUtil 只管微观尺寸
 
 ```dart
-// 屏幕尺寸断点
-static const double mobileBreakpoint = 600;
-static const double tabletBreakpoint = 1024;
-static const double desktopBreakpoint = 1440;
+// ✅ 微观尺寸：间距、字体、圆角
+padding: EdgeInsets.all(16.w),
+fontSize: 14.sp,
+borderRadius: BorderRadius.circular(8.r),
 
-// 使用示例
-if (ResponsiveUtils.isMobile(context)) {
-  // 手机布局
-} else if (ResponsiveUtils.isTablet(context)) {
-  // 平板布局
-} else {
-  // 桌面布局
-}
+// ✅ 布局结构：用 Expanded / FractionallySizedBox
+Row(children: [
+  Expanded(flex: 35, child: masterList),
+  Expanded(flex: 65, child: detailPanel),
+])
+
+// ❌ 不要用 ScreenUtil 做布局判断
+if (1.sw > 600) { ... }  // 不要这样
 ```
 
-### 3. 性能优化
-
-- 避免在 `build` 方法中频繁调用响应式计算
-- 使用 `const` 构造函数和常量
-- 缓存复杂的响应式计算结果
-
-### 4. 测试不同屏幕
+### 3. 断点判断
 
 ```dart
-// 调试时打印屏幕信息
-ResponsiveUtils.printScreenInfo(context);
+// ✅ 页面布局切换：基于 BoxConstraints（推荐）
+LayoutBuilder(
+  builder: (context, constraints) {
+    if (ResponsiveUtils.isCompact(constraints)) { ... }
+  },
+)
 
-// 模拟不同设备
-// 在 Flutter Inspector 中切换设备
-// 或使用 Device Preview 插件
+// ✅ 更简洁的写法
+AdaptiveBuilder(
+  compact: MobileLayout(),
+  medium: TabletLayout(),
+)
+
+// ✅ 全局配置：基于 BuildContext
+final padding = ResponsiveUtils.screenValueOf(
+  context,
+  compact: 16.w,
+  medium: 32,
+  expanded: 48,
+);
+
+// ❌ 不要用 ScreenUtil 判断设备类型
+if (ScreenUtil().screenWidth > 600) { ... }
+```
+
+### 4. 性能优化
+
+- 避免在 `build` 中重复创建 `ScreenUtil()` 实例——扩展方法（`.w`/`.sp`）内部已缓存
+- 使用 `const` 构造函数减少重建
+- 复杂布局的响应式计算可缓存到局部变量
+
+### 5. 测试不同屏幕
+
+```dart
+// 使用 Flutter Inspector 切换设备模拟器
+// 或安装 device_preview 插件进行实时预览
+
+// 推荐测试的设备尺寸：
+// - 手机竖屏：375 × 812（iPhone 13 mini）
+// - 手机横屏：812 × 375
+// - 平板竖屏：768 × 1024（iPad）
+// - 平板横屏：1024 × 768
 ```
 
 ## 常见问题
 
-### Q: 为什么有些组件显示异常？
+### Q: 为什么平板上字体没有缩放？
 
-A: 确保在 `MaterialApp` 外层包装了 `ScreenUtilInit`，并且设置了正确的 `designSize`。
+A: 这是有意设计。`fontSizeResolver` 在屏幕宽度 >= 600dp 时直接返回原始 dp 值，因为平板屏幕本身足够大，不需要字体缩放。如果需要缩放，可以在平板布局中手动设置更大的字体值。
+
+### Q: `.w` 在平板上值会不会过大？
+
+A: 会。ScreenUtil 的 `.w` 基于 375 设计稿缩放，在 768dp 宽的平板上会放大约 2 倍。解决方案：
+- 平板布局中直接用固定 dp 值
+- 共用代码中用 `ResponsiveUtils.aw()` 限制缩放上限
+- 使用 `AdaptiveBuilder` 为平板提供独立布局
+
+### Q: 什么时候用 `aw()` vs `.w` vs 固定 dp？
+
+A: 按场景选择：
+
+| 场景 | 推荐 |
+|------|------|
+| 仅手机端的代码 | `.w` |
+| 手机端代码可能在大屏运行 | `aw()` |
+| 平板端独立布局 | 固定 dp 或 `tw()` |
+| 所有设备通用的小值（2-4dp 间距） | 固定 dp |
 
 ### Q: 如何处理横屏适配？
 
-A: 使用 `ResponsiveUtils.isLandscape(context)` 判断方向，并提供不同的布局。
+A: 使用 `MediaQuery.orientationOf(context)` 判断方向。项目已配置平板允许横屏、手机仅竖屏（见 `app_initializer.dart`）。
 
-### Q: 适老化模式如何实现？
+### Q: 如何处理折叠屏？
 
-A: 使用 `ElderlyResponsiveWidget` 包装组件，或手动设置更大的字体和触摸目标。
-
-### Q: 如何在不同设备上测试？
-
-A: 使用 Flutter Inspector 的设备切换功能，或安装 Device Preview 插件。
-
-## 总结
-
-通过集成 `flutter_screenutil`，我们的应用现在具备了：
-
-1. **完整的响应式设计**：支持各种屏幕尺寸
-2. **统一的设计系统**：使用响应式单位的主题系统
-3. **适老化支持**：针对老年用户的特殊优化
-4. **强大的工具类**：简化响应式开发
-
-这确保了应用在任何设备上都能提供优秀的用户体验。
+A: `ScreenUtilInit` 已配置 `splitScreenMode: true`。布局切换使用 `LayoutBuilder`（基于约束的方法），会自动响应折叠屏的分屏宽度变化。
