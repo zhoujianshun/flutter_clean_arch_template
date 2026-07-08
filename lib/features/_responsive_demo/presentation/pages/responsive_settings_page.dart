@@ -1,9 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/shared/responsive/adaptive_builder.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/content_constraint.dart';
 import 'package:flutter_clean_arch_template/shared/responsive/breakpoints.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/responsive_tokens.dart';
+import 'package:flutter_clean_arch_template/shared/responsive/content_constraint.dart';
 
 /// 响应式设置页示例
 ///
@@ -173,9 +172,7 @@ class _ResponsiveSettingsPageState extends State<ResponsiveSettingsPage> {
   /// 平板布局：左分类 + 右设置项
   Widget _buildSplitLayout(BuildContext context, BoxConstraints constraints) {
     final category = _categories[_selectedCategory];
-    final masterWidth = ResponsiveBreakpoints.isExpanded(constraints)
-        ? 280.0
-        : 240.0;
+    final masterWidth = ResponsiveBreakpoints.isExpanded(constraints) ? 280.0 : 240.0;
 
     return Row(
       children: [
@@ -191,19 +188,13 @@ class _ResponsiveSettingsPageState extends State<ResponsiveSettingsPage> {
               return ListTile(
                 leading: Icon(
                   cat.icon,
-                  color: isSelected
-                      ? Theme.of(context).colorScheme.primary
-                      : null,
+                  color: isSelected ? Theme.of(context).colorScheme.primary : null,
                 ),
                 title: Text(
                   cat.title,
                   style: TextStyle(
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                    color: isSelected
-                        ? Theme.of(context).colorScheme.primary
-                        : null,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected ? Theme.of(context).colorScheme.primary : null,
                   ),
                 ),
                 selected: isSelected,
@@ -222,7 +213,6 @@ class _ResponsiveSettingsPageState extends State<ResponsiveSettingsPage> {
         // 右侧设置项
         Expanded(
           child: ContentConstraint(
-            maxWidth: ResponsiveTokens.maxWidthList,
             child: ListView(
               padding: const EdgeInsets.all(24),
               children: [
