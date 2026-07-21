@@ -51,10 +51,21 @@ class AuthInterceptor extends Interceptor {
           _publishAuthenticationFailedEvent('No valid auth token');
         }
 
+        final unauthorizedResponse = Response<dynamic>(
+          requestOptions: options,
+          statusCode: 401,
+          data: const {
+            'code': 401,
+            'msg': 'No valid auth token',
+            'message': 'No valid auth token',
+          },
+        );
+
         return handler.reject(
           DioException(
             requestOptions: options,
-            type: DioExceptionType.cancel,
+            response: unauthorizedResponse,
+            type: DioExceptionType.badResponse,
             message: 'No valid auth token',
           ),
           true,

@@ -25,7 +25,7 @@ void addTimestampToQueryParameters(Map<String, dynamic> data) {
 /// - 统一的错误处理和转换
 /// - 支持多种响应类型（对象、列表、分页、void等）
 /// - 自动日志记录
-/// - Either<Failure, T> 函数式错误处理
+/// - `Either<Failure, T>` 函数式错误处理
 ///
 /// 使用示例：
 /// ```dart
@@ -126,15 +126,17 @@ abstract class BaseAPI {
     _cancelTokens.remove(key);
   }
 
-  /// 处理标准API调用，返回单个数据对象
-  Future<Either<Failure, T>> handleApiCall<T>(
+  /// 统一的 API 调用执行包装器
+  ///
+  /// 所有 handleXxxCall 方法委托到此方法，集中 try-catch 和错误映射逻辑。
+  Future<Either<Failure, T>> _execute<T>(
     Future<Response<dynamic>> apiCall,
-    T Function(Map<String, dynamic>) fromJson, {
+    Either<Failure, T> Function(Response<dynamic>) handler, {
     String? logTag,
   }) async {
     try {
       final response = await apiCall;
-      return ApiResponseHandler.handleObjectResponse<T>(response, fromJson);
+      return handler(response);
     } on AppException catch (e) {
       AppLogger.error('${logTag ?? runtimeType.toString()}: AppException caught', error: e);
       return Left(mapExceptionToFailure(e));
@@ -147,146 +149,51 @@ abstract class BaseAPI {
       return Left(UnknownFailure(message: e.toString()));
     }
   }
+
+  /// 处理标准API调用，返回单个数据对象
+  Future<Either<Failure, T>> handleApiCall<T>(
+    Future<Response<dynamic>> apiCall,
+    T Function(Map<String, dynamic>) fromJson, {
+    String? logTag,
+  }) => _execute(apiCall, (r) => ApiResponseHandler.handleObjectResponse<T>(r, fromJson), logTag: logTag);
 
   /// 处理返回列表数据的API调用
   Future<Either<Failure, List<T>>> handleApiListCall<T>(
     Future<Response<dynamic>> apiCall,
     T Function(Map<String, dynamic>) fromJson, {
     String? logTag,
-  }) async {
-    try {
-      final response = await apiCall;
-
-      return ApiResponseHandler.handleListResponse<T>(response, fromJson);
-    } on AppException catch (e) {
-      AppLogger.error('${logTag ?? runtimeType.toString()}: AppException caught', error: e);
-      return Left(mapExceptionToFailure(e));
-    } catch (e, stackTrace) {
-      AppLogger.error(
-        '${logTag ?? runtimeType.toString()}: Unexpected error',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return Left(UnknownFailure(message: e.toString()));
-    }
-  }
+  }) => _execute(apiCall, (r) => ApiResponseHandler.handleListResponse<T>(r, fromJson), logTag: logTag);
 
   /// 处理无返回数据的API调用（如删除操作）
   Future<Either<Failure, void>> handleApiVoidCall(
     Future<Response<dynamic>> apiCall, {
     String? logTag,
-  }) async {
-    try {
-      final response = await apiCall;
-
-      return ApiResponseHandler.handleVoidResponse(response);
-    } on AppException catch (e) {
-      AppLogger.error('${logTag ?? runtimeType.toString()}: AppException caught', error: e);
-      return Left(mapExceptionToFailure(e));
-    } catch (e, stackTrace) {
-      AppLogger.error(
-        '${logTag ?? runtimeType.toString()}: Unexpected error',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return Left(UnknownFailure(message: e.toString()));
-    }
-  }
+  }) => _execute(apiCall, ApiResponseHandler.handleVoidResponse, logTag: logTag);
 
   /// 处理分页API调用
   Future<Either<Failure, PaginatedData<T>>> handlePaginatedApiCall<T>(
     Future<Response<dynamic>> apiCall,
     T Function(Map<String, dynamic>) fromJson, {
     String? logTag,
-    int? pageSize,
-    int? page,
-  }) async {
-    try {
-      final response = await apiCall;
+  }) => _execute(apiCall, (r) => ApiResponseHandler.handlePageableResponse<T>(r, fromJson), logTag: logTag);
 
-      return ApiResponseHandler.handlePageableResponse<T>(response, fromJson);
-    } on AppException catch (e) {
-      AppLogger.error('${logTag ?? runtimeType.toString()}: AppException caught', error: e);
-      return Left(mapExceptionToFailure(e));
-    } catch (e, stackTrace) {
-      AppLogger.error(
-        '${logTag ?? runtimeType.toString()}: Unexpected error',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return Left(UnknownFailure(message: e.toString()));
-    }
-  }
-
-  /// 处理int响应
+  /// 处理 int 响应
   Future<Either<Failure, int>> handleApiIntCall(
     Future<Response<dynamic>> apiCall, {
     String? logTag,
     String dataKey = 'data',
-  }) async {
-    try {
-      final response = await apiCall;
+  }) => _execute(apiCall, (r) => ApiResponseHandler.handleIntResponse(r, dataKey: dataKey), logTag: logTag);
 
-      return ApiResponseHandler.handleIntResponse(response, dataKey: dataKey);
-    } on AppException catch (e) {
-      AppLogger.error('${logTag ?? runtimeType.toString()}: AppException caught', error: e);
-      return Left(mapExceptionToFailure(e));
-    } catch (e, stackTrace) {
-      AppLogger.error(
-        '${logTag ?? runtimeType.toString()}: Unexpected error',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return Left(UnknownFailure(message: e.toString()));
-    }
-  }
-
-  /// 处理布尔响应
-  ///
-  /// 适用于返回简单成功/失败状态的 API
+  /// 处理布尔响应，适用于返回简单成功/失败状态的 API
   Future<Either<Failure, bool>> handleApiBoolCall(
     Future<Response<dynamic>> apiCall, {
     String? logTag,
-  }) async {
-    try {
-      final response = await apiCall;
+  }) => _execute(apiCall, ApiResponseHandler.handleBooleanResponse, logTag: logTag);
 
-      return ApiResponseHandler.handleBooleanResponse(response);
-    } on AppException catch (e) {
-      AppLogger.error('${logTag ?? runtimeType.toString()}: AppException caught', error: e);
-      return Left(mapExceptionToFailure(e));
-    } catch (e, stackTrace) {
-      AppLogger.error(
-        '${logTag ?? runtimeType.toString()}: Unexpected error',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return Left(UnknownFailure(message: e.toString()));
-    }
-  }
-
-  /// 处理字符串响应
-  ///
-  /// 适用于返回 token、消息等字符串的 API
+  /// 处理字符串响应，适用于返回 token、消息等字符串的 API
   Future<Either<Failure, String>> handleApiStringCall(
     Future<Response<dynamic>> apiCall, {
     String? logTag,
     String dataKey = 'data',
-  }) async {
-    try {
-      final response = await apiCall;
-
-      return ApiResponseHandler.handleStringResponse(response, dataKey: dataKey);
-    } on AppException catch (e) {
-      AppLogger.error('${logTag ?? runtimeType.toString()}: AppException caught', error: e);
-      return Left(mapExceptionToFailure(e));
-    } catch (e, stackTrace) {
-      AppLogger.error(
-        '${logTag ?? runtimeType.toString()}: Unexpected error',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return Left(UnknownFailure(message: e.toString()));
-    }
-  }
+  }) => _execute(apiCall, (r) => ApiResponseHandler.handleStringResponse(r, dataKey: dataKey), logTag: logTag);
 }

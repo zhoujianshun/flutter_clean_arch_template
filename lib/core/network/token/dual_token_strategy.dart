@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
+import 'package:flutter_clean_arch_template/core/network/interceptors/auth_interceptor.dart';
 import 'package:flutter_clean_arch_template/core/network/token/token_storage.dart';
 import 'package:flutter_clean_arch_template/core/network/token/token_strategy.dart';
 
@@ -47,12 +48,17 @@ class DualTokenStrategy implements TokenStrategy {
     this.onAuthExpired,
   }) : _tokenStorage = tokenStorage,
        _dio = dio {
-    assert(
-      dio.interceptors.whereType<InterceptorsWrapper>().isEmpty ||
-          !dio.interceptors.any((i) => i.runtimeType.toString().contains('Auth')),
-      'DualTokenStrategy 的 Dio 实例不应挂载 AuthInterceptor，'
-      '否则刷新请求会被拦截导致死锁',
+    final hasAuthInterceptor = dio.interceptors.any(
+      (i) => i is AuthInterceptor,
     );
+    if (hasAuthInterceptor) {
+      AppLogger.error(
+        '[$name] DualTokenStrategy 的 Dio 实例不应挂载 AuthInterceptor，否则刷新请求会被拦截导致死锁！请使用独立的 Dio 实例。',
+      );
+      throw ArgumentError(
+        'DualTokenStrategy 的 Dio 实例挂载了 AuthInterceptor，会导致刷新死锁',
+      );
+    }
   }
 
   final TokenStorage _tokenStorage;
@@ -198,17 +204,6 @@ class DualTokenStrategy implements TokenStrategy {
       final newAccessToken = data[accessTokenField] as String?;
       final newRefreshToken = data[refreshTokenField] as String?;
       final rawCode = data[codeField];
-      // final code = switch (rawCode) {
-      //   final int v => v,
-      //   final String v => int.tryParse(v),
-      //   _ => null,
-      // };
-
-      // final code = rawCode is int
-      //     ? rawCode
-      //     : rawCode is String
-      //     ? int.tryParse(rawCode)
-      //     : null;
 
       int? code;
       if (rawCode case final int v) {
@@ -274,16 +269,14 @@ class DualTokenStrategy implements TokenStrategy {
       }
 
       var payload = parts[1];
-      switch (payload.length % 4) {
-        case 0:
-          break;
-        case 2:
-          payload += '==';
-        case 3:
-          payload += '=';
-        default:
-          AppLogger.warning('[$name] Token payload Base64 长度无效');
-          return null;
+      final paddingRemainder = payload.length % 4;
+      if (paddingRemainder == 2) {
+        payload += '==';
+      } else if (paddingRemainder == 3) {
+        payload += '=';
+      } else if (paddingRemainder != 0) {
+        AppLogger.warning('[$name] Token payload Base64 长度无效');
+        return null;
       }
 
       payload = payload.replaceAll('-', '+').replaceAll('_', '/');

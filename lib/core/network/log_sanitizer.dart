@@ -17,14 +17,26 @@ class LogSanitizer {
   static const _sensitiveBodyKeys = {
     'token',
     'access_token',
-    'accessToken',
+    'accesstoken',
     'refresh_token',
-    'refreshToken',
+    'refreshtoken',
     'password',
-    'smsCode',
+    'secret',
+    'api_key',
+    'apikey',
+    'smscode',
+    'sms_code',
     'phone',
+    'phone_number',
     'phonenumber',
-    'idCard',
+    'idcard',
+    'id_card',
+    'email',
+    'credit_card',
+    'creditcard',
+    'bank_account',
+    'bankaccount',
+    'cvv',
   };
 
   static final _random = Random();
@@ -45,17 +57,35 @@ class LogSanitizer {
     });
   }
 
-  /// 脱敏响应体（仅处理顶层 Map）
+  /// 脱敏请求/响应体（递归处理 Map/List）
   static dynamic sanitizeBody(dynamic data) {
-    if (data is Map<String, dynamic>) {
-      return data.map((key, value) {
-        if (_sensitiveBodyKeys.contains(key)) {
-          return MapEntry(key, _mask(value.toString()));
+    return _sanitizeValue(data);
+  }
+
+  static dynamic _sanitizeValue(dynamic value) {
+    if (value is Map) {
+      final sanitized = <String, dynamic>{};
+      for (final entry in value.entries) {
+        final key = entry.key.toString();
+        final entryValue = entry.value;
+        if (_isSensitiveBodyKey(key)) {
+          sanitized[key] = _mask(entryValue?.toString() ?? '');
+        } else {
+          sanitized[key] = _sanitizeValue(entryValue);
         }
-        return MapEntry(key, value);
-      });
+      }
+      return sanitized;
     }
-    return data;
+
+    if (value is List) {
+      return value.map(_sanitizeValue).toList(growable: false);
+    }
+
+    return value;
+  }
+
+  static bool _isSensitiveBodyKey(String key) {
+    return _sensitiveBodyKeys.contains(key.toLowerCase());
   }
 
   /// 遮罩字符串：保留前 3 位和后 2 位，中间用 *** 替代

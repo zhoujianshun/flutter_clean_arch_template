@@ -5,6 +5,7 @@ import 'package:flutter_clean_arch_template/core/network/interceptors/auth_inter
 import 'package:flutter_clean_arch_template/core/network/interceptors/connectivity_interceptor.dart';
 import 'package:flutter_clean_arch_template/core/network/interceptors/retry_interceptor.dart';
 import 'package:flutter_clean_arch_template/core/network/log_sanitizer.dart';
+import 'package:flutter_clean_arch_template/core/network/network_info.dart';
 import 'package:talker_dio_logger/talker_dio_logger.dart';
 
 /// API客户端 - 统一网络请求管理
@@ -24,17 +25,20 @@ class ApiClient {
   ApiClient(
     BaseOptions options, {
     TalkerDioLogger? dioLogger,
+    NetworkInfo? networkInfo,
     this.enableRetry = false,
     this.maxRetries = 3,
     this.retryDelay = const Duration(seconds: 1),
     this.enableConnectivityCheck = true,
-  }) : _dioLogger = dioLogger {
+  }) : _dioLogger = dioLogger,
+       _networkInfo = networkInfo ?? NetworkInfo() {
     _dio = Dio();
     _setupDio(options);
   }
 
   late final Dio _dio;
   final TalkerDioLogger? _dioLogger;
+  final NetworkInfo _networkInfo;
 
   /// 是否启用自动重试
   final bool enableRetry;
@@ -52,19 +56,23 @@ class ApiClient {
 
   /// 配置Dio实例
   void _setupDio(BaseOptions options) {
-    // 基础配置
-    _dio.options = BaseOptions(
-      baseUrl: options.baseUrl,
-      connectTimeout: options.connectTimeout,
-      receiveTimeout: options.receiveTimeout,
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-    );
+    // 基础配置：保留外部传入 options，仅补默认 header
+    final mergedHeaders = <String, dynamic>{...options.headers};
+    if (!_containsHeaderIgnoreCase(mergedHeaders, 'Content-Type')) {
+      mergedHeaders['Content-Type'] = 'application/json';
+    }
+    if (!_containsHeaderIgnoreCase(mergedHeaders, 'Accept')) {
+      mergedHeaders['Accept'] = 'application/json';
+    }
+    _dio.options = options.copyWith(headers: mergedHeaders);
 
     // 添加拦截器
     _setupInterceptors();
+  }
+
+  bool _containsHeaderIgnoreCase(Map<String, dynamic> headers, String key) {
+    final lowerKey = key.toLowerCase();
+    return headers.keys.any((headerKey) => headerKey.toLowerCase() == lowerKey);
   }
 
   /// 设置拦截器
@@ -89,7 +97,11 @@ class ApiClient {
 
     // 1. 连接检测拦截器 - 请求前检查网络状态（可选）
     if (enableConnectivityCheck) {
-      _dio.interceptors.add(ConnectivityInterceptor());
+      _dio.interceptors.add(
+        ConnectivityInterceptor(
+          networkInfo: _networkInfo,
+        ),
+      );
     }
 
     // 2. 认证拦截器 - 添加认证token和处理认证失败
@@ -112,25 +124,24 @@ class ApiClient {
     }
   }
 
+  /// 统一请求执行，集中 DioException → AppException 转换
+  Future<Response<T>> _request<T>(
+    Future<Response<T>> Function() action,
+  ) async {
+    try {
+      return await action();
+    } on DioException catch (e) {
+      throw DioErrorHandler.handleDioError(e);
+    }
+  }
+
   /// GET请求
   Future<Response<T>> get<T>(
     String path, {
     Map<String, dynamic>? queryParameters,
     Options? options,
     CancelToken? cancelToken,
-  }) async {
-    try {
-      final response = await _dio.get<T>(
-        path,
-        queryParameters: queryParameters,
-        options: options,
-        cancelToken: cancelToken,
-      );
-      return response;
-    } on DioException catch (e) {
-      throw DioErrorHandler.handleDioError(e);
-    }
-  }
+  }) => _request(() => _dio.get<T>(path, queryParameters: queryParameters, options: options, cancelToken: cancelToken));
 
   /// POST请求
   Future<Response<T>> post<T>(
@@ -139,20 +150,7 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
     Options? options,
     CancelToken? cancelToken,
-  }) async {
-    try {
-      final response = await _dio.post<T>(
-        path,
-        data: data,
-        queryParameters: queryParameters,
-        options: options,
-        cancelToken: cancelToken,
-      );
-      return response;
-    } on DioException catch (e) {
-      throw DioErrorHandler.handleDioError(e);
-    }
-  }
+  }) => _request(() => _dio.post<T>(path, data: data, queryParameters: queryParameters, options: options, cancelToken: cancelToken));
 
   /// PUT请求
   Future<Response<T>> put<T>(
@@ -161,20 +159,7 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
     Options? options,
     CancelToken? cancelToken,
-  }) async {
-    try {
-      final response = await _dio.put<T>(
-        path,
-        data: data,
-        queryParameters: queryParameters,
-        options: options,
-        cancelToken: cancelToken,
-      );
-      return response;
-    } on DioException catch (e) {
-      throw DioErrorHandler.handleDioError(e);
-    }
-  }
+  }) => _request(() => _dio.put<T>(path, data: data, queryParameters: queryParameters, options: options, cancelToken: cancelToken));
 
   /// DELETE请求
   Future<Response<T>> delete<T>(
@@ -183,20 +168,7 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
     Options? options,
     CancelToken? cancelToken,
-  }) async {
-    try {
-      final response = await _dio.delete<T>(
-        path,
-        data: data,
-        queryParameters: queryParameters,
-        options: options,
-        cancelToken: cancelToken,
-      );
-      return response;
-    } on DioException catch (e) {
-      throw DioErrorHandler.handleDioError(e);
-    }
-  }
+  }) => _request(() => _dio.delete<T>(path, data: data, queryParameters: queryParameters, options: options, cancelToken: cancelToken));
 
   /// 上传文件
   Future<Response<T>> uploadFile<T>(
@@ -206,33 +178,17 @@ class ApiClient {
     Map<String, dynamic>? data,
     ProgressCallback? onSendProgress,
     CancelToken? cancelToken,
-  }) async {
-    try {
-      final file = await MultipartFile.fromFile(
-        filePath,
-        filename: fileName,
-      );
-      final formData = FormData.fromMap({
-        'file': file,
-        if (data != null) ...data,
-      });
-      final response = await _dio.post<T>(
-        path,
-        data: formData,
-        onSendProgress: onSendProgress,
-        cancelToken: cancelToken,
-        options: Options(
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        ),
-      );
-
-      return response;
-    } on DioException catch (e) {
-      throw DioErrorHandler.handleDioError(e);
-    }
-  }
+  }) => _request(() async {
+    final file = await MultipartFile.fromFile(filePath, filename: fileName);
+    final formData = FormData.fromMap({'file': file, ...?data});
+    return _dio.post<T>(
+      path,
+      data: formData,
+      onSendProgress: onSendProgress,
+      cancelToken: cancelToken,
+      options: Options(headers: {'Content-Type': 'multipart/form-data'}),
+    );
+  });
 
   /// 下载文件
   Future<Response<dynamic>> downloadFile(
@@ -240,19 +196,7 @@ class ApiClient {
     String savePath, {
     ProgressCallback? onReceiveProgress,
     CancelToken? cancelToken,
-  }) async {
-    try {
-      final response = await _dio.download(
-        urlPath,
-        savePath,
-        onReceiveProgress: onReceiveProgress,
-        cancelToken: cancelToken,
-      );
-      return response;
-    } on DioException catch (e) {
-      throw DioErrorHandler.handleDioError(e);
-    }
-  }
+  }) => _request(() => _dio.download(urlPath, savePath, onReceiveProgress: onReceiveProgress, cancelToken: cancelToken));
 }
 
 /// Dio错误处理
@@ -304,8 +248,6 @@ class DioErrorHandler {
         );
 
       case DioExceptionType.unknown:
-      // ignore: no_default_cases, unreachable_switch_default
-      default:
         return NetworkException(
           message: '未知网络错误: ${error.message}',
           code: error.response?.statusCode,
@@ -372,10 +314,15 @@ class DioErrorHandler {
   }
 
   /// 从响应数据中提取错误信息
+  ///
+  /// 仅从 Map 结构中提取已知字段，避免将完整响应体（可能含敏感数据）暴露到错误消息。
   static String? _getErrorMessage(dynamic data) {
     if (data is Map<String, dynamic>) {
       return data['message']?.toString() ?? data['error']?.toString() ?? data['msg']?.toString();
     }
-    return data?.toString();
+    if (data is String && data.length <= 200) {
+      return data;
+    }
+    return null;
   }
 }

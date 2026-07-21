@@ -66,7 +66,7 @@ class RetryInterceptor extends Interceptor {
         await Future<void>.delayed(delay);
 
         try {
-          final dio = requestOptions.extra['dio_instance'] as Dio? ?? Dio();
+          final dio = requestOptions.extra['dio_instance'] as Dio;
           final response = await dio.fetch<dynamic>(requestOptions);
 
           AppLogger.info('重试成功: ${requestOptions.uri}');
@@ -118,13 +118,19 @@ class RetryInterceptor extends Interceptor {
   ///
   /// 重试策略：
   /// 1. 先检查方法幂等性（非幂等且未显式标记则不重试）
-  /// 2. 取消的请求不重试
-  /// 3. 证书错误不重试
-  /// 4. 超时错误：重试
-  /// 5. 服务器错误（5xx）和特定状态码（408/429）：重试
-  /// 6. 网络连接错误：重试
+  /// 2. 缺少 dio_instance 引用时不重试（无法发出正确请求）
+  /// 3. 取消的请求不重试
+  /// 4. 证书错误不重试
+  /// 5. 超时错误：重试
+  /// 6. 服务器错误（5xx）和特定状态码（408/429）：重试
+  /// 7. 网络连接错误：重试
   bool _shouldRetry(DioException err) {
     if (!_isMethodRetryable(err.requestOptions)) {
+      return false;
+    }
+
+    if (err.requestOptions.extra['dio_instance'] is! Dio) {
+      AppLogger.warning('[RetryInterceptor] 缺少 dio_instance 引用，跳过重试: ${err.requestOptions.uri}');
       return false;
     }
 

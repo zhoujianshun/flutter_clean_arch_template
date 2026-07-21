@@ -57,9 +57,16 @@ abstract class ApiResponse<T> with _$ApiResponse<T> {
   // }
 
   /// 智能判断 JSON 类型并创建相应的实例
+  ///
+  /// 对 `msg` 和 `code` 做容错处理，兼容后端返回非标准类型的情况。
   factory ApiResponse.fromJson(Map<String, dynamic> json, T Function(Object?) fromJsonT) {
-    final msg = json['msg'] as String;
-    final code = json['code'] as int;
+    final msg = json['msg']?.toString() ?? json['message']?.toString() ?? '';
+    final rawCode = json['code'];
+    final code = rawCode is int
+        ? rawCode
+        : rawCode is String
+        ? int.tryParse(rawCode) ?? -1
+        : -1;
 
     // 检查是否包含分页相关字段
     if (json.containsKey('rows') ||

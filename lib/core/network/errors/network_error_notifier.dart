@@ -105,7 +105,7 @@ class NetworkErrorNotifier {
   void dispose() {
     if (!_controller.isClosed) {
       AppLogger.i('NetworkErrorNotifier: 清理资源，关闭事件流');
-      _controller.close();
+      unawaited(_controller.close());
     }
   }
 }

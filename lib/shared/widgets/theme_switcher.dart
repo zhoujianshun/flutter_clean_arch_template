@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/core/theme/theme_mode_provider.dart';
 import 'package:flutter_clean_arch_template/generated/l10n/app_localizations.dart';
@@ -99,7 +101,7 @@ class ThemeSwitcher extends ConsumerWidget {
           selected: {themeMode},
           onSelectionChanged: (newSelection) {
             if (newSelection.isNotEmpty) {
-              notifier.setThemeMode(newSelection.first);
+              unawaited(notifier.setThemeMode(newSelection.first));
             }
           },
         ),
@@ -164,7 +166,7 @@ class ThemeSwitcher extends ConsumerWidget {
           ],
           onChanged: (newValue) {
             if (newValue != null) {
-              notifier.setThemeMode(newValue);
+              unawaited(notifier.setThemeMode(newValue));
             }
           },
         ),
@@ -184,31 +186,39 @@ class ThemeSwitcher extends ConsumerWidget {
       builder: (context) {
         return AlertDialog(
           title: Text(l10n.profile_theme),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildThemeOption(
-                context,
-                ThemeMode.system,
-                l10n.theme_system,
-                Icons.brightness_auto,
-                currentMode,
-              ),
-              _buildThemeOption(
-                context,
-                ThemeMode.light,
-                l10n.theme_light,
-                Icons.light_mode,
-                currentMode,
-              ),
-              _buildThemeOption(
-                context,
-                ThemeMode.dark,
-                l10n.theme_dark,
-                Icons.dark_mode,
-                currentMode,
-              ),
-            ],
+          content: RadioGroup<ThemeMode>(
+            groupValue: currentMode,
+            onChanged: (value) {
+              if (value != null) {
+                Navigator.of(context).pop(value);
+              }
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildThemeOption(
+                  context,
+                  ThemeMode.system,
+                  l10n.theme_system,
+                  Icons.brightness_auto,
+                  currentMode,
+                ),
+                _buildThemeOption(
+                  context,
+                  ThemeMode.light,
+                  l10n.theme_light,
+                  Icons.light_mode,
+                  currentMode,
+                ),
+                _buildThemeOption(
+                  context,
+                  ThemeMode.dark,
+                  l10n.theme_dark,
+                  Icons.dark_mode,
+                  currentMode,
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -221,7 +231,7 @@ class ThemeSwitcher extends ConsumerWidget {
     );
 
     if (result != null) {
-      notifier.setThemeMode(result);
+      await notifier.setThemeMode(result);
     }
   }
 
@@ -237,12 +247,6 @@ class ThemeSwitcher extends ConsumerWidget {
 
     return RadioListTile<ThemeMode>(
       value: mode,
-      groupValue: currentMode,
-      onChanged: (value) {
-        if (value != null) {
-          Navigator.of(context).pop(value);
-        }
-      },
       title: Row(
         children: [
           Icon(

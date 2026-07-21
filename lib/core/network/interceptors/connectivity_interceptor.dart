@@ -20,9 +20,10 @@ import 'package:flutter_clean_arch_template/core/network/network_info.dart';
 class ConnectivityInterceptor extends Interceptor {
   ConnectivityInterceptor({
     this.cacheDuration = const Duration(seconds: 2),
-  });
+    NetworkInfo? networkInfo,
+  }) : _networkInfo = networkInfo ?? NetworkInfo();
 
-  final NetworkInfo _networkInfo = NetworkInfo();
+  final NetworkInfo _networkInfo;
 
   /// 缓存有效期
   final Duration cacheDuration;

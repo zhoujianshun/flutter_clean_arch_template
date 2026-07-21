@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
 import 'package:flutter_clean_arch_template/core/network/token/token_strategy.dart';
 
+
 /// Token 管理器
 ///
 /// 统一管理 Token 的获取、刷新、存储等操作
@@ -56,6 +57,9 @@ class TokenManager {
   /// - 已完成的 Completer: 刷新已完成（2 秒窗口期内复用结果）
   Completer<String?>? _refreshCompleter;
 
+  /// 窗口期计时器，用于 2 秒后清理 _refreshCompleter
+  Timer? _windowTimer;
+
   /// 上次刷新失败的时间
   DateTime? _lastRefreshFailureTime;
 
@@ -80,6 +84,7 @@ class TokenManager {
 
     _strategy = strategy;
 
+    _windowTimer?.cancel();
     _refreshCompleter = null;
     _lastRefreshFailureTime = null;
   }
@@ -183,7 +188,8 @@ class TokenManager {
 
       return null;
     } finally {
-      Future<void>.delayed(const Duration(seconds: 2), () {
+      _windowTimer?.cancel();
+      _windowTimer = Timer(const Duration(seconds: 2), () {
         _refreshCompleter = null;
       });
     }
@@ -218,6 +224,7 @@ class TokenManager {
   /// 用于登出或 token 失效时
   Future<void> clearToken() async {
     await _strategy.clearToken();
+    _windowTimer?.cancel();
     _refreshCompleter = null;
     _lastRefreshFailureTime = null;
   }

@@ -18,7 +18,7 @@ import 'package:flutter_clean_arch_template/shared/models/api/api_response.dart'
 /// - 原始数据 (handleRawResponse)
 /// - 批量结果 (handleBatchResponse)
 ///
-/// 所有方法都返回 Either<Failure, T> 类型，便于函数式错误处理
+/// 所有方法都返回 `Either<Failure, T>` 类型，便于函数式错误处理
 class ApiResponseHandler {
   /// 处理单个对象响应
   static Either<Failure, T> handleObjectResponse<T>(

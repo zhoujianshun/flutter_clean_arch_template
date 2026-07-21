@@ -3,32 +3,36 @@ import 'package:flutter_clean_arch_template/core/errors/failures.dart';
 
 /// 将异常映射为失败
 Failure mapExceptionToFailure(AppException exception) {
-  if (exception is NetworkException) {
-    return NetworkFailure(
+  return switch (exception) {
+    NetworkException() => NetworkFailure(
       message: exception.message,
       code: exception.code ?? -1,
-    );
-  } else if (exception is ServerException) {
-    return ServerFailure(
-      message: exception.message,
-      code: exception.code ?? 500,
-    );
-  } else if (exception is AuthException) {
-    return AuthFailure(
+    ),
+    AuthException() => AuthFailure(
       message: exception.message,
       code: exception.code ?? 401,
-    );
-  } else if (exception is ValidationException) {
-    return ValidationFailure(
+    ),
+    PermissionException() => PermissionFailure(
+      message: exception.message,
+      code: exception.code ?? 403,
+    ),
+    ValidationException() => ValidationFailure(
       message: exception.message,
       code: exception.code ?? 400,
-    );
-  } else {
-    return UnknownFailure(
+    ),
+    CacheException() => CacheFailure(
+      message: exception.message,
+      code: exception.code ?? -2,
+    ),
+    ServerException() => ServerFailure(
+      message: exception.message,
+      code: exception.code ?? 500,
+    ),
+    _ => UnknownFailure(
       message: exception.message,
       code: exception.code ?? -999,
-    );
-  }
+    ),
+  };
 }
 
 /// 将 ApiResponse 映射为对应的 Failure 类型

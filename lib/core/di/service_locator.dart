@@ -6,6 +6,7 @@ import 'package:flutter_clean_arch_template/core/env/app_config.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
 import 'package:flutter_clean_arch_template/core/network/api_client.dart';
 import 'package:flutter_clean_arch_template/core/network/auth_config.dart';
+import 'package:flutter_clean_arch_template/core/network/network_info.dart';
 import 'package:flutter_clean_arch_template/core/network/token/single_token_strategy.dart';
 import 'package:flutter_clean_arch_template/core/network/token/token_manager.dart';
 import 'package:flutter_clean_arch_template/core/network/token/token_storage.dart';
@@ -86,13 +87,14 @@ abstract class RegisterModule {
   );
 
   @singleton
-  ApiClient get apiClient => ApiClient(
+  ApiClient apiClient(NetworkInfo networkInfo) => ApiClient(
     BaseOptions(
       baseUrl: AppConfig.baseUrl,
       connectTimeout: Duration(milliseconds: AppConfig.connectTimeout),
       receiveTimeout: Duration(milliseconds: AppConfig.receiveTimeout),
     ),
     dioLogger: AppLogger.dioLogger,
+    networkInfo: networkInfo,
   );
 }
 
