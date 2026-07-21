@@ -1,17 +1,18 @@
 import 'dart:io';
 
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter_clean_arch_template/core/cache/app_cache_managers.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
-import 'package:flutter_clean_arch_template/core/storage/local/hive_service.dart';
-import 'package:flutter_clean_arch_template/shared/cache/app_cache_managers.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 /// 统一缓存服务
 ///
-/// 职责：管理临时数据和文件缓存
-/// - API 响应缓存
+/// 职责：管理所有临时数据和文件缓存（可随时清除不影响核心功能）
+/// - API 响应数据缓存（带 TTL）
 /// - 列表数据缓存
-/// - 图片文件缓存
-/// - 文档文件缓存
+/// - 图片/文档文件缓存
+///
+/// ⚠️ 注意：持久化重要数据（用户信息、Token、设置）请使用 StorageService
 ///
 /// 使用示例：
 /// ```dart
@@ -27,11 +28,11 @@ import 'package:flutter_clean_arch_template/shared/cache/app_cache_managers.dart
 /// final file = await cacheService.cacheAvatar(avatarUrl);
 /// ```
 class CacheService {
-  CacheService(this._hiveService);
+  CacheService(this._cacheBox);
 
-  final HiveService _hiveService;
+  final Box<dynamic> _cacheBox;
 
-  // ==================== 数据缓存（使用 Hive cache_box）====================
+  // ==================== 数据缓存（带 TTL） ====================
 
   /// 缓存数据（通用方法）
   ///
@@ -43,26 +44,43 @@ class CacheService {
     dynamic data, {
     Duration? ttl,
   }) async {
-    await _hiveService.putCacheWithTTL(
-      key,
-      data,
-      ttl: ttl ?? const Duration(minutes: 5),
-    );
-    AppLogger.d('Data cached: $key');
+    final now = DateTime.now();
+    final effectiveTtl = ttl ?? const Duration(minutes: 5);
+    final cacheEntry = {
+      'value': data,
+      'createdAt': now.millisecondsSinceEpoch,
+      'expiresAt': now.add(effectiveTtl).millisecondsSinceEpoch,
+    };
+    await _cacheBox.put(key, cacheEntry);
+    AppLogger.d('Data cached: $key (ttl: ${effectiveTtl.inSeconds}s)');
   }
 
-  /// 获取缓存数据（通用方法）
+  /// 获取缓存数据（自动检查过期）
   ///
   /// [key] - 缓存键
   /// [defaultValue] - 默认值（缓存不存在或已过期时返回）
   T? getCachedData<T>(String key, {T? defaultValue}) {
-    final data = _hiveService.getCacheWithTTL<T>(key, defaultValue: defaultValue);
-    if (data != null) {
+    try {
+      final cacheEntry = _cacheBox.get(key);
+      if (cacheEntry == null || cacheEntry is! Map) return defaultValue;
+
+      final expiresAt = cacheEntry['expiresAt'] as int?;
+
+      if (expiresAt != null) {
+        final expiryTime = DateTime.fromMillisecondsSinceEpoch(expiresAt);
+        if (DateTime.now().isAfter(expiryTime)) {
+          _cacheBox.delete(key).ignore();
+          AppLogger.d('Cache expired: $key');
+          return defaultValue;
+        }
+      }
+
       AppLogger.d('Cache hit: $key');
-    } else {
-      AppLogger.d('Cache miss: $key');
+      return cacheEntry['value'] as T?;
+    } catch (e) {
+      AppLogger.e('Cache read failed: $key', error: e);
+      return defaultValue;
     }
-    return data;
   }
 
   /// 缓存 API 响应数据（语义化封装）
@@ -105,17 +123,17 @@ class CacheService {
     return data?.cast<T>();
   }
 
-  // ==================== 文件缓存（使用 flutter_cache_manager）====================
+  /// 删除特定缓存
+  Future<void> removeCache(String key) async {
+    await _cacheBox.delete(key);
+    AppLogger.d('Cache removed: $key');
+  }
+
+  // ==================== 文件缓存（flutter_cache_manager）====================
 
   /// 缓存用户头像
-  ///
-  /// [url] - 头像 URL
-  /// [headers] - 可选的 HTTP 请求头（如 token）
   Future<File> cacheAvatar(String url, {Map<String, String>? headers}) async {
-    final file = await AppCacheManagers.avatar.getSingleFile(
-      url,
-      headers: headers,
-    );
+    final file = await AppCacheManagers.avatar.getSingleFile(url, headers: headers);
     AppLogger.d('Avatar cached: $url');
     return file;
   }
@@ -126,75 +144,74 @@ class CacheService {
   }
 
   /// 缓存服务相关图片
-  ///
-  /// [url] - 图片 URL
-  /// [headers] - 可选的 HTTP 请求头
-  Future<File> cacheServiceImage(
-    String url, {
-    Map<String, String>? headers,
-  }) async {
-    final file = await AppCacheManagers.service.getSingleFile(
-      url,
-      headers: headers,
-    );
+  Future<File> cacheServiceImage(String url, {Map<String, String>? headers}) async {
+    final file = await AppCacheManagers.service.getSingleFile(url, headers: headers);
     AppLogger.d('Service image cached: $url');
     return file;
   }
 
   /// 缓存文档
-  ///
-  /// [url] - 文档 URL
-  /// [headers] - 可选的 HTTP 请求头
   Future<File> cacheDocument(String url, {Map<String, String>? headers}) async {
-    final file = await AppCacheManagers.document.getSingleFile(
-      url,
-      headers: headers,
-    );
+    final file = await AppCacheManagers.document.getSingleFile(url, headers: headers);
     AppLogger.d('Document cached: $url');
     return file;
   }
 
   /// 缓存通用图片
-  ///
-  /// [url] - 图片 URL
-  /// [headers] - 可选的 HTTP 请求头
-  Future<File> cacheGeneralImage(
-    String url, {
-    Map<String, String>? headers,
-  }) async {
-    final file = await AppCacheManagers.general.getSingleFile(
-      url,
-      headers: headers,
-    );
+  Future<File> cacheGeneralImage(String url, {Map<String, String>? headers}) async {
+    final file = await AppCacheManagers.general.getSingleFile(url, headers: headers);
     AppLogger.d('General image cached: $url');
     return file;
   }
 
   /// 预加载图片列表
-  ///
-  /// 适合在进入页面前预加载关键图片
-  Future<void> preloadImages(
-    List<String> urls, {
-    CacheManager? cacheManager,
-  }) async {
+  Future<void> preloadImages(List<String> urls, {CacheManager? cacheManager}) async {
     final manager = cacheManager ?? AppCacheManagers.general;
-    await Future.wait(
-      urls.map(manager.downloadFile),
-    );
+    await Future.wait(urls.map(manager.downloadFile));
     AppLogger.i('Preloaded ${urls.length} images');
   }
 
   // ==================== 缓存管理 ====================
 
-  /// 清理所有缓存（包括数据缓存和文件缓存）
+  /// 清理所有缓存（数据缓存 + 文件缓存）
   Future<void> clearAllCache() async {
-    await _hiveService.clearCache();
+    await _cacheBox.clear();
     await AppCacheManagers.clearAll();
+    AppLogger.i('All cache cleared');
   }
 
-  /// 清理过期的数据缓存
+  /// 清理过期的数据缓存，返回清理数量
   Future<int> clearExpiredCache() async {
-    return _hiveService.clearExpiredCache();
+    try {
+      final keys = _cacheBox.keys.toList();
+      var deletedCount = 0;
+
+      for (final key in keys) {
+        try {
+          final cacheEntry = _cacheBox.get(key);
+          if (cacheEntry is Map) {
+            final expiresAt = cacheEntry['expiresAt'] as int?;
+            if (expiresAt != null) {
+              final expiryTime = DateTime.fromMillisecondsSinceEpoch(expiresAt);
+              if (DateTime.now().isAfter(expiryTime)) {
+                await _cacheBox.delete(key);
+                deletedCount++;
+              }
+            }
+          }
+        } catch (e) {
+          AppLogger.e('Failed to check cache entry: $key', error: e);
+        }
+      }
+
+      if (deletedCount > 0) {
+        AppLogger.i('Cleared $deletedCount expired cache entries');
+      }
+      return deletedCount;
+    } catch (e) {
+      AppLogger.e('Failed to clear expired cache', error: e);
+      return 0;
+    }
   }
 
   /// 清理特定类型的文件缓存
@@ -213,18 +230,14 @@ class CacheService {
     }
   }
 
-  /// 获取缓存统计信息
-  Future<Map<String, dynamic>> getCacheStats() async {
+  /// 获取缓存统计信息（用于调试）
+  Map<String, dynamic> getCacheStats() {
     try {
-      // 直接从 HiveService 获取缓存信息
-      final cacheKeys = _hiveService.getKeys('cache_box').length;
-      final fileCacheStats = await AppCacheManagers.getCacheStats();
-
       return {
         'data_cache': {
-          'hive_cache_keys': cacheKeys,
+          'total_keys': _cacheBox.keys.length,
         },
-        'file_cache': fileCacheStats,
+        'file_cache': AppCacheManagers.getCacheStats(),
       };
     } catch (e) {
       AppLogger.e('Failed to get cache stats', error: e);

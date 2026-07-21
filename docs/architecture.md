@@ -20,7 +20,8 @@ Infrastructure shared by the whole app:
 - Networking, token strategy, global error types
 - Router, route guards (dual auth mode), theme, environment loading
 - `AuthMode` enum (`core/constants/auth_mode.dart`) and `AppConfig.authMode` / `AppConfig.mockAuth` for flexible authentication control
-- Storage facades (Hive, SharedPreferences, secure storage)
+- Storage facades (Hive, SharedPreferences, secure storage) for persistent data
+- Cache service (TTL data cache + file cache) for temporary data
 - Logging, DI bootstrap, app initialization
 
 Core must not contain feature-specific business rules.

@@ -6,16 +6,21 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 /// Hive service for local data storage
 class HiveService {
-  static const String _userBoxName = 'user_box';
-  static const String _settingsBoxName = 'settings_box';
-  static const String _cacheBoxName = 'cache_box';
+  /// 用户数据 Box：存储用户个人信息、偏好等需要跟随账号的持久数据
+  static const String userBoxName = 'user_box';
+
+  /// 应用设置 Box：存储应用级配置（非用户相关），如主题模式、语言等
+  static const String settingsBoxName = 'settings_box';
+
+  /// 缓存 Box：存储临时数据（由 CacheService 管理），带 TTL 过期机制，可随时清除
+  static const String cacheBoxName = 'cache_box';
 
   Box<dynamic>? _userBox;
   Box<dynamic>? _settingsBox;
   Box<dynamic>? _cacheBox;
 
-  static bool _initialized = false;
-  static Completer<void>? _initCompleter;
+  bool _initialized = false;
+  Completer<void>? _initCompleter;
 
   /// Initialize Hive database
   Future<void> initialize() async {
@@ -37,9 +42,9 @@ class HiveService {
       // Hive.registerAdapter(UserModelAdapter());
 
       // Open boxes
-      _userBox = await Hive.openBox(_userBoxName);
-      _settingsBox = await Hive.openBox(_settingsBoxName);
-      _cacheBox = await Hive.openBox(_cacheBoxName);
+      _userBox = await Hive.openBox(userBoxName);
+      _settingsBox = await Hive.openBox(settingsBoxName);
+      _cacheBox = await Hive.openBox(cacheBoxName);
 
       _initialized = true;
       AppLogger.i('Hive service initialized successfully');
@@ -199,22 +204,22 @@ class HiveService {
   /// Get box by name (async)
   Future<Box<dynamic>> _getBox(String boxName) async {
     switch (boxName) {
-      case _userBoxName:
+      case userBoxName:
         if (_userBox == null || !_userBox!.isOpen) {
           AppLogger.w('User box is not properly initialized, attempting to reopen...');
-          _userBox = await Hive.openBox(_userBoxName);
+          _userBox = await Hive.openBox(userBoxName);
         }
         return _userBox!;
-      case _settingsBoxName:
+      case settingsBoxName:
         if (_settingsBox == null || !_settingsBox!.isOpen) {
           AppLogger.w('Settings box is not properly initialized, attempting to reopen...');
-          _settingsBox = await Hive.openBox(_settingsBoxName);
+          _settingsBox = await Hive.openBox(settingsBoxName);
         }
         return _settingsBox!;
-      case _cacheBoxName:
+      case cacheBoxName:
         if (_cacheBox == null || !_cacheBox!.isOpen) {
           AppLogger.w('Cache box is not properly initialized, attempting to reopen...');
-          _cacheBox = await Hive.openBox(_cacheBoxName);
+          _cacheBox = await Hive.openBox(cacheBoxName);
         }
         return _cacheBox!;
       default:
@@ -226,11 +231,11 @@ class HiveService {
   /// Get box by name (sync)
   Box<dynamic>? _getBoxSync(String boxName) {
     switch (boxName) {
-      case _userBoxName:
+      case userBoxName:
         return _userBox;
-      case _settingsBoxName:
+      case settingsBoxName:
         return _settingsBox;
-      case _cacheBoxName:
+      case cacheBoxName:
         return _cacheBox;
       default:
         return Hive.isBoxOpen(boxName) ? Hive.box(boxName) : null;
@@ -238,104 +243,15 @@ class HiveService {
   }
 
   /// User data convenience methods
-  Future<void> putUser(String key, dynamic value) => put(_userBoxName, key, value);
-  T? getUser<T>(String key, {T? defaultValue}) => get<T>(_userBoxName, key, defaultValue: defaultValue);
-  Future<void> deleteUser(String key) => delete(_userBoxName, key);
-  Future<void> clearUserData() => clear(_userBoxName);
+  Future<void> putUser(String key, dynamic value) => put(userBoxName, key, value);
+  T? getUser<T>(String key, {T? defaultValue}) => get<T>(userBoxName, key, defaultValue: defaultValue);
+  Future<void> deleteUser(String key) => delete(userBoxName, key);
+  Future<void> clearUserData() => clear(userBoxName);
 
   /// Settings convenience methods
-  Future<void> putSetting(String key, dynamic value) => put(_settingsBoxName, key, value);
-  T? getSetting<T>(String key, {T? defaultValue}) => get<T>(_settingsBoxName, key, defaultValue: defaultValue);
-  Future<void> deleteSetting(String key) => delete(_settingsBoxName, key);
-  Future<void> clearSettings() => clear(_settingsBoxName);
-
-  /// Cache convenience methods
-  Future<void> putCache(String key, dynamic value) => put(_cacheBoxName, key, value);
-  T? getCache<T>(String key, {T? defaultValue}) => get<T>(_cacheBoxName, key, defaultValue: defaultValue);
-  Future<void> deleteCache(String key) => delete(_cacheBoxName, key);
-  Future<void> clearCache() => clear(_cacheBoxName);
-
-  // ==================== 缓存管理（带过期时间）====================
-
-  /// Put value in cache with optional TTL (Time To Live)
-  ///
-  /// [key] - Cache key
-  /// [value] - Value to cache
-  /// [ttl] - Time to live duration, null means no expiration
-  Future<void> putCacheWithTTL(
-    String key,
-    dynamic value, {
-    Duration? ttl,
-  }) async {
-    final now = DateTime.now();
-    final cacheData = {
-      'value': value,
-      'createdAt': now.millisecondsSinceEpoch,
-      'expiresAt': ttl != null ? now.add(ttl).millisecondsSinceEpoch : null,
-    };
-    await putCache(key, cacheData);
-  }
-
-  /// Get value from cache, returns null if expired or not found
-  ///
-  /// [key] - Cache key
-  /// [defaultValue] - Default value if cache miss or expired
-  T? getCacheWithTTL<T>(String key, {T? defaultValue}) {
-    try {
-      final cacheData = getCache<Map<dynamic, dynamic>>(key);
-      if (cacheData == null) return defaultValue;
-
-      final expiresAt = cacheData['expiresAt'] as int?;
-
-      // Check expiration
-      if (expiresAt != null) {
-        final expiryTime = DateTime.fromMillisecondsSinceEpoch(expiresAt);
-        if (DateTime.now().isAfter(expiryTime)) {
-          // Cache expired, delete it
-          deleteCache(key).ignore();
-          AppLogger.d('Cache expired and deleted: $key');
-          return defaultValue;
-        }
-      }
-
-      return cacheData['value'] as T?;
-    } catch (e) {
-      AppLogger.e('Failed to get cache with TTL: $key', error: e);
-      return defaultValue;
-    }
-  }
-
-  /// Clear expired cache entries
-  Future<int> clearExpiredCache() async {
-    try {
-      AppLogger.i('Clearing expired cache...');
-      final box = cacheBox;
-      final keys = box.keys.toList();
-      var deletedCount = 0;
-
-      for (final key in keys) {
-        try {
-          final cacheData = box.get(key);
-          if (cacheData is Map) {
-            final expiresAt = cacheData['expiresAt'] as int?;
-            if (expiresAt != null) {
-              final expiryTime = DateTime.fromMillisecondsSinceEpoch(expiresAt);
-              if (DateTime.now().isAfter(expiryTime)) {
-                await box.delete(key);
-                deletedCount++;
-              }
-            }
-          }
-        } catch (e) {
-          AppLogger.e('Failed to check cache expiration for key: $key', error: e);
-        }
-      }
-
-      AppLogger.i('Cleared $deletedCount expired cache entries');
-      return deletedCount;
-    } catch (e) {
-      AppLogger.e('Failed to clear expired cache', error: e);
-      return 0;
-    }
-  }
+  Future<void> putSetting(String key, dynamic value) => put(settingsBoxName, key, value);
+  T? getSetting<T>(String key, {T? defaultValue}) =>
+      get<T>(settingsBoxName, key, defaultValue: defaultValue);
+  Future<void> deleteSetting(String key) => delete(settingsBoxName, key);
+  Future<void> clearSettings() => clear(settingsBoxName);
 }

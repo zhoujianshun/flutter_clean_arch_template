@@ -25,7 +25,7 @@ class AppThemeMode extends _$AppThemeMode {
   Future<void> loadThemeMode() async {
     try {
       final storageService = getIt<StorageService>();
-      final savedTheme = storageService.prefs.getString(_themeKey);
+      final savedTheme = storageService.getSetting(_themeKey);
       if (savedTheme != null) {
         switch (savedTheme) {
           case 'light':
@@ -76,7 +76,7 @@ class AppThemeMode extends _$AppThemeMode {
           modeString = 'system';
       }
 
-      await getIt<StorageService>().prefs.setString(_themeKey, modeString);
+      await getIt<StorageService>().setSetting(_themeKey, modeString);
       AppLogger.debug('主题模式已保存: $modeString');
     } catch (e, stackTrace) {
       AppLogger.warning('保存主题模式失败', error: e, stackTrace: stackTrace);

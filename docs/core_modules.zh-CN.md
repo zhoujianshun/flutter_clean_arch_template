@@ -19,13 +19,26 @@
 
 | 组件 | 路径 / 职责 |
 |------|------------|
-| **`HiveService`** | `core/storage/local/hive_service.dart` — 初始化 Hive Box |
-| **`SharedPrefsService`** | 对 `SharedPreferences` 的类型安全封装 |
-| **`SecureStorageService`** | 封装 `flutter_secure_storage` 用于敏感数据 |
-| **`StorageService`** | `core/storage/storage_service.dart` — 门面类，在 `RegisterModule` 中组合 |
+| **`HiveService`** | `core/storage/local/hive_service.dart` — 初始化 Hive Box（`user_box` 用户数据、`settings_box` 应用设置、`cache_box` 缓存数据） |
+| **`SharedPrefsService`** | 对 `SharedPreferences` 的类型安全封装，用于简单键值配置 |
+| **`SecureStorageService`** | 封装 `flutter_secure_storage`，用于存储 Token 等敏感数据 |
+| **`StorageService`** | `core/storage/storage_service.dart` — 门面类，对外暴露语义化接口（`setUserData`、`setSetting`、`setUserToken` 等） |
 | **`storage_keys.dart`** | 共享键名常量 |
 
-功能模块需要缓存标志或非敏感数据时，通过 DI 获取 **`StorageService`**；Token 等敏感数据使用 **SecureStorage**（通常由 `TokenStorage` 协调）。
+通过 DI 获取 **`StorageService`** 管理持久化重要数据（用户信息、设置、Token）。调用方不应直接访问底层的 `HiveService`/`SharedPrefsService`/`SecureStorageService`，应统一使用 `StorageService` 的语义方法。
+
+## 缓存层（Cache）
+
+| 组件 | 路径 / 职责 |
+|------|------------|
+| **`CacheService`** | `core/cache/cache_service.dart` — 统一缓存门面，管理临时数据（带 TTL 的数据缓存 + 文件缓存） |
+| **`AppCacheManagers`** | `core/cache/app_cache_managers.dart` — 基于 `flutter_cache_manager` 的文件缓存管理器单例（头像/服务图片/文档/通用） |
+
+通过 DI 获取 **`CacheService`** 管理临时可丢弃数据（API 响应缓存、图片/文件缓存）。清除所有缓存不影响核心功能。
+
+**Storage vs Cache 使用原则：**
+- 不能丢失的数据 → `StorageService`（丢失 = 需重新登录/配置）
+- 可从网络重新获取的数据 → `CacheService`（丢失 = 多一次网络请求）
 
 ## 日志系统（Talker）
 

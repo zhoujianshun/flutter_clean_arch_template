@@ -20,7 +20,8 @@
 - 网络请求、Token 策略、全局错误类型
 - 路由、路由守卫（双认证模式）、主题、环境配置加载
 - `AuthMode` 枚举（`core/constants/auth_mode.dart`）和 `AppConfig.authMode` / `AppConfig.mockAuth` 灵活控制认证行为
-- 存储门面（Hive、SharedPreferences、SecureStorage）
+- 存储门面（Hive、SharedPreferences、SecureStorage）管理持久化重要数据
+- 缓存服务（TTL 数据缓存 + 文件缓存）管理临时可丢弃数据
 - 日志、DI 引导、应用初始化
 
 **Core 层不得包含任何功能模块的业务逻辑。**

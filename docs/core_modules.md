@@ -19,13 +19,26 @@ Overview of `lib/core/` building blocks and how they fit together.
 
 | Piece | Path / role |
 |-------|----------------|
-| **`HiveService`** | `core/storage/local/hive_service.dart` — initializes Hive boxes |
-| **`SharedPrefsService`** | typed access to `SharedPreferences` |
-| **`SecureStorageService`** | wraps `flutter_secure_storage` for secrets |
-| **`StorageService`** | `core/storage/storage_service.dart` — facade composed in `RegisterModule` |
+| **`HiveService`** | `core/storage/local/hive_service.dart` — initializes Hive boxes (`user_box`, `settings_box`, `cache_box`) |
+| **`SharedPrefsService`** | typed access to `SharedPreferences` for simple settings |
+| **`SecureStorageService`** | wraps `flutter_secure_storage` for secrets (tokens) |
+| **`StorageService`** | `core/storage/storage_service.dart` — facade exposing semantic APIs (`setUserData`, `setSetting`, `setUserToken`, etc.) |
 | **`storage_keys.dart`** | shared key constants |
 
-Use **`StorageService`** from DI when a feature needs cached flags or non-sensitive blobs; use **secure** storage for tokens (often coordinated with `TokenStorage`).
+Use **`StorageService`** from DI for persistent important data (user profiles, settings, tokens). Callers should NOT access underlying `HiveService`/`SharedPrefsService`/`SecureStorageService` directly — use the semantic methods on `StorageService`.
+
+## Cache
+
+| Piece | Path / role |
+|-------|----------------|
+| **`CacheService`** | `core/cache/cache_service.dart` — unified cache facade for temporary data (TTL-based data cache + file cache) |
+| **`AppCacheManagers`** | `core/cache/app_cache_managers.dart` — `flutter_cache_manager` singletons for avatar / service / document / general images |
+
+Use **`CacheService`** from DI for temporary, disposable data (API response cache, image/file cache). Clearing all cache does not affect core app functionality.
+
+**Storage vs Cache rule of thumb:**
+- Data you cannot afford to lose → `StorageService`
+- Data that can be re-fetched from network → `CacheService`
 
 ## Logger (Talker)
 

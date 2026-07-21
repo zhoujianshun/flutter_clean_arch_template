@@ -1,7 +1,7 @@
 // import 'package:cached_network_image/cached_network_image.dart';
 // import 'package:flutter/material.dart';
 // import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-// import 'package:flutter_clean_arch_template/shared/cache/app_cache_managers.dart';
+// import 'package:flutter_clean_arch_template/core/cache/app_cache_managers.dart';
 
 // /// 统一的缓存网络图片组件
 // ///

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:flutter_clean_arch_template/core/cache/cache_service.dart';
 import 'package:flutter_clean_arch_template/core/di/service_locator.config.dart';
 import 'package:flutter_clean_arch_template/core/env/app_config.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
@@ -14,9 +15,9 @@ import 'package:flutter_clean_arch_template/core/storage/local/hive_service.dart
 import 'package:flutter_clean_arch_template/core/storage/local/secure_storage_service.dart';
 import 'package:flutter_clean_arch_template/core/storage/local/shared_prefs_service.dart';
 import 'package:flutter_clean_arch_template/core/storage/storage_service.dart';
-import 'package:flutter_clean_arch_template/shared/cache/cache_service.dart';
 import 'package:flutter_clean_arch_template/shared/services/app_info_service/app_info_service.dart';
 import 'package:get_it/get_it.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:injectable/injectable.dart';
 
 /// Global service locator instance
@@ -46,10 +47,6 @@ abstract class RegisterModule {
       sharedPrefsService: sharedPrefsService,
       secureStorageService: secureStorageService,
     );
-
-    if (!getIt.isRegistered<CacheService>()) {
-      getIt.registerSingleton<CacheService>(CacheService(hiveService));
-    }
 
     // Register default AuthConfig (feature layers can override)
     if (!getIt.isRegistered<AuthConfig>()) {
@@ -103,6 +100,7 @@ class ServiceLocator {
     try {
       AppLogger.info('Initializing GetIt dependency injection...');
       await configureDependencies();
+      _registerCacheService();
       unawaited(lazyInitialize());
       AppLogger.info('GetIt dependency injection initialized');
     } catch (e) {
@@ -135,6 +133,13 @@ class ServiceLocator {
   static Future<void> reset() async {
     await getIt.reset();
     AppLogger.info('GetIt container reset');
+  }
+
+  /// 显式注册缓存服务，避免隐藏在 StorageService 构造流程中的副作用注册。
+  static void _registerCacheService() {
+    if (getIt.isRegistered<CacheService>()) return;
+    final cacheBox = Hive.box<dynamic>(HiveService.cacheBoxName);
+    getIt.registerSingleton<CacheService>(CacheService(cacheBox));
   }
 
   static T get<T extends Object>() => getIt<T>();

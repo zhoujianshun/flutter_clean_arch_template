@@ -246,9 +246,19 @@ abstract class RegisterModule {
  @preResolve
  @singleton
  Future<StorageService> get storageService async {
- final service = StorageService.instance;
- await service.initialize();
- return service;
+   final hiveService = HiveService();
+   await hiveService.initialize();
+
+   final sharedPrefsService = SharedPrefsService();
+   await sharedPrefsService.initialize();
+
+   final secureStorageService = SecureStorageService();
+
+   return StorageService(
+     hiveService: hiveService,
+     sharedPrefsService: sharedPrefsService,
+     secureStorageService: secureStorageService,
+   );
  }
 
  @singleton

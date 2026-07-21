@@ -4,7 +4,6 @@ import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
 import 'package:flutter_clean_arch_template/core/storage/local/hive_service.dart';
 import 'package:flutter_clean_arch_template/core/storage/local/secure_storage_service.dart';
 import 'package:flutter_clean_arch_template/core/storage/local/shared_prefs_service.dart';
-import 'package:flutter_clean_arch_template/shared/cache/cache_service.dart' show CacheService;
 
 /// Unified storage service that manages persistent data
 ///
@@ -13,7 +12,7 @@ import 'package:flutter_clean_arch_template/shared/cache/cache_service.dart' sho
 /// - 应用设置（Settings）
 /// - 安全令牌（Tokens）
 ///
-/// ⚠️ 注意：临时数据和缓存请使用 [CacheService]
+/// ⚠️ 注意：临时数据和缓存请使用 CacheService（位于 core/cache/）
 ///
 /// 使用示例：
 /// ```dart
@@ -72,15 +71,6 @@ class StorageService {
     }
   }
 
-  // Hive Service Delegation
-  HiveService get hive => _hiveService;
-
-  // SharedPreferences Service Delegation
-  SharedPrefsService get prefs => _sharedPrefsService;
-
-  // Secure Storage Service Delegation
-  SecureStorageService get secure => _secureStorageService;
-
   /// Clear all storage data (use with caution)
   Future<void> clearAll() async {
     try {
@@ -89,7 +79,7 @@ class StorageService {
       await Future.wait([
         _hiveService.clearUserData(),
         _hiveService.clearSettings(),
-        _hiveService.clearCache(),
+        _hiveService.clear(HiveService.cacheBoxName),
         _sharedPrefsService.clear(),
         _secureStorageService.deleteAll(),
       ]);
@@ -108,9 +98,9 @@ class StorageService {
   /// Get storage information for debugging
   Future<Map<String, dynamic>> getStorageInfo() async {
     try {
-      final hiveUserKeys = _hiveService.getKeys('user_box').length;
-      final hiveSettingsKeys = _hiveService.getKeys('settings_box').length;
-      final hiveCacheKeys = _hiveService.getKeys('cache_box').length;
+      final hiveUserKeys = _hiveService.getKeys(HiveService.userBoxName).length;
+      final hiveSettingsKeys = _hiveService.getKeys(HiveService.settingsBoxName).length;
+      final hiveCacheKeys = _hiveService.getKeys(HiveService.cacheBoxName).length;
       final prefsKeys = _sharedPrefsService.getKeys().length;
       // 使用 getAllKeys 替代 readAll，避免加载所有敏感数据到内存
       final secureKeys = (await _secureStorageService.getAllKeys()).length;
@@ -138,84 +128,73 @@ class StorageService {
 
   /// 用户数据操作
   Future<void> setUserData(String key, dynamic value) async {
-    await hive.userBox.put(key, value);
+    await _hiveService.putUser(key, value);
   }
 
   T? getUserData<T>(String key) {
-    return hive.userBox.get(key) as T?;
+    return _hiveService.getUser<T>(key);
   }
 
   Future<void> removeUserData(String key) async {
-    await hive.userBox.delete(key);
+    await _hiveService.deleteUser(key);
   }
 
   Future<void> clearUserData() async {
-    await hive.userBox.clear();
+    await _hiveService.clearUserData();
   }
 
-  // ==================== 缓存操作（已过时，请使用 CacheService）====================
+  // ==================== 设置操作 ====================
 
-  /// 存储缓存数据（带过期时间）
-  ///
-  /// ⚠️ 已过时：此方法将在未来版本中移除
-  ///
-  /// 请使用 [CacheService.cacheData()] 或 [CacheService.cacheApiResponse()] 代替：
-  /// ```dart
-  /// final cacheService = getIt<CacheService>();
-  /// await cacheService.cacheData('key', value, ttl: Duration(minutes: 5));
-  /// ```
-  @Deprecated('请使用 CacheService.cacheData() 代替。此方法将在未来版本中移除。')
-  Future<void> setCacheWithTTL(
-    String key,
-    dynamic value, {
-    Duration? ttl,
-  }) async {
-    await hive.putCacheWithTTL(key, value, ttl: ttl);
+  /// 存储字符串配置
+  Future<void> setSetting(String key, String value) async {
+    await _sharedPrefsService.setString(key, value);
   }
 
-  /// 获取缓存数据（自动检查过期）
-  ///
-  /// ⚠️ 已过时：此方法将在未来版本中移除
-  ///
-  /// 请使用 [CacheService.getCachedData()] 或 [CacheService.getCachedApiResponse()] 代替：
-  /// ```dart
-  /// final cacheService = getIt<CacheService>();
-  /// final data = cacheService.getCachedData<T>('key');
-  /// ```
-  @Deprecated('请使用 CacheService.getCachedData() 代替。此方法将在未来版本中移除。')
-  T? getCacheWithTTL<T>(String key, {T? defaultValue}) {
-    return hive.getCacheWithTTL<T>(key, defaultValue: defaultValue);
+  /// 获取字符串配置
+  String? getSetting(String key, {String? defaultValue}) {
+    return _sharedPrefsService.getString(key, defaultValue: defaultValue);
   }
 
-  /// 清理所有过期的缓存
-  ///
-  /// ⚠️ 已过时：此方法将在未来版本中移除
-  ///
-  /// 请使用 [CacheService.clearExpiredCache()] 代替：
-  /// ```dart
-  /// final cacheService = getIt<CacheService>();
-  /// await cacheService.clearExpiredCache();
-  /// ```
-  @Deprecated('请使用 CacheService.clearExpiredCache() 代替。此方法将在未来版本中移除。')
-  Future<int> clearExpiredCache() async {
-    return hive.clearExpiredCache();
+  /// 移除配置
+  Future<void> removeSetting(String key) async {
+    await _sharedPrefsService.remove(key);
+  }
+
+  /// 清空所有配置
+  Future<void> clearAllSettings() async {
+    await _sharedPrefsService.clear();
   }
 
   // ==================== 用户令牌操作 ====================
 
   /// 存储用户令牌
   Future<void> setUserToken(String token) async {
-    await secure.write(StorageKeys.userTokenKey, token);
+    await _secureStorageService.write(StorageKeys.userTokenKey, token);
   }
 
   /// 获取用户令牌
   Future<String?> getUserToken() async {
-    return secure.read(StorageKeys.userTokenKey);
+    return _secureStorageService.read(StorageKeys.userTokenKey);
   }
 
   /// 移除用户令牌
   Future<void> removeUserToken() async {
-    await secure.delete(StorageKeys.userTokenKey);
+    await _secureStorageService.delete(StorageKeys.userTokenKey);
+  }
+
+  /// 存储刷新令牌
+  Future<void> setRefreshToken(String refreshToken) async {
+    await _secureStorageService.write(StorageKeys.refreshTokenKey, refreshToken);
+  }
+
+  /// 获取刷新令牌
+  Future<String?> getRefreshToken() async {
+    return _secureStorageService.read(StorageKeys.refreshTokenKey);
+  }
+
+  /// 移除刷新令牌
+  Future<void> removeRefreshToken() async {
+    await _secureStorageService.delete(StorageKeys.refreshTokenKey);
   }
 
   /// 检查是否登录
