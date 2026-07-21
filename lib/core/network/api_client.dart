@@ -150,7 +150,9 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
     Options? options,
     CancelToken? cancelToken,
-  }) => _request(() => _dio.post<T>(path, data: data, queryParameters: queryParameters, options: options, cancelToken: cancelToken));
+  }) => _request(
+    () => _dio.post<T>(path, data: data, queryParameters: queryParameters, options: options, cancelToken: cancelToken),
+  );
 
   /// PUT请求
   Future<Response<T>> put<T>(
@@ -159,7 +161,9 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
     Options? options,
     CancelToken? cancelToken,
-  }) => _request(() => _dio.put<T>(path, data: data, queryParameters: queryParameters, options: options, cancelToken: cancelToken));
+  }) => _request(
+    () => _dio.put<T>(path, data: data, queryParameters: queryParameters, options: options, cancelToken: cancelToken),
+  );
 
   /// DELETE请求
   Future<Response<T>> delete<T>(
@@ -168,7 +172,10 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
     Options? options,
     CancelToken? cancelToken,
-  }) => _request(() => _dio.delete<T>(path, data: data, queryParameters: queryParameters, options: options, cancelToken: cancelToken));
+  }) => _request(
+    () =>
+        _dio.delete<T>(path, data: data, queryParameters: queryParameters, options: options, cancelToken: cancelToken),
+  );
 
   /// 上传文件
   Future<Response<T>> uploadFile<T>(
@@ -196,7 +203,8 @@ class ApiClient {
     String savePath, {
     ProgressCallback? onReceiveProgress,
     CancelToken? cancelToken,
-  }) => _request(() => _dio.download(urlPath, savePath, onReceiveProgress: onReceiveProgress, cancelToken: cancelToken));
+  }) =>
+      _request(() => _dio.download(urlPath, savePath, onReceiveProgress: onReceiveProgress, cancelToken: cancelToken));
 }
 
 /// Dio错误处理
@@ -218,6 +226,7 @@ class DioErrorHandler {
     AppLogger.debug('[$requestId] 响应数据: $sanitizedBody');
 
     switch (error.type) {
+      case DioExceptionType.transformTimeout:
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
