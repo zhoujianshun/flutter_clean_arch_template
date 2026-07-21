@@ -534,197 +534,106 @@ result.fold(
 );
 ```
 
-## 数据存储
+## 数据存储与缓存
 
-项目采用统一的存储服务架构，集成了三种存储方式：Hive数据库、SharedPreferences和安全存储。
+项目当前采用“持久化存储”和“临时缓存”分离架构：
 
-### 1. 存储服务架构
+- `StorageService`：管理持久化重要数据（用户数据、设置、Token）
+- `CacheService`：管理临时可丢弃数据（API TTL 缓存、图片/文件缓存）
+
+### 1. 架构分层
 
 ```dart
-/// 统一存储服务入口
-StorageService.instance
-├── hive          // Hive数据库服务
-├── prefs         // SharedPreferences服务
-└── secure        // 安全存储服务
+/// 持久化存储（不可随意丢失）
+final storage = getIt<StorageService>();
+
+/// 临时缓存（可清理、可重拉）
+final cache = getIt<CacheService>();
 ```
 
-### 2. 初始化存储服务
+### 2. 初始化方式
 
 ```dart
-// 在main()函数中初始化
-await StorageService.instance.initialize();
+// 在 main() 中初始化依赖注入
+await ServiceLocator.initialize();
+
+// StorageService / CacheService 会由 DI 自动创建并注册
 ```
 
-### 3. Hive数据库存储（复杂数据）
+### 3. 持久化数据（StorageService）
 
 ```dart
-// 用户数据操作
-await StorageService.instance.setUserData('profile', userModel);
-final user = StorageService.instance.getUserData<UserModel>('profile');
-await StorageService.instance.removeUserData('profile');
-await StorageService.instance.clearUserData(); // 清空所有用户数据
+final storage = getIt<StorageService>();
 
-// 直接访问Hive服务
-final hive = StorageService.instance.hive;
+// 用户数据（Hive: user_box）
+await storage.setUserData('profile', userModel);
+final user = storage.getUserData<UserModel>('profile');
+await storage.removeUserData('profile');
+await storage.clearUserData();
 
-// 用户数据盒子操作
-await hive.putUser('key', value);
-final value = hive.getUser<T>('key');
-await hive.deleteUser('key');
-await hive.clearUserData();
+// 应用设置（SharedPreferences）
+await storage.setSetting('theme_mode', 'dark');
+final theme = storage.getSetting('theme_mode', defaultValue: 'system');
+await storage.removeSetting('theme_mode');
 
-// 设置数据盒子操作
-await hive.putSetting('theme_mode', 'dark');
-final theme = hive.getSetting<String>('theme_mode');
-await hive.deleteSetting('theme_mode');
-await hive.clearSettings();
+// Token（SecureStorage）
+await storage.setUserToken('access_token');
+final token = await storage.getUserToken();
+await storage.removeUserToken();
 
-// 缓存数据盒子操作
-await hive.putCache('api_cache_key', data);
-final cache = hive.getCache<Map>('api_cache_key');
-await hive.deleteCache('api_cache_key');
-await hive.clearCache();
-
-// 通用操作
-await hive.put('custom_box', 'key', value);
-final value = hive.get<T>('custom_box', 'key', defaultValue: defaultValue);
-await hive.delete('custom_box', 'key');
-final exists = hive.containsKey('custom_box', 'key');
-final keys = hive.getKeys('custom_box');
-final values = hive.getValues('custom_box');
-await hive.clear('custom_box');
+await storage.setRefreshToken('refresh_token');
+final refresh = await storage.getRefreshToken();
+await storage.removeRefreshToken();
 ```
 
-### 4. SharedPreferences存储（简单数据）
+### 4. 临时缓存（CacheService）
 
 ```dart
-// 直接访问SharedPreferences服务
-final prefs = StorageService.instance.prefs;
+final cache = getIt<CacheService>();
 
-// 字符串操作
-await prefs.setString('key', 'value');
-final value = prefs.getString('key', defaultValue: 'default');
-
-// 整数操作
-await prefs.setInt('count', 10);
-final count = prefs.getInt('count', defaultValue: 0);
-
-// 布尔值操作
-await prefs.setBool('isEnabled', true);
-final isEnabled = prefs.getBool('isEnabled', defaultValue: false);
-
-// 浮点数操作
-await prefs.setDouble('price', 99.99);
-final price = prefs.getDouble('price', defaultValue: 0.0);
-
-// 字符串列表操作
-await prefs.setStringList('tags', ['tag1', 'tag2']);
-final tags = prefs.getStringList('tags', defaultValue: []);
-
-// 其他操作
-await prefs.remove('key');
-final exists = prefs.containsKey('key');
-final keys = prefs.getKeys();
-await prefs.clear();
-await prefs.reload();
-```
-
-### 5. 安全存储（敏感数据）
-
-```dart
-// 直接访问安全存储服务
-final secure = StorageService.instance.secure;
-
-// 存储敏感数据（如token、密码等）
-await secure.write('user_token', 'jwt_token_here');
-await secure.write('api_key', 'sensitive_api_key');
-
-// 读取敏感数据
-final token = await secure.read('user_token');
-final apiKey = await secure.read('api_key');
-
-// 删除敏感数据
-await secure.delete('user_token');
-
-// 检查是否存在
-final exists = await secure.containsKey('user_token');
-
-// 批量操作
-final allData = await secure.readAll();
-await secure.writeAll({
-  'key1': 'value1',
-  'key2': 'value2',
-});
-await secure.deleteAll(); // 清空所有安全数据
-
-// 便捷方法（推荐使用）
-await StorageService.instance.setUserToken('jwt_token_here');
-final token = await StorageService.instance.getUserToken();
-await StorageService.instance.removeUserToken();
-final isLoggedIn = await StorageService.instance.isLoggedIn();
-```
-
-### 6. 存储键管理
-
-```dart
-// 使用统一的存储键常量
-class StorageKeys {
-  static const String userTokenKey = 'user_token';
-  static const String userInfoKey = 'user_info';
-  static const String isFirstLaunch = 'is_first_launch';
-  static const String onboardingCompleted = 'onboarding_completed';
-}
-
-// 使用示例
-await StorageService.instance.secure.write(
-  StorageKeys.userTokenKey, 
-  token
+// API 数据缓存（TTL）
+await cache.cacheApiResponse(
+  'orders/list',
+  responseData,
+  ttl: const Duration(minutes: 5),
 );
+final cachedOrders = cache.getCachedApiResponse<List<dynamic>>('orders/list');
+
+// 通用缓存
+await cache.cacheData('dashboard', dashboardData);
+final dashboard = cache.getCachedData<Map<String, dynamic>>('dashboard');
+
+// 文件缓存
+await cache.cacheAvatar(avatarUrl);
+await cache.cacheGeneralImage(imageUrl);
 ```
 
-### 7. 存储信息调试
+### 5. 调试与清理
 
 ```dart
-// 获取存储统计信息
-final info = await StorageService.instance.getStorageInfo();
-print('Storage Info: $info');
-// 输出: {
-//   'hive': {'user_keys': 5, 'settings_keys': 3, 'cache_keys': 10},
-//   'shared_preferences': {'keys': 8},
-//   'secure_storage': {'keys': 2}
-// }
+final storage = getIt<StorageService>();
+final cache = getIt<CacheService>();
+
+// 调试信息
+final storageInfo = await storage.getStorageInfo();
+final cacheStats = cache.getCacheStats();
+
+// 清理策略
+await storage.clearUserData();        // 清用户持久数据
+await cache.clearExpiredCache();      // 清过期缓存
+await cache.clearAllCache();          // 清所有缓存（不影响核心功能）
 ```
 
-### 8. 清理存储数据
+### 6. 选择建议
 
-```dart
-// 清理所有存储数据（谨慎使用）
-await StorageService.instance.clearAll();
-
-// 分别清理不同类型的数据
-await StorageService.instance.clearUserData();
-await StorageService.instance.hive.clearSettings();
-await StorageService.instance.hive.clearCache();
-await StorageService.instance.prefs.clear();
-await StorageService.instance.secure.deleteAll();
-```
-
-### 9. 存储服务关闭
-
-```dart
-// 应用关闭时清理资源
-await StorageService.instance.close();
-```
-
-### 10. 存储选择建议
-
-| 数据类型 | 推荐存储方式 | 说明 |
-|---------|-------------|-----|
-| 用户Token | 安全存储 | 敏感数据，需要加密 |
-| 用户设置 | SharedPreferences | 简单键值对 |
-| 用户资料 | Hive | 复杂对象数据 |
-| 缓存数据 | Hive | 需要高性能读写 |
-| 临时标记 | SharedPreferences | 简单标识符 |
+| 数据类型 | 推荐服务 | 说明 |
+|---------|----------|-----|
+| 用户 Token / Refresh Token | `StorageService` | 敏感数据，必须安全存储 |
+| 用户资料 | `StorageService` | 持久化重要数据 |
+| 主题/语言等设置 | `StorageService` | 启动后仍需保留 |
+| API 响应缓存 | `CacheService` | 临时数据，允许过期失效 |
+| 图片/文件缓存 | `CacheService` | 可随时清理，按需重拉 |
+| 临时页面数据 | `CacheService` | 丢失不影响核心流程 |
 
 ## 测试指南
 

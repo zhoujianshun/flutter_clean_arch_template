@@ -17,6 +17,47 @@
 
 ---
 
+## 如何使用这些文档
+
+- **首次接手项目**：先读 `getting_started` → `architecture` → `core_modules` → `create_new_feature`
+- **日常开发查阅**：按目录（网络/状态管理/路由/UI）按需跳转
+- **排障定位**：优先看 `monitoring/`、`logging/`、`architecture/NETWORK_ERROR_*`
+- **手机/平板适配**：优先看 `ui-design/SCREENUTIL_GUIDE.md`，再结合 `architecture.md` 的分层约束落地
+
+---
+
+## 按角色阅读地图
+
+### 新成员（1-2 天上手）
+
+1. `getting_started.zh-CN.md`
+2. `architecture.zh-CN.md`
+3. `core_modules.zh-CN.md`
+4. `create_new_feature.zh-CN.md`
+
+### 业务开发（日常高频）
+
+1. `conventions.zh-CN.md`
+2. `state-management/RIVERPOD_COMPLETE_GUIDE.md`
+3. `architecture/route/ROUTING_SYSTEM_GUIDE.md`
+4. `development/DEVELOPMENT_GUIDE.md`
+
+### 架构维护（核心改造）
+
+1. `architecture/DEPENDENCY_INJECTION_COMPLETE_GUIDE.md`
+2. `architecture/CLEAN_ARCH_TWO_MODES.md`
+3. `architecture/AUTHENTICATION_SYSTEM_V2.md`
+4. `core_modules.md` + `core_modules.zh-CN.md`
+
+### 发布与运维（提测/上线）
+
+1. `development/CI_CD_SETUP_GUIDE.md`
+2. `app-store-release/README.md`
+3. `monitoring/GLOBAL_ERROR_HANDLING_GUIDE.md`
+4. `tools-config/ENV_CONFIG_GUIDE.md`
+
+---
+
 ## 深入指南（Deep Dive Guides）
 
 ### 架构设计 (`architecture/`)
@@ -70,7 +111,7 @@
 
 | 文档 | 主题 |
 |------|------|
-| [SCREENUTIL_GUIDE.md](ui-design/SCREENUTIL_GUIDE.md) | ScreenUtil 屏幕适配指南 |
+| [SCREENUTIL_GUIDE.md](ui-design/SCREENUTIL_GUIDE.md) | ScreenUtil 与屏幕适配指南（含手机/平板适配建议） |
 | [CUSTOM_THEME_GUIDE.md](ui-design/CUSTOM_THEME_GUIDE.md) | 自定义主题设计指南 |
 | [THEME_SWITCHING_GUIDE.md](ui-design/THEME_SWITCHING_GUIDE.md) | 主题切换实现指南 |
 
@@ -97,11 +138,18 @@
 | [CI_CD_SETUP_GUIDE.md](development/CI_CD_SETUP_GUIDE.md) | CI/CD 配置指南（GitHub Actions） |
 | [DEVELOPMENT_GUIDE.md](development/DEVELOPMENT_GUIDE.md) | 开发规范与流程指南 |
 
-### 统一 API 响应 (`features/`)
+### 功能模块参考 (`features/`)
 
 | 文档 | 主题 |
 |------|------|
 | [UNIFIED_API_RESPONSE_GUIDE.md](features/UNIFIED_API_RESPONSE_GUIDE.md) | 统一 API 响应处理模式 |
+| [pagination_list_usage.md](features/pagination_list_usage.md) | 分页列表组件使用指南 |
+
+### AI 辅助开发
+
+| 文档 | 主题 |
+|------|------|
+| [AI_DEVELOPMENT_SETUP.md](AI_DEVELOPMENT_SETUP.md) | AI 辅助开发配置（Cursor Rules / Skills） |
 
 ### 应用上架 (`app-store-release/`)
 
@@ -123,8 +171,15 @@
 
 ## 文档统计
 
-- **核心文档**: 6 篇（中英双语共 12 个文件）
-- **深入指南**: 36 篇
-- **总计**: 48 篇文档
+- 文档数量会随着迭代持续变化，不再手工维护固定总数
+- 建议优先维护：`README`、`core_modules*`、`architecture*`、`development/DEVELOPMENT_GUIDE`
+- 新增/重构模块后，至少同步更新：
+  - `core_modules.md` + `core_modules.zh-CN.md`
+  - 相关专题文档（如 `ui-design/`、`architecture/`、`development/`）
+- 推荐文档治理规则：
+  - 代码结构变更后，**同一提交**同步更新文档
+  - 示例代码优先使用当前 DI 入口（`getIt<T>()`），避免历史写法回流
+  - 同主题文档最多保留 1 个“主文档”，其他文档明确“参考/迁移/对比”定位
+  - 每月进行一次“过时 API 扫描”（如旧类名、旧路径、旧初始化方式）
 
-> 建议阅读顺序：核心文档 → 架构设计 → 状态管理 → 日志/监控 → 其余按需查阅
+> 推荐阅读顺序：核心文档 → 架构设计 → 状态管理 → 网络/存储/缓存 → 日志与监控 → 其余按需查阅
