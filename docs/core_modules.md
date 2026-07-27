@@ -107,7 +107,7 @@ Run the app with **`--dart-define=ENVIRONMENT=development|staging|production`** 
 
 | Piece | Path / role |
 |-------|----------------|
-| **`app_theme.dart`** | Light/dark `ThemeData`, color scheme |
+| **`app_theme.dart`** | Light/dark `ThemeData`, `ColorScheme` mapping, `AppColors` / `AppDarkColors` / `AppAdaptiveColors` / `AppTextStyles` |
 | **`theme_mode_provider.dart`** | Riverpod-controlled `ThemeMode` |
 
 Widgets should read colors and text styles from **`Theme.of(context)`** whenever possible.

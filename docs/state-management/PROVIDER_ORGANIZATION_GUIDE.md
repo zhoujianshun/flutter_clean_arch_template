@@ -33,14 +33,14 @@ Application Layer
 
 ```
 lib/
-├── app/
+├── core/
 │   ├── di/
 │   │   └── service_locator.dart          # GetIt 配置 (getIt 全局实例)
-│   ├── themes/
-│   │   └── theme_mode_provider.dart      # 主题模式 (传统 NotifierProvider)
-│   ├── language/
-│   │   └── language_provider.dart        # 语言配置 (传统 NotifierProvider)
-│   └── routes/
+│   ├── theme/
+│   │   └── theme_mode_provider.dart      # 主题模式 (@Riverpod(keepAlive: true))
+│   ├── l10n/
+│   │   └── language_provider.dart        # 语言配置 (@Riverpod(keepAlive: true))
+│   └── router/
 │       └── guards/auth_guard.dart        # 路由守卫（使用 authProvider）
 │
 ├── features/
@@ -470,7 +470,7 @@ class PageForm extends _$PageForm { }
 ```dart
 // 项目级 - 长期存活
 @Riverpod(keepAlive: true)
-class AppTheme extends _$AppTheme { }
+class AppThemeModeSetting extends _$AppThemeModeSetting { }
 
 // 页面级 - 自动销毁
 @riverpod
@@ -518,9 +518,9 @@ AuthRepository authRepository(Ref ref) {
 
 基于当前项目结构，以下待优化事项：
 
-1. **迁移传统 Provider 到 @riverpod 注解**：
-   - `theme_mode_provider.dart` — 仍使用传统 `NotifierProvider`
-   - `language_provider.dart` — 仍使用传统 `NotifierProvider`
+1. **保持应用配置 Provider 注解风格一致**：
+   - `theme_mode_provider.dart` — 使用 `@Riverpod(keepAlive: true)`（已迁移）
+   - `language_provider.dart` — 使用 `@Riverpod(keepAlive: true)`（已迁移）
 
 2. **保持 Feature-First 结构一致性**：
    - 新增功能模块时，Provider 统一放在 `lib/features/{feature}/presentation/providers/` 下

@@ -39,7 +39,9 @@ class AppColors {
   static const Color neutral400 = Color(0xFFBDBDBD);
   static const Color neutral500 = Color(0xFF9E9E9E);
   static const Color neutral600 = Color(0xFF757575);
+  static const Color neutral650 = Color(0xFF6B6B6B);
   static const Color neutral700 = Color(0xFF616161);
+  static const Color neutral750 = Color(0xFF555555);
   static const Color neutral800 = Color(0xFF424242);
   static const Color neutral900 = Color(0xFF212121);
 
@@ -53,23 +55,109 @@ class AppColors {
   static const Color backgroundPrimary = Color(0xFFFFFFFF);
   static const Color backgroundSecondary = Color(0xFFF5F5F5);
   static const Color backgroundTertiary = Color(0xFFF0F0F0);
+  static const Color surface = backgroundPrimary;
+
+  // Extended neutral colors
+  static const Color neutral150 = backgroundTertiary;
 
   // Border & Divider
   static const Color border = Color(0xFFE8E8E8);
   static const Color divider = Color(0xFFF0F0F0);
 }
 
+/// Dark mode color palette.
+///
+/// Keeping dark tokens in one place avoids scattering hard-coded colors
+/// across theme and adaptive color utilities.
+class AppDarkColors {
+  AppDarkColors._();
+
+  // Brand colors
+  static const Color primary = Color(0xFF9B8CC7);
+  static const Color primary50 = Color(0xFF2D2640);
+  static const Color primary500 = primary;
+  static const Color primary700 = Color(0xFFB39DDB);
+
+  // Functional colors
+  static const Color success50 = Color(0xFF1B3D1B);
+  static const Color success500 = Color(0xFF66BB6A);
+
+  static const Color warning50 = Color(0xFF3D2E00);
+  static const Color warning500 = Color(0xFFFFB74D);
+
+  static const Color error50 = Color(0xFF3D1B1B);
+  static const Color error500 = Color(0xFFEF5350);
+  static const Color error700 = error500;
+
+  // Neutral colors
+  static const Color neutral50 = Color(0xFF303030);
+  static const Color neutral100 = Color(0xFF2A2A2A);
+  static const Color neutral150 = Color(0xFF282828);
+  static const Color neutral200 = Color(0xFF252525);
+  static const Color neutral300 = Color(0xFF333333);
+  static const Color neutral400 = Color(0xFF555555);
+  static const Color neutral500 = Color(0xFF888888);
+  static const Color neutral600 = Color(0xFFAAAAAA);
+  static const Color neutral650 = Color(0xFFBBBBBB);
+  static const Color neutral700 = Color(0xFFCCCCCC);
+  static const Color neutral750 = Color(0xFFDDDDDD);
+  static const Color neutral800 = Color(0xFFE0E0E0);
+  static const Color neutral900 = Color(0xFFF0F0F0);
+
+  // Text colors
+  static const Color textPrimary = Colors.white;
+  static const Color textSecondary = Color(0xFFAAAAAA);
+  static const Color textHint = Color(0xFF777777);
+  static const Color textDisabled = Color(0xFF555555);
+
+  // Background
+  static const Color backgroundPrimary = Color(0xFF1E1E1E);
+  static const Color backgroundSecondary = Color(0xFF121212);
+  static const Color surface = backgroundPrimary;
+
+  // Border & Divider
+  static const Color border = Color(0xFF333333);
+  static const Color divider = Color(0xFF2A2A2A);
+}
+
 /// Application theme configuration
 class AppTheme {
   AppTheme._();
+
+  /// Unified light color scheme sourced from app design tokens.
+  static final ColorScheme _lightColorScheme =
+      ColorScheme.fromSeed(
+        seedColor: AppColors.primary,
+      ).copyWith(
+        primary: AppColors.primary,
+        primaryContainer: AppColors.primary50,
+        onPrimaryContainer: AppColors.primary700,
+        surface: AppColors.surface,
+        onSurface: AppColors.textPrimary,
+        error: AppColors.error500,
+        outline: AppColors.border,
+      );
+
+  /// Unified dark color scheme sourced from app design tokens.
+  static final ColorScheme _darkColorScheme =
+      ColorScheme.fromSeed(
+        seedColor: AppDarkColors.primary,
+        brightness: Brightness.dark,
+      ).copyWith(
+        primary: AppDarkColors.primary,
+        primaryContainer: AppDarkColors.primary50,
+        onPrimaryContainer: AppDarkColors.primary700,
+        surface: AppDarkColors.surface,
+        onSurface: AppDarkColors.textPrimary,
+        error: AppDarkColors.error500,
+        outline: AppDarkColors.border,
+      );
 
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primary,
-      ),
+      colorScheme: _lightColorScheme,
       scaffoldBackgroundColor: AppColors.backgroundSecondary,
       appBarTheme: AppBarTheme(
         elevation: 0,
@@ -96,7 +184,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           minimumSize: Size(
-            double.infinity,
+            0,
             ResponsiveTokens.size(48, medium: 48, expanded: 48),
           ),
           shape: RoundedRectangleBorder(
@@ -148,7 +236,7 @@ class AppTheme {
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         elevation: 8,
         backgroundColor: AppColors.backgroundPrimary,
-        selectedItemColor: AppColors.primary,
+        selectedItemColor: _lightColorScheme.primary,
         unselectedItemColor: AppColors.neutral500,
         selectedLabelStyle: TextStyle(
           fontSize: ResponsiveTokens.font(11, medium: 11, expanded: 11),
@@ -166,22 +254,95 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primary,
-        brightness: Brightness.dark,
-      ),
-      scaffoldBackgroundColor: const Color(0xFF121212),
+      colorScheme: _darkColorScheme,
+      scaffoldBackgroundColor: AppDarkColors.backgroundSecondary,
       appBarTheme: AppBarTheme(
         elevation: 0,
         scrolledUnderElevation: 0.5,
         centerTitle: true,
-        backgroundColor: const Color(0xFF1E1E1E),
+        backgroundColor: AppDarkColors.backgroundPrimary,
+        foregroundColor: AppDarkColors.textPrimary,
         titleTextStyle: TextStyle(
-          color: Colors.white,
+          color: AppDarkColors.textPrimary,
           fontSize: ResponsiveTokens.font(17, medium: 17, expanded: 17),
           fontWeight: FontWeight.w600,
         ),
         systemOverlayStyle: SystemUiOverlayStyle.light,
+      ),
+      cardTheme: CardThemeData(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(
+            ResponsiveTokens.size(12, medium: 12, expanded: 12),
+          ),
+        ),
+        color: AppDarkColors.surface,
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          minimumSize: Size(
+            0,
+            ResponsiveTokens.size(48, medium: 48, expanded: 48),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+              ResponsiveTokens.size(12, medium: 12, expanded: 12),
+            ),
+          ),
+          textStyle: TextStyle(
+            fontSize: ResponsiveTokens.font(16, medium: 16, expanded: 16),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppDarkColors.neutral100,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(
+            ResponsiveTokens.size(12, medium: 12, expanded: 12),
+          ),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(
+            ResponsiveTokens.size(12, medium: 12, expanded: 12),
+          ),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(
+            ResponsiveTokens.size(12, medium: 12, expanded: 12),
+          ),
+          borderSide: const BorderSide(color: AppDarkColors.primary),
+        ),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: ResponsiveTokens.size(16, medium: 16, expanded: 16),
+          vertical: ResponsiveTokens.size(14, medium: 14, expanded: 14),
+        ),
+        hintStyle: TextStyle(
+          color: AppDarkColors.textHint,
+          fontSize: ResponsiveTokens.font(14, medium: 14, expanded: 14),
+        ),
+      ),
+      dividerTheme: const DividerThemeData(
+        color: AppDarkColors.divider,
+        thickness: 0.5,
+        space: 0,
+      ),
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        elevation: 8,
+        backgroundColor: AppDarkColors.backgroundPrimary,
+        selectedItemColor: _darkColorScheme.primary,
+        unselectedItemColor: AppDarkColors.neutral500,
+        selectedLabelStyle: TextStyle(
+          fontSize: ResponsiveTokens.font(11, medium: 11, expanded: 11),
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: TextStyle(
+          fontSize: ResponsiveTokens.font(11, medium: 11, expanded: 11),
+        ),
+        type: BottomNavigationBarType.fixed,
       ),
     );
   }
@@ -193,95 +354,99 @@ class AppTheme {
 class AppAdaptiveColors {
   AppAdaptiveColors._();
 
-  static bool _isDarkMode(BuildContext context) {
-    return Theme.of(context).brightness == Brightness.dark;
-  }
+  static bool _isDarkMode(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+  static Color _resolve(BuildContext context, Color light, Color dark) =>
+      _isDarkMode(context) ? dark : light;
 
   // Brand
   static Color primary(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF9B8CC7) : AppColors.primary;
+      _resolve(context, AppColors.primary, AppDarkColors.primary);
   static Color primary50(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF2D2640) : AppColors.primary50;
+      _resolve(context, AppColors.primary50, AppDarkColors.primary50);
   static Color primary500(BuildContext context) => primary(context);
   static Color primary700(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFFB39DDB) : AppColors.primary700;
+      _resolve(context, AppColors.primary700, AppDarkColors.primary700);
 
   // Functional
   static Color success50(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF1B3D1B) : AppColors.success50;
+      _resolve(context, AppColors.success50, AppDarkColors.success50);
   static Color success500(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF66BB6A) : AppColors.success500;
+      _resolve(context, AppColors.success500, AppDarkColors.success500);
   static Color warning50(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF3D2E00) : AppColors.warning50;
+      _resolve(context, AppColors.warning50, AppDarkColors.warning50);
   static Color warning500(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFFFFB74D) : AppColors.warning500;
+      _resolve(context, AppColors.warning500, AppDarkColors.warning500);
   static Color error50(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF3D1B1B) : AppColors.error50;
+      _resolve(context, AppColors.error50, AppDarkColors.error50);
   static Color error500(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFFEF5350) : AppColors.error500;
+      _resolve(context, AppColors.error500, AppDarkColors.error500);
 
   // Neutral scale
   static Color neutral50(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF303030) : AppColors.neutral50;
+      _resolve(context, AppColors.neutral50, AppDarkColors.neutral50);
   static Color neutral100(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF2A2A2A) : AppColors.neutral100;
+      _resolve(context, AppColors.neutral100, AppDarkColors.neutral100);
   static Color neutral150(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF282828) : const Color(0xFFF0F0F0);
+      _resolve(context, AppColors.neutral150, AppDarkColors.neutral150);
   static Color neutral200(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF252525) : AppColors.neutral200;
+      _resolve(context, AppColors.neutral200, AppDarkColors.neutral200);
   static Color neutral300(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF333333) : AppColors.neutral300;
+      _resolve(context, AppColors.neutral300, AppDarkColors.neutral300);
   static Color neutral400(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF555555) : AppColors.neutral400;
+      _resolve(context, AppColors.neutral400, AppDarkColors.neutral400);
   static Color neutral500(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF888888) : AppColors.neutral500;
+      _resolve(context, AppColors.neutral500, AppDarkColors.neutral500);
   static Color neutral600(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFFAAAAAA) : AppColors.neutral600;
+      _resolve(context, AppColors.neutral600, AppDarkColors.neutral600);
   static Color neutral650(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFFBBBBBB) : const Color(0xFF6B6B6B);
+      _resolve(context, AppColors.neutral650, AppDarkColors.neutral650);
   static Color neutral700(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFFCCCCCC) : AppColors.neutral700;
+      _resolve(context, AppColors.neutral700, AppDarkColors.neutral700);
   static Color neutral750(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFFDDDDDD) : const Color(0xFF555555);
+      _resolve(context, AppColors.neutral750, AppDarkColors.neutral750);
   static Color neutral800(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFFE0E0E0) : AppColors.neutral800;
+      _resolve(context, AppColors.neutral800, AppDarkColors.neutral800);
   static Color neutral900(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFFF0F0F0) : AppColors.neutral900;
+      _resolve(context, AppColors.neutral900, AppDarkColors.neutral900);
 
   // Text
   static Color textPrimary(BuildContext context) =>
-      _isDarkMode(context) ? Colors.white : AppColors.textPrimary;
+      _resolve(context, AppColors.textPrimary, AppDarkColors.textPrimary);
   static Color textSecondary(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFFAAAAAA) : AppColors.textSecondary;
+      _resolve(context, AppColors.textSecondary, AppDarkColors.textSecondary);
   static Color textHint(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF777777) : AppColors.textHint;
+      _resolve(context, AppColors.textHint, AppDarkColors.textHint);
   static Color textDisabled(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF555555) : AppColors.textDisabled;
+      _resolve(context, AppColors.textDisabled, AppDarkColors.textDisabled);
 
   // Background
-  static Color backgroundPrimary(BuildContext context) => _isDarkMode(context)
-      ? const Color(0xFF1E1E1E)
-      : AppColors.backgroundPrimary;
-  static Color backgroundSecondary(BuildContext context) => _isDarkMode(context)
-      ? const Color(0xFF121212)
-      : AppColors.backgroundSecondary;
+  static Color backgroundPrimary(BuildContext context) => _resolve(
+    context,
+    AppColors.backgroundPrimary,
+    AppDarkColors.backgroundPrimary,
+  );
+  static Color backgroundSecondary(BuildContext context) => _resolve(
+    context,
+    AppColors.backgroundSecondary,
+    AppDarkColors.backgroundSecondary,
+  );
 
   // Surface
   static Color surface(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF1E1E1E) : Colors.white;
+      _resolve(context, AppColors.surface, AppDarkColors.surface);
 
   // Functional extended
   static Color error700(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFFEF5350) : AppColors.error700;
+      _resolve(context, AppColors.error700, AppDarkColors.error700);
 
   // Border & Divider
   static Color border(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF333333) : AppColors.border;
+      _resolve(context, AppColors.border, AppDarkColors.border);
   static Color divider(BuildContext context) =>
-      _isDarkMode(context) ? const Color(0xFF2A2A2A) : AppColors.divider;
+      _resolve(context, AppColors.divider, AppDarkColors.divider);
 }
 
-/// Pre-defined text styles for consistent typography.
 /// Pre-defined spacing constants
 class AppSpacing {
   AppSpacing._();
@@ -318,8 +483,9 @@ class AppBorderRadius {
 class AppTextStyles {
   AppTextStyles._();
 
-  static const String fontFamilyMedium = '';
-  static const String fontFamilyRegular = '';
+  // Keep null to use the system font unless custom families are configured.
+  static const String? fontFamilyMedium = null;
+  static const String? fontFamilyRegular = null;
 
   static TextStyle get h1 => TextStyle(
     fontSize: ResponsiveTokens.font(32, medium: 32, expanded: 32),

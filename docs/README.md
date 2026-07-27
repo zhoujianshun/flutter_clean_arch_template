@@ -119,9 +119,10 @@
 ### UI 设计 (`ui-design/`)
 
 | 文档 | 主题 |
-|------|------|9002dc4 (feat: enhance responsive design documentation and implement orientation policy)
-| [CUSTOM_THEME_GUIDE.md](ui-design/CUSTOM_THEME_GUIDE.md) | 自定义主题设计指南 |
-| [THEME_SWITCHING_GUIDE.md](ui-design/THEME_SWITCHING_GUIDE.md) | 主题切换实现指南 |
+|------|------|
+| [SCREENUTIL_GUIDE.md](ui-design/SCREENUTIL_GUIDE.md) | ScreenUtil 响应式指南（含主题 token 集成实践） |
+| [CUSTOM_THEME_GUIDE.md](ui-design/CUSTOM_THEME_GUIDE.md) | 主题 token 体系指南（`AppColors` / `AppDarkColors` / `AppAdaptiveColors`） |
+| [THEME_SWITCHING_GUIDE.md](ui-design/THEME_SWITCHING_GUIDE.md) | 主题切换实现指南（`ThemeSwitcher` + 持久化恢复策略） |
 
 ### 权限管理 (`permission/`)
 
