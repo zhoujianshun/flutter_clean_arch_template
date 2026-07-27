@@ -54,6 +54,11 @@ help:
 	@echo "    make deps                - 获取依赖 (pub get)"
 	@echo "    make deps-upgrade        - 升级依赖 (pub upgrade)"
 	@echo ""
+	@echo "  设备管理:"
+	@echo "    make fix-devices         - 修复设备连接问题"
+	@echo "    make fix-devices-deep    - 深度修复设备连接问题"
+	@echo "    make fix-devices-no-sudo - 无 sudo 修复设备连接问题"
+	@echo ""
 	@echo "  其他:"
 	@echo "    make devices             - 列出已连接设备"
 	@echo "    make check               - 检查环境配置"
@@ -144,6 +149,16 @@ deps-upgrade:
 ## 列出所有已连接的设备
 devices:
 	flutter devices
+
+# 交互模式（推荐）
+fix-devices:
+	./tool/fix_devices.sh
+# 自动包含深度修复（会触发 sudo）
+fix-devices-deep:
+	./tool/fix_devices.sh --deep
+# 仅做无 sudo 修复
+fix-devices-no-sudo:
+	./tool/fix_devices.sh --no-sudo	
 
 # === 多环境运行 ===
 
