@@ -59,7 +59,7 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) => AuthRepositoryI
 ### 1. 获取服务实例
 
 ```dart
-import 'package:flutter_clean_arch_template/di/service_locator.dart';
+import 'package:flutter_clean_arch_template/core/di/service_locator.dart';
 
 // 使用 getIt<T>() 获取服务（推荐 - 利用 GetIt 可调用类特性，语义清晰）
 final authRepository = getIt<AuthRepository>();
@@ -231,7 +231,7 @@ class ExpensiveService {
 ### 2. 手动注册模块
 
 ```dart
-// lib/di/service_locator.dart
+// lib/core/di/service_locator.dart
 @module
 abstract class RegisterModule {
  @singleton
@@ -699,12 +699,19 @@ class AppProviders {
  static final apiClientProvider = Provider<ApiClient>((ref) => getIt<ApiClient>());
  static final authRepositoryProvider = Provider<AuthRepository>((ref) => getIt<AuthRepository>());
 
- // UI状态管理
- static final themeDataProvider = Provider<ThemeData>((ref) {
- final themeMode = ref.watch(appThemeModeProvider);
- return AppTheme.getThemeData(themeMode);
+ // 主题状态桥接（ThemeData 由 AppTheme 提供）
+ static final appThemeModeStateProvider = Provider<ThemeMode>((ref) {
+  return ref.watch(appThemeModeProvider);
  });
 }
+```
+
+```dart
+MaterialApp.router(
+  theme: AppTheme.lightTheme,
+  darkTheme: AppTheme.darkTheme,
+  themeMode: ref.watch(appThemeModeProvider),
+);
 ```
 
 ## 📊 性能对比

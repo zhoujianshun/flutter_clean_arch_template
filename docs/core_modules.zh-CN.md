@@ -107,7 +107,7 @@ Dio 请求日志通过 `ApiClient` 中的 **`talker_dio_logger`** 实现。模�
 
 | 组件 | 路径 / 职责 |
 |------|------------|
-| **`app_theme.dart`** | 浅色/深色 `ThemeData`、配色方案、`AppColors`、`AppAdaptiveColors`、`AppTextStyles` |
+| **`app_theme.dart`** | 浅色/深色 `ThemeData`、`ColorScheme` 映射、`AppColors`、`AppDarkColors`、`AppAdaptiveColors`、`AppTextStyles` |
 | **`theme_mode_provider.dart`** | Riverpod 控制的 `ThemeMode` 切换 |
 
 组件应尽量从 **`Theme.of(context)`** 读取颜色和文本样式。
