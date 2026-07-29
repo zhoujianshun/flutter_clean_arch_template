@@ -7,20 +7,24 @@ import 'package:flutter_clean_arch_template/features/_example/presentation/pages
 import 'package:flutter_clean_arch_template/features/_example_simple/presentation/pages/todo_list_page.dart';
 import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/master_detail_detail_page.dart';
 import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/master_detail_page.dart';
-import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/responsive_dashboard_page.dart';
 import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/responsive_article_page.dart';
 import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/responsive_chat_page.dart';
+import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/responsive_dashboard_page.dart';
 import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/responsive_demo_hub_page.dart';
 import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/responsive_form_page.dart';
 import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/responsive_gallery_page.dart';
 import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/responsive_login_page.dart';
 import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/responsive_settings_page.dart';
-import 'package:flutter_clean_arch_template/features/app/presentation/pages/app_shell.dart';
-import 'package:flutter_clean_arch_template/features/app/presentation/pages/config_management_page/config_management_page.dart';
-import 'package:flutter_clean_arch_template/features/app/presentation/pages/onboarding_page/onboarding_page.dart';
-import 'package:flutter_clean_arch_template/features/app/presentation/pages/settings_page/logger_viewer_page.dart';
-import 'package:flutter_clean_arch_template/features/app/presentation/pages/settings_page/theme_settings_page.dart';
-import 'package:flutter_clean_arch_template/features/app/presentation/pages/splash_page/splash_page.dart';
+import 'package:flutter_clean_arch_template/features/_riverpod_demo/presentation/pages/async_when_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_riverpod_demo/presentation/pages/dependencies_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_riverpod_demo/presentation/pages/filter_list_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_riverpod_demo/presentation/pages/form_submit_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_riverpod_demo/presentation/pages/optimistic_update_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_riverpod_demo/presentation/pages/pagination_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_riverpod_demo/presentation/pages/pessimistic_update_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_riverpod_demo/presentation/pages/retry_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_riverpod_demo/presentation/pages/riverpod_demo_hub_page.dart';
+import 'package:flutter_clean_arch_template/features/_riverpod_demo/presentation/pages/toast_error_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/button_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/data_display_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/dialog_demo_page.dart';
@@ -30,6 +34,12 @@ import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/p
 import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/state_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/utility_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/widget_demo_hub_page.dart';
+import 'package:flutter_clean_arch_template/features/app/presentation/pages/app_shell.dart';
+import 'package:flutter_clean_arch_template/features/app/presentation/pages/config_management_page/config_management_page.dart';
+import 'package:flutter_clean_arch_template/features/app/presentation/pages/onboarding_page/onboarding_page.dart';
+import 'package:flutter_clean_arch_template/features/app/presentation/pages/settings_page/logger_viewer_page.dart';
+import 'package:flutter_clean_arch_template/features/app/presentation/pages/settings_page/theme_settings_page.dart';
+import 'package:flutter_clean_arch_template/features/app/presentation/pages/splash_page/splash_page.dart';
 import 'package:flutter_clean_arch_template/features/auth/presentation/pages/login_page/login_page.dart';
 import 'package:flutter_clean_arch_template/features/auth/presentation/pages/profile_page/profile_page.dart';
 
@@ -158,6 +168,48 @@ class AppRouter extends RootStackRouter {
     AutoRoute(
       page: UtilityDemoRoute.page,
       path: '/widget-demo/utility',
+    ),
+
+    // Riverpod demo pages
+    AutoRoute(
+      page: RiverpodDemoHubRoute.page,
+      path: '/riverpod-demo',
+    ),
+    AutoRoute(
+      page: AsyncWhenDemoRoute.page,
+      path: '/riverpod-demo/async-when',
+    ),
+    AutoRoute(
+      page: ToastErrorDemoRoute.page,
+      path: '/riverpod-demo/toast-error',
+    ),
+    AutoRoute(
+      page: PaginationDemoRoute.page,
+      path: '/riverpod-demo/pagination',
+    ),
+    AutoRoute(
+      page: OptimisticUpdateDemoRoute.page,
+      path: '/riverpod-demo/optimistic-update',
+    ),
+    AutoRoute(
+      page: FilterListDemoRoute.page,
+      path: '/riverpod-demo/filter-list',
+    ),
+    AutoRoute(
+      page: FormSubmitDemoRoute.page,
+      path: '/riverpod-demo/form-submit',
+    ),
+    AutoRoute(
+      page: RetryDemoRoute.page,
+      path: '/riverpod-demo/retry',
+    ),
+    AutoRoute(
+      page: PessimisticUpdateDemoRoute.page,
+      path: '/riverpod-demo/pessimistic-update',
+    ),
+    AutoRoute(
+      page: DependenciesDemoRoute.page,
+      path: '/riverpod-demo/dependencies',
     ),
 
     // Dev tools
