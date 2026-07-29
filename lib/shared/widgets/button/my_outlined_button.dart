@@ -50,6 +50,7 @@ class MyOutlinedButton extends StatelessWidget {
     AlignmentGeometry alignment = Alignment.center,
     Size? minimumSize,
     bool expand = false,
+    double? radius,
   }) {
     // final btnHeight = height ?? 36.sp;
     return MyOutlinedButton(
@@ -64,7 +65,7 @@ class MyOutlinedButton extends StatelessWidget {
       borderWidth: borderWidth,
       backgroundColor: backgroundColor,
       disabledBackgroundColor: disabledBackgroundColor,
-      borderRadius: BorderRadius.circular(9999),
+      borderRadius: BorderRadius.circular(radius ?? 9999),
       padding: padding,
       alignment: alignment,
       minimumSize: minimumSize,
@@ -121,7 +122,8 @@ class MyOutlinedButton extends StatelessWidget {
           final mainColor = type == MyOutlinedButtonType.primary
               ? Theme.of(context).primaryColor
               : AppAdaptiveColors.neutral700(context);
-          final buttonForegroundColor = foregroundColor ?? borderColor ?? mainColor;
+          final buttonForegroundColor =
+              foregroundColor ?? borderColor ?? mainColor;
 
           // 禁用状态判断
           final isDisabled = onPressed == null || isLoading;
@@ -129,13 +131,16 @@ class MyOutlinedButton extends StatelessWidget {
           var mainTextStyle =
               textStyle ??
               Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontSize: fontSize ?? ResponsiveTokens.font(14, medium: 14, expanded: 14),
+                fontSize:
+                    fontSize ??
+                    ResponsiveTokens.font(14, medium: 14, expanded: 14),
               );
           mainTextStyle = mainTextStyle?.copyWith(
             decoration: TextDecoration.none,
             color: !isDisabled
                 ? buttonForegroundColor
-                : (disabledForegroundColor ?? buttonForegroundColor.withValues(alpha: 0.6)),
+                : (disabledForegroundColor ??
+                      buttonForegroundColor.withValues(alpha: 0.6)),
             height: 1,
           );
 
@@ -188,6 +193,7 @@ class MyOutlinedButton extends StatelessWidget {
     double? space,
     Size? minimumSize,
     bool expand = false,
+    double? radius,
   }) {
     // final btnHeight = height ?? 36.sp;
     return MyOutlinedButton.text(
@@ -205,7 +211,7 @@ class MyOutlinedButton extends StatelessWidget {
       disabledBackgroundColor: disabledBackgroundColor,
       foregroundColor: foregroundColor,
       disabledForegroundColor: disabledForegroundColor,
-      borderRadius: BorderRadius.circular(9999),
+      borderRadius: BorderRadius.circular(radius ?? 9999),
       textStyle: textStyle,
       fontSize: fontSize,
       text: text,
@@ -240,10 +246,13 @@ class MyOutlinedButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final mainColor = type == MyOutlinedButtonType.primary ? theme.primaryColor : AppAdaptiveColors.neutral500(context);
+    final mainColor = type == MyOutlinedButtonType.primary
+        ? theme.primaryColor
+        : AppAdaptiveColors.neutral500(context);
 
     final effectiveBorderColor = borderColor ?? mainColor;
-    final effectiveDisabledBorderColor = disabledBorderColor ?? effectiveBorderColor.withValues(alpha: 0.6);
+    final effectiveDisabledBorderColor =
+        disabledBorderColor ?? effectiveBorderColor.withValues(alpha: 0.6);
     final effectiveBorderWidth = borderWidth ?? 1.0;
     final effectiveBorderRadius = borderRadius ?? BorderRadius.circular(8);
 
@@ -263,9 +272,14 @@ class MyOutlinedButton extends StatelessWidget {
     // 构建按钮内容 - 使用 Align 配合 widthFactor 实现紧凑布局
     final buttonChild = Container(
       decoration: BoxDecoration(
-        color: !isDisabled ? backgroundColor : (disabledBackgroundColor ?? backgroundColor?.withValues(alpha: 0.6)),
+        color: !isDisabled
+            ? backgroundColor
+            : (disabledBackgroundColor ??
+                  backgroundColor?.withValues(alpha: 0.6)),
         border: Border.all(
-          color: !isDisabled ? effectiveBorderColor : effectiveDisabledBorderColor,
+          color: !isDisabled
+              ? effectiveBorderColor
+              : effectiveDisabledBorderColor,
           width: effectiveBorderWidth,
         ),
         borderRadius: effectiveBorderRadius,

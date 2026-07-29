@@ -19,6 +19,7 @@ class PrimaryButton extends StatelessWidget {
     this.disabledBackgroundColor,
     this.disabledForegroundColor,
     this.minimumSize,
+    this.roundedRadius,
   });
 
   factory PrimaryButton.roundText({
@@ -31,6 +32,7 @@ class PrimaryButton extends StatelessWidget {
     Color? disabledForegroundColor,
     TextStyle? textStyle,
     double? fontSize,
+    double? radius,
   }) {
     return PrimaryButton.text(
       key: key,
@@ -43,6 +45,7 @@ class PrimaryButton extends StatelessWidget {
       disabledForegroundColor: disabledForegroundColor,
       textStyle: textStyle,
       fontSize: fontSize,
+      roundedRadius: radius,
     );
   }
 
@@ -57,10 +60,12 @@ class PrimaryButton extends StatelessWidget {
     Color? disabledForegroundColor,
     TextStyle? textStyle,
     double? fontSize,
+    double? roundedRadius,
   }) {
     return PrimaryButton(
       key: key,
       isRounded: isRounded,
+      roundedRadius: roundedRadius,
       onPressed: onPressed,
       foregroundColor: foregroundColor,
       disabledForegroundColor: disabledForegroundColor,
@@ -69,15 +74,20 @@ class PrimaryButton extends StatelessWidget {
       child: Builder(
         builder: (context) {
           final theme = Theme.of(context);
-          final fgColor = foregroundColor ?? theme.colorScheme.surfaceContainerHighest;
+          final fgColor =
+              foregroundColor ?? theme.colorScheme.surfaceContainerHighest;
           var mainTextStyle =
               textStyle ??
               theme.textTheme.bodyMedium?.copyWith(
-                fontSize: fontSize ?? ResponsiveTokens.font(14, medium: 14, expanded: 14),
+                fontSize:
+                    fontSize ??
+                    ResponsiveTokens.font(14, medium: 14, expanded: 14),
               );
           mainTextStyle = mainTextStyle?.copyWith(
             decoration: TextDecoration.none,
-            color: onPressed != null ? fgColor : (disabledForegroundColor ?? fgColor.withValues(alpha: 0.6)),
+            color: onPressed != null
+                ? fgColor
+                : (disabledForegroundColor ?? fgColor.withValues(alpha: 0.6)),
             height: 1,
           );
           return Text(
@@ -105,9 +115,11 @@ class PrimaryButton extends StatelessWidget {
     EdgeInsetsGeometry? padding,
     double? elevation,
     BorderRadius? borderRadius,
+    double? radius,
   }) {
     return PrimaryButton(
       isRounded: true,
+      roundedRadius: radius,
       isLoading: isLoading,
       backgroundColor: backgroundColor,
       foregroundColor: foregroundColor,
@@ -136,6 +148,7 @@ class PrimaryButton extends StatelessWidget {
   final double? width;
   final double? height;
   final Size? minimumSize;
+  final double? roundedRadius;
 
   /// 是否圆角
   final bool isRounded;
@@ -155,11 +168,19 @@ class PrimaryButton extends StatelessWidget {
 
   Widget _buildButton(BuildContext context) {
     final theme = Theme.of(context);
-    // final height = this.height ?? 48;
-    final roundedBorderRadius = isRounded ? BorderRadius.circular(999999) : null;
+    // 圆角优先级：
+    // 1) 显式传入 borderRadius
+    // 2) roundedRadius（无论 isRounded 是否为 true 都生效）
+    // 3) isRounded=true 时使用胶囊圆角
+    final effectiveBorderRadius =
+        borderRadius ??
+        (roundedRadius != null
+            ? BorderRadius.circular(roundedRadius!)
+            : (isRounded ? BorderRadius.circular(999999) : null));
 
     final bgColor = backgroundColor ?? theme.primaryColor;
-    final fgColor = foregroundColor ?? theme.colorScheme.surfaceContainerHighest;
+    final fgColor =
+        foregroundColor ?? theme.colorScheme.surfaceContainerHighest;
 
     final actualPadding = minimumSize == null && width == null && height == null
         ? const EdgeInsets.symmetric(
@@ -171,18 +192,18 @@ class PrimaryButton extends StatelessWidget {
     return ElevatedButton(
       onPressed: isLoading ? null : onPressed,
       style: ElevatedButton.styleFrom(
-        disabledBackgroundColor: disabledBackgroundColor ?? bgColor.withValues(alpha: 0.6),
-        disabledForegroundColor: disabledForegroundColor ?? fgColor.withValues(alpha: 0.7),
+        disabledBackgroundColor:
+            disabledBackgroundColor ?? bgColor.withValues(alpha: 0.6),
+        disabledForegroundColor:
+            disabledForegroundColor ?? fgColor.withValues(alpha: 0.7),
         backgroundColor: bgColor,
         foregroundColor: fgColor,
         // 去除按钮的padding
         padding: actualPadding,
         minimumSize: minimumSize,
         elevation: elevation ?? 0,
-        shape: roundedBorderRadius != null
-            ? RoundedRectangleBorder(borderRadius: roundedBorderRadius)
-            : borderRadius != null
-            ? RoundedRectangleBorder(borderRadius: borderRadius!)
+        shape: effectiveBorderRadius != null
+            ? RoundedRectangleBorder(borderRadius: effectiveBorderRadius)
             : null,
       ),
       child: isLoading

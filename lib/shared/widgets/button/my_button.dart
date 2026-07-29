@@ -33,6 +33,7 @@ class MyButton extends StatelessWidget {
     Color? disableBackgroundColor,
     AlignmentGeometry alignment = Alignment.center,
     Size? minimumSize,
+    double? radius,
   }) {
     // final btnHeight = height ?? 36.sp;
     return MyButton(
@@ -43,7 +44,7 @@ class MyButton extends StatelessWidget {
       backgroundColor: backgroundColor,
       foregroundColor: foregroundColor,
       disableBackgroundColor: disableBackgroundColor,
-      borderRadius: BorderRadius.circular(9999),
+      borderRadius: BorderRadius.circular(radius ?? 9999),
       padding: padding,
       alignment: alignment,
       minimumSize: minimumSize,
@@ -85,19 +86,23 @@ class MyButton extends StatelessWidget {
       child: Builder(
         builder: (context) {
           final theme = Theme.of(context);
-          final buttonForegroundColor = foregroundColor ?? theme.textTheme.bodyMedium?.color;
+          final buttonForegroundColor =
+              foregroundColor ?? theme.textTheme.bodyMedium?.color;
           final isDisabled = onPressed == null || isLoading;
 
           var mainTextStyle =
               textStyle ??
               theme.textTheme.bodyMedium?.copyWith(
-                fontSize: fontSize ?? ResponsiveTokens.font(14, medium: 14, expanded: 14),
+                fontSize:
+                    fontSize ??
+                    ResponsiveTokens.font(14, medium: 14, expanded: 14),
               );
           mainTextStyle = mainTextStyle?.copyWith(
             decoration: TextDecoration.none,
             color: !isDisabled
                 ? buttonForegroundColor
-                : (disableForegroundColor ?? buttonForegroundColor?.withValues(alpha: 0.6)),
+                : (disableForegroundColor ??
+                      buttonForegroundColor?.withValues(alpha: 0.6)),
           );
           Widget child = Text(
             text,
@@ -149,7 +154,8 @@ class MyButton extends StatelessWidget {
     // final theme = Theme.of(context);
     final isDisabled = onPressed == null || isLoading;
 
-    final foregroundColor = this.foregroundColor ?? DefaultTextStyle.of(context).style.color;
+    final foregroundColor =
+        this.foregroundColor ?? DefaultTextStyle.of(context).style.color;
 
     // 如果没有设置 minimumSize，则使用默认内边距
     final actualPadding =
@@ -167,12 +173,15 @@ class MyButton extends StatelessWidget {
       color: backgroundColor,
       foregroundColor: foregroundColor,
       borderRadius: borderRadius,
-      disabledColor: disableBackgroundColor ?? CupertinoColors.quaternarySystemFill,
+      disabledColor:
+          disableBackgroundColor ?? CupertinoColors.quaternarySystemFill,
       alignment: alignment,
       minimumSize: minimumSize,
       child: isLoading
           ? MyCircularProgressIndicator(
-              color: isDisabled ? foregroundColor?.withValues(alpha: 0.6) : foregroundColor,
+              color: isDisabled
+                  ? foregroundColor?.withValues(alpha: 0.6)
+                  : foregroundColor,
             )
           : child,
     );

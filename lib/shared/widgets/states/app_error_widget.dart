@@ -49,23 +49,39 @@ class AppErrorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final child = _buildErrorWidget(context);
-    if (isCenter) {
-      return Container(
-        alignment: Alignment.center,
-        padding: EdgeInsets.all(24.r),
-        child: child,
-      );
-    }
-    return Container(
-      alignment: Alignment.topCenter,
-      padding: EdgeInsets.only(top: 96.h),
-      child: child,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final child = _buildErrorWidget(context);
+        final hasBoundedHeight = constraints.maxHeight.isFinite;
+        final isCompactHeight = hasBoundedHeight && constraints.maxHeight < 420;
+
+        final content = Container(
+          alignment: isCenter ? Alignment.center : Alignment.topCenter,
+          padding: isCenter
+              ? EdgeInsets.all(24.r)
+              : EdgeInsets.only(top: isCompactHeight ? 24.h : 96.h),
+          child: child,
+        );
+
+        if (!hasBoundedHeight) {
+          return content;
+        }
+
+        // 在固定高度容器中避免 RenderFlex overflow，内容过高时可滚动
+        return SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: content,
+          ),
+        );
+      },
     );
   }
 
   Widget _buildErrorWidget(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         // 错误图标
         Image.asset(
@@ -99,7 +115,6 @@ class AppErrorWidget extends StatelessWidget {
         if (error.isNotEmpty && kDebugMode) ...[
           SizedBox(height: 4.w),
           ExpansionTile(
-            initiallyExpanded: true,
             title: Text(
               '错误详情',
               style: AppTextStyles.bodySmall.copyWith(

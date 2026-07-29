@@ -21,6 +21,15 @@ import 'package:flutter_clean_arch_template/features/app/presentation/pages/onbo
 import 'package:flutter_clean_arch_template/features/app/presentation/pages/settings_page/logger_viewer_page.dart';
 import 'package:flutter_clean_arch_template/features/app/presentation/pages/settings_page/theme_settings_page.dart';
 import 'package:flutter_clean_arch_template/features/app/presentation/pages/splash_page/splash_page.dart';
+import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/button_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/data_display_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/dialog_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/form_input_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/navigation_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/sheet_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/state_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/utility_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/widget_demo_hub_page.dart';
 import 'package:flutter_clean_arch_template/features/auth/presentation/pages/login_page/login_page.dart';
 import 'package:flutter_clean_arch_template/features/auth/presentation/pages/profile_page/profile_page.dart';
 
@@ -111,6 +120,44 @@ class AppRouter extends RootStackRouter {
     AutoRoute(
       page: ResponsiveChatRoute.page,
       path: '/responsive-demo/chat',
+    ),
+
+    // Widget demo pages
+    AutoRoute(
+      page: WidgetDemoHubRoute.page,
+      path: '/widget-demo',
+    ),
+    AutoRoute(
+      page: ButtonDemoRoute.page,
+      path: '/widget-demo/button',
+    ),
+    AutoRoute(
+      page: DialogDemoRoute.page,
+      path: '/widget-demo/dialog',
+    ),
+    AutoRoute(
+      page: SheetDemoRoute.page,
+      path: '/widget-demo/sheet',
+    ),
+    AutoRoute(
+      page: DataDisplayDemoRoute.page,
+      path: '/widget-demo/data-display',
+    ),
+    AutoRoute(
+      page: FormInputDemoRoute.page,
+      path: '/widget-demo/form-input',
+    ),
+    AutoRoute(
+      page: StateDemoRoute.page,
+      path: '/widget-demo/state',
+    ),
+    AutoRoute(
+      page: NavigationDemoRoute.page,
+      path: '/widget-demo/navigation',
+    ),
+    AutoRoute(
+      page: UtilityDemoRoute.page,
+      path: '/widget-demo/utility',
     ),
 
     // Dev tools

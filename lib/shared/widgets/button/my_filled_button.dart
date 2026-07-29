@@ -34,6 +34,7 @@ class MyFilledButton extends StatelessWidget {
     Color? disableBackgroundColor,
     AlignmentGeometry alignment = Alignment.center,
     Size? minimumSize,
+    double? radius,
   }) {
     // final btnHeight = height ?? 36.sp;
     return MyFilledButton(
@@ -44,7 +45,7 @@ class MyFilledButton extends StatelessWidget {
       height: height,
       backgroundColor: backgroundColor,
       disableBackgroundColor: disableBackgroundColor,
-      borderRadius: BorderRadius.circular(99999),
+      borderRadius: BorderRadius.circular(radius ?? 99999),
       padding: padding,
       alignment: alignment,
       foregroundColor: foregroundColor,
@@ -70,6 +71,7 @@ class MyFilledButton extends StatelessWidget {
     Widget? icon,
     double? space,
     Size? minimumSize,
+    double? radius,
   }) {
     // final btnHeight = height ?? 36.sp;
     return MyFilledButton.text(
@@ -83,7 +85,7 @@ class MyFilledButton extends StatelessWidget {
       disableBackgroundColor: disableBackgroundColor,
       foregroundColor: foregroundColor,
       disableForegroundColor: disableForegroundColor,
-      borderRadius: BorderRadius.circular(99999),
+      borderRadius: BorderRadius.circular(radius ?? 99999),
       textStyle: textStyle,
       fontSize: fontSize,
       text: text,
@@ -126,18 +128,25 @@ class MyFilledButton extends StatelessWidget {
       child: Builder(
         builder: (context) {
           final theme = Theme.of(context);
-          final buttonForegroundColor = foregroundColor ?? theme.colorScheme.onPrimary;
-          final buttonDisableForegroundColor = disableForegroundColor ?? (buttonForegroundColor.withValues(alpha: 0.6));
+          final buttonForegroundColor =
+              foregroundColor ?? theme.colorScheme.onPrimary;
+          final buttonDisableForegroundColor =
+              disableForegroundColor ??
+              (buttonForegroundColor.withValues(alpha: 0.6));
           final isDisabled = onPressed == null || isLoading;
 
           var mainTextStyle =
               textStyle ??
               theme.textTheme.bodyMedium?.copyWith(
-                fontSize: fontSize ?? ResponsiveTokens.font(14, medium: 14, expanded: 14),
+                fontSize:
+                    fontSize ??
+                    ResponsiveTokens.font(14, medium: 14, expanded: 14),
               );
           mainTextStyle = mainTextStyle?.copyWith(
             decoration: TextDecoration.none,
-            color: !isDisabled ? buttonForegroundColor : buttonDisableForegroundColor,
+            color: !isDisabled
+                ? buttonForegroundColor
+                : buttonDisableForegroundColor,
             height: 1,
           );
 
@@ -192,7 +201,8 @@ class MyFilledButton extends StatelessWidget {
   }
 
   Widget _buildButton(BuildContext context) {
-    final buttonBackgroundColor = backgroundColor ?? Theme.of(context).primaryColor;
+    final buttonBackgroundColor =
+        backgroundColor ?? Theme.of(context).primaryColor;
     final buttonDisableBackgroundColor =
         disableBackgroundColor ??
         (buttonBackgroundColor == Colors.transparent
