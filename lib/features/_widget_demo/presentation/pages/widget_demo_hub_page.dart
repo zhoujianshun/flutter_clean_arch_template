@@ -66,6 +66,13 @@ class WidgetDemoHubPage extends StatelessWidget {
         icon: Icons.build_outlined,
         onTap: () => unawaited(context.router.push(const UtilityDemoRoute())),
       ),
+      _DemoEntry(
+        title: 'SliverAppBar 滚动导航',
+        subtitle: '折叠/浮动/拉伸/TabBar吸顶/渐变/M3/多Sliver组合',
+        icon: Icons.view_day_outlined,
+        onTap: () =>
+            unawaited(context.router.push(const SliverAppBarHubRoute())),
+      ),
     ];
 
     return Scaffold(

@@ -31,6 +31,14 @@ import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/p
 import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/form_input_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/navigation_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/sheet_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/sliver_app_bar_hub_page.dart';
+import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/sliver_basic_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/sliver_fade_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/sliver_float_snap_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/sliver_m3_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/sliver_multi_sliver_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/sliver_stretch_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/sliver_tabbar_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/state_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/utility_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/widget_demo_hub_page.dart';
@@ -168,6 +176,38 @@ class AppRouter extends RootStackRouter {
     AutoRoute(
       page: UtilityDemoRoute.page,
       path: '/widget-demo/utility',
+    ),
+    AutoRoute(
+      page: SliverAppBarHubRoute.page,
+      path: '/widget-demo/sliver-app-bar',
+    ),
+    AutoRoute(
+      page: SliverBasicDemoRoute.page,
+      path: '/widget-demo/sliver-basic',
+    ),
+    AutoRoute(
+      page: SliverFloatSnapDemoRoute.page,
+      path: '/widget-demo/sliver-float-snap',
+    ),
+    AutoRoute(
+      page: SliverStretchDemoRoute.page,
+      path: '/widget-demo/sliver-stretch',
+    ),
+    AutoRoute(
+      page: SliverTabbarDemoRoute.page,
+      path: '/widget-demo/sliver-tabbar',
+    ),
+    AutoRoute(
+      page: SliverFadeDemoRoute.page,
+      path: '/widget-demo/sliver-fade',
+    ),
+    AutoRoute(
+      page: SliverM3DemoRoute.page,
+      path: '/widget-demo/sliver-m3',
+    ),
+    AutoRoute(
+      page: SliverMultiSliverDemoRoute.page,
+      path: '/widget-demo/sliver-multi',
     ),
 
     // Riverpod demo pages
