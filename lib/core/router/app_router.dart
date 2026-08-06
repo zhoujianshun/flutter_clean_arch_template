@@ -26,15 +26,23 @@ import 'package:flutter_clean_arch_template/features/_riverpod_demo/presentation
 import 'package:flutter_clean_arch_template/features/_riverpod_demo/presentation/pages/riverpod_demo_hub_page.dart';
 import 'package:flutter_clean_arch_template/features/_riverpod_demo/presentation/pages/toast_error_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/button_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/custom_scroll_hub_page.dart';
 import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/data_display_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/dialog_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/form_input_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/navigation_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/scroll_controller_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/sheet_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/sliver_animated_list_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/sliver_app_bar_hub_page.dart';
 import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/sliver_basic_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/sliver_fade_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/sliver_fill_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/sliver_float_snap_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/sliver_grid_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/sliver_header_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/sliver_layout_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/sliver_list_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/sliver_m3_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/sliver_multi_sliver_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_widget_demo/presentation/pages/sliver_stretch_demo_page.dart';
@@ -208,6 +216,38 @@ class AppRouter extends RootStackRouter {
     AutoRoute(
       page: SliverMultiSliverDemoRoute.page,
       path: '/widget-demo/sliver-multi',
+    ),
+    AutoRoute(
+      page: CustomScrollHubRoute.page,
+      path: '/widget-demo/custom-scroll',
+    ),
+    AutoRoute(
+      page: SliverListDemoRoute.page,
+      path: '/widget-demo/scroll-list',
+    ),
+    AutoRoute(
+      page: SliverGridDemoRoute.page,
+      path: '/widget-demo/scroll-grid',
+    ),
+    AutoRoute(
+      page: SliverFillDemoRoute.page,
+      path: '/widget-demo/scroll-fill',
+    ),
+    AutoRoute(
+      page: SliverAnimatedListDemoRoute.page,
+      path: '/widget-demo/scroll-animated-list',
+    ),
+    AutoRoute(
+      page: SliverHeaderDemoRoute.page,
+      path: '/widget-demo/scroll-header',
+    ),
+    AutoRoute(
+      page: ScrollControllerDemoRoute.page,
+      path: '/widget-demo/scroll-controller',
+    ),
+    AutoRoute(
+      page: SliverLayoutDemoRoute.page,
+      path: '/widget-demo/scroll-layout',
     ),
 
     // Riverpod demo pages

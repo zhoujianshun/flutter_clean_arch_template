@@ -73,6 +73,13 @@ class WidgetDemoHubPage extends StatelessWidget {
         onTap: () =>
             unawaited(context.router.push(const SliverAppBarHubRoute())),
       ),
+      _DemoEntry(
+        title: 'CustomScrollView 滚动布局',
+        subtitle: 'SliverList/Grid/Fill/AnimatedList/Header/Controller',
+        icon: Icons.view_agenda_outlined,
+        onTap: () =>
+            unawaited(context.router.push(const CustomScrollHubRoute())),
+      ),
     ];
 
     return Scaffold(
