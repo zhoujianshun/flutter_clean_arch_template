@@ -180,12 +180,13 @@ class UtilityDemoPage extends StatelessWidget {
                       '  state: paginationState,\n'
                       '  onRefresh: () => ref.read(provider.notifier).refresh(),\n'
                       '  onLoadMore: () => ref.read(provider.notifier).loadMore(),\n'
-                      '  itemBuilder: (ctx, item) => ListTile(...),\n'
+                      '  itemBuilder: (ctx, item, index) => ListTile(...),\n'
                       '  onRetry: () => ref.read(provider.notifier).retry(),\n'
                       ')\n\n'
+                      'onRefresh/onLoadMore 需返回 PaginationActionResult，\n'
                       '组件内置了 EasyRefresh 下拉刷新/上拉加载更多，\n'
                       '以及 loading/error/empty 三种状态自动切换。\n'
-                      '完整示例请查看 ExampleListPage。',
+                      '完整示例请查看 PaginationDemoPage。',
                       style: theme.textTheme.bodySmall?.copyWith(
                         fontFamily: 'monospace',
                         color: theme.colorScheme.onSurfaceVariant,

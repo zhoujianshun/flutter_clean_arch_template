@@ -1,5 +1,4 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/features/_riverpod_demo/presentation/providers/demo_pagination_provider.dart';
 import 'package:flutter_clean_arch_template/shared/responsive/content_constraint.dart';
@@ -12,34 +11,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 /// 核心模式：`PaginationState<T>` + `PaginationList<T>` + EasyRefresh
 /// 适用场景：消息列表、订单列表、商品列表等需要分页加载的场景
 @RoutePage()
-class PaginationDemoPage extends ConsumerStatefulWidget {
+class PaginationDemoPage extends ConsumerWidget {
   const PaginationDemoPage({super.key});
 
   @override
-  ConsumerState<PaginationDemoPage> createState() =>
-      _PaginationDemoPageState();
-}
-
-class _PaginationDemoPageState extends ConsumerState<PaginationDemoPage> {
-  late final EasyRefreshController _refreshController;
-
-  @override
-  void initState() {
-    super.initState();
-    _refreshController = EasyRefreshController(
-      controlFinishRefresh: true,
-      controlFinishLoad: true,
-    );
-  }
-
-  @override
-  void dispose() {
-    _refreshController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(demoPaginationProvider);
     final notifier = ref.read(demoPaginationProvider.notifier);
 
@@ -61,19 +37,10 @@ class _PaginationDemoPageState extends ConsumerState<PaginationDemoPage> {
       body: ContentConstraint(
         child: PaginationList<String>(
           state: state,
-          controller: _refreshController,
-          onRefresh: () async {
-            await notifier.refresh();
-            _refreshController.finishRefresh();
-          },
-          onLoadMore: () async {
-            await notifier.loadMore();
-            _refreshController.finishLoad(
-              state.hasMore ? IndicatorResult.success : IndicatorResult.noMore,
-            );
-          },
+          onRefresh: notifier.refresh,
+          onLoadMore: notifier.loadMore,
           onRetry: () => ref.invalidate(demoPaginationProvider),
-          itemBuilder: (context, item) => Card(
+          itemBuilder: (context, item, index) => Card(
             child: ListTile(
               leading: Icon(
                 Icons.article_outlined,

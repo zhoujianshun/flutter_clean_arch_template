@@ -4,19 +4,19 @@ import 'package:flutter_clean_arch_template/shared/models/pagination_action_resu
 import 'package:flutter_clean_arch_template/shared/models/pagination_state.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-part 'demo_pagination_provider.g.dart';
+part 'demo_pagination_sliver_provider.g.dart';
 
-/// 演示 PaginationList 分页加载的 Provider
+/// 演示 PaginationSliverView 的分页 Provider
 ///
-/// 模拟每页 15 条、共 50 条数据的分页场景。
+/// 模拟每页 12 条、共 48 条数据，并返回 [PaginationActionResult]
+/// 以便组件内部正确结束 refresh/load 指示器。
 @riverpod
-class DemoPagination extends _$DemoPagination {
-  static const _pageSize = 15;
-  static const _totalItems = 50;
+class DemoPaginationSliver extends _$DemoPaginationSliver {
+  static const _pageSize = 12;
+  static const _totalItems = 48;
 
   @override
   PaginationState<String> build() {
-    // 初始化时自动加载第一页
     unawaited(Future(fetchFirstPage));
     return const PaginationState<String>(isLoading: true);
   }
@@ -56,7 +56,7 @@ class DemoPagination extends _$DemoPagination {
     required bool isRefresh,
   }) async {
     try {
-      await Future<void>.delayed(const Duration(milliseconds: 1000));
+      await Future<void>.delayed(const Duration(milliseconds: 900));
 
       final pageItems = _generateItems(page);
       final allItems = page == 1 ? pageItems : [...state.items, ...pageItems];
@@ -92,9 +92,11 @@ class DemoPagination extends _$DemoPagination {
     final start = (page - 1) * _pageSize;
     final end = start + _pageSize;
     final actualEnd = end > _totalItems ? _totalItems : end;
-    return List.generate(
-      actualEnd - start,
-      (i) => '第 ${start + i + 1} 条数据 — 页码 $page',
-    );
+
+    return List.generate(actualEnd - start, (i) {
+      final globalIndex = start + i + 1;
+      final section = ((globalIndex - 1) ~/ 6) + 1;
+      return '分组 $section · 第 $globalIndex 条数据（页码 $page）';
+    });
   }
 }

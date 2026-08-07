@@ -1,15 +1,21 @@
-import 'dart:async';
-
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_clean_arch_template/shared/models/pagination_action_result.dart';
 import 'package:flutter_clean_arch_template/shared/models/pagination_state.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/states/app_empty_widget.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/states/app_error_widget.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/states/app_loading_indicator.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-/// 通用消息列表视图组件
-class PaginationList<T> extends StatelessWidget {
+/// 通用分页列表组件。
+///
+/// 内部统一管理 [EasyRefreshController]，自动处理：
+/// - `finishRefresh` + `resetFooter`（刷新成功后重置加载状态）
+/// - `finishLoad(IndicatorResult)`（基于 [PaginationActionResult] 明确通知 EasyRefresh）
+///
+/// 使用方只需提供 [onRefresh]、[onLoadMore] 回调并返回结果，
+/// 无需手动管理 controller。
+class PaginationList<T> extends StatefulWidget {
   const PaginationList({
     required this.state,
     required this.onRefresh,
@@ -17,67 +23,92 @@ class PaginationList<T> extends StatelessWidget {
     required this.itemBuilder,
     required this.onRetry,
     super.key,
-    this.controller,
     this.padding,
+    this.separatorHeight,
     this.emptyBuilder,
     this.errorBuilder,
+    this.resetFooterAfterRefreshSuccess = true,
   });
 
   final PaginationState<T> state;
-
-  final EasyRefreshController? controller;
-
-  ///
-  // ignore: strict_raw_type
-  final FutureOr Function()? onRefresh;
-
-  ///
-  // ignore: strict_raw_type
-  final FutureOr Function()? onLoadMore;
-
-  ///
-  final Widget Function(BuildContext context, T item) itemBuilder;
-
-  ///
+  final PaginationActionCallback onRefresh;
+  final PaginationActionCallback onLoadMore;
+  final Widget Function(BuildContext context, T item, int index) itemBuilder;
   final VoidCallback onRetry;
-
-  ///
   final EdgeInsets? padding;
-
-  ///
+  final double? separatorHeight;
   final WidgetBuilder? emptyBuilder;
+  final Widget Function(
+    BuildContext context, {
+    String? error,
+    VoidCallback onRetry,
+  })?
+  errorBuilder;
+  final bool resetFooterAfterRefreshSuccess;
 
-  ///
-  final Widget Function(BuildContext context, {String? error, VoidCallback onRetry})? errorBuilder;
+  @override
+  State<PaginationList<T>> createState() => _PaginationListState<T>();
+}
+
+class _PaginationListState<T> extends State<PaginationList<T>> {
+  late final EasyRefreshController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = EasyRefreshController(
+      controlFinishRefresh: true,
+      controlFinishLoad: true,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<PaginationActionResult> _runAction(
+    PaginationActionCallback callback,
+  ) async {
+    try {
+      return await callback();
+    } catch (error, stackTrace) {
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stackTrace,
+          library: 'pagination_list',
+          context: ErrorDescription('while executing pagination callback'),
+        ),
+      );
+      return PaginationActionResult.fail(message: error.toString());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    Widget? child;
+    final state = widget.state;
 
-    // 初始加载状态
+    // 初始加载状态（首次进入，无数据）
     if (state.isLoading && state.items.isEmpty) {
-      return _buildLoadingState(context);
+      return _buildLoadingState();
     }
 
-    // 错误状态
+    // 错误状态（无数据）
     if (state.hasError && state.items.isEmpty) {
-      return _buildErrorState(context);
+      return _buildErrorState();
     }
 
-    // 空状态
+    Widget child;
     if (state.isEmpty) {
-      child = _buildEmptyState(context);
+      child = _buildEmptyState();
     } else {
       child = ListView.separated(
-        padding: padding ?? EdgeInsets.all(12.w),
+        padding: widget.padding ?? EdgeInsets.all(12.w),
         itemCount: state.items.length,
-        separatorBuilder: (context, index) {
-          return SizedBox(height: 8.w);
-        },
-        itemBuilder: (context, index) {
-          final item = state.items[index];
-          return itemBuilder(context, item);
-        },
+        separatorBuilder: (_, _) => SizedBox(height: widget.separatorHeight ?? 8.w),
+        itemBuilder: (context, index) => widget.itemBuilder(context, state.items[index], index),
       );
     }
 
@@ -85,33 +116,38 @@ class PaginationList<T> extends StatelessWidget {
       context: context,
       removeTop: true,
       child: EasyRefresh(
-        controller: controller,
-        onRefresh: onRefresh,
-        onLoad: onLoadMore,
+        controller: _controller,
+        onRefresh: () async {
+          final result = await _runAction(widget.onRefresh);
+          if (!mounted) return;
+          _controller.finishRefresh(result.refreshIndicatorResult);
+          // 官方文档描述："Reset after refresh when no more deactivation is loaded"。这意味着当 finishRefresh() 被调用后，EasyRefresh 内部已经会自动 resetFooter
+          // if (widget.resetFooterAfterRefreshSuccess && result.isRefreshCompleted) {
+          //   _controller.resetFooter();
+          // }
+        },
+        onLoad: () async {
+          final result = await _runAction(widget.onLoadMore);
+          if (!mounted) return;
+          _controller.finishLoad(result.loadIndicatorResult);
+        },
         child: child,
       ),
     );
   }
 
-  /// 构建加载状态
-  Widget _buildLoadingState(BuildContext context) {
-    return const AppLoadingIndicator();
-  }
+  Widget _buildLoadingState() => const AppLoadingIndicator();
 
-  /// 构建错误状态
-  Widget _buildErrorState(BuildContext context) {
-    return errorBuilder?.call(context, error: state.error, onRetry: onRetry) ??
-        AppErrorWidget(
-          error: state.error ?? '加载失败',
-          onRetry: onRetry,
-        );
-  }
+  Widget _buildErrorState() =>
+      widget.errorBuilder?.call(
+        context,
+        error: widget.state.error,
+        onRetry: widget.onRetry,
+      ) ??
+      AppErrorWidget(
+        error: widget.state.error ?? '加载失败',
+        onRetry: widget.onRetry,
+      );
 
-  /// 构建空状态
-  Widget _buildEmptyState(BuildContext context) {
-    return emptyBuilder?.call(context) ??
-        const AppEmptyWidget(
-          inScrollView: true,
-        );
-  }
+  Widget _buildEmptyState() => widget.emptyBuilder?.call(context) ?? const AppEmptyWidget(inScrollView: true);
 }

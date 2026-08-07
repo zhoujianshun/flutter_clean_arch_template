@@ -21,6 +21,7 @@ import 'package:flutter_clean_arch_template/features/_riverpod_demo/presentation
 import 'package:flutter_clean_arch_template/features/_riverpod_demo/presentation/pages/form_submit_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_riverpod_demo/presentation/pages/optimistic_update_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_riverpod_demo/presentation/pages/pagination_demo_page.dart';
+import 'package:flutter_clean_arch_template/features/_riverpod_demo/presentation/pages/pagination_sliver_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_riverpod_demo/presentation/pages/pessimistic_update_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_riverpod_demo/presentation/pages/retry_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_riverpod_demo/presentation/pages/riverpod_demo_hub_page.dart';
@@ -266,6 +267,10 @@ class AppRouter extends RootStackRouter {
     AutoRoute(
       page: PaginationDemoRoute.page,
       path: '/riverpod-demo/pagination',
+    ),
+    AutoRoute(
+      page: PaginationSliverDemoRoute.page,
+      path: '/riverpod-demo/pagination-sliver',
     ),
     AutoRoute(
       page: OptimisticUpdateDemoRoute.page,

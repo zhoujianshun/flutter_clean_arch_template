@@ -37,6 +37,13 @@ class RiverpodDemoHubPage extends StatelessWidget {
             unawaited(context.router.push(const PaginationDemoRoute())),
       ),
       _DemoEntry(
+        title: '分页 Sliver PaginationSliverView',
+        subtitle: 'CustomScrollView + Sliver 场景的下拉刷新/上拉分页',
+        icon: Icons.view_agenda_outlined,
+        onTap: () =>
+            unawaited(context.router.push(const PaginationSliverDemoRoute())),
+      ),
+      _DemoEntry(
         title: 'Retry 重试机制',
         subtitle: 'Riverpod 3.x 默认指数退避重试 vs 禁用重试对比',
         icon: Icons.replay_outlined,
