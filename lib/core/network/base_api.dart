@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_clean_arch_template/core/errors/error_utils.dart';
@@ -14,7 +15,7 @@ import 'package:flutter_clean_arch_template/shared/models/api/api_response.dart'
 /// - 防止缓存
 /// - 确保请求的唯一性
 void addTimestampToQueryParameters(Map<String, dynamic> data) {
-  data['timestamp'] = DateTime.now().millisecondsSinceEpoch;
+  data['timestamp'] = clock.now().millisecondsSinceEpoch;
 }
 
 /// 基础 API 类
@@ -138,7 +139,10 @@ abstract class BaseAPI {
       final response = await apiCall;
       return handler(response);
     } on AppException catch (e) {
-      AppLogger.error('${logTag ?? runtimeType.toString()}: AppException caught', error: e);
+      AppLogger.error(
+        '${logTag ?? runtimeType.toString()}: AppException caught',
+        error: e,
+      );
       return Left(mapExceptionToFailure(e));
     } catch (e, stackTrace) {
       AppLogger.error(
@@ -155,45 +159,70 @@ abstract class BaseAPI {
     Future<Response<dynamic>> apiCall,
     T Function(Map<String, dynamic>) fromJson, {
     String? logTag,
-  }) => _execute(apiCall, (r) => ApiResponseHandler.handleObjectResponse<T>(r, fromJson), logTag: logTag);
+  }) => _execute(
+    apiCall,
+    (r) => ApiResponseHandler.handleObjectResponse<T>(r, fromJson),
+    logTag: logTag,
+  );
 
   /// 处理返回列表数据的API调用
   Future<Either<Failure, List<T>>> handleApiListCall<T>(
     Future<Response<dynamic>> apiCall,
     T Function(Map<String, dynamic>) fromJson, {
     String? logTag,
-  }) => _execute(apiCall, (r) => ApiResponseHandler.handleListResponse<T>(r, fromJson), logTag: logTag);
+  }) => _execute(
+    apiCall,
+    (r) => ApiResponseHandler.handleListResponse<T>(r, fromJson),
+    logTag: logTag,
+  );
 
   /// 处理无返回数据的API调用（如删除操作）
   Future<Either<Failure, void>> handleApiVoidCall(
     Future<Response<dynamic>> apiCall, {
     String? logTag,
-  }) => _execute(apiCall, ApiResponseHandler.handleVoidResponse, logTag: logTag);
+  }) =>
+      _execute(apiCall, ApiResponseHandler.handleVoidResponse, logTag: logTag);
 
   /// 处理分页API调用
   Future<Either<Failure, PaginatedData<T>>> handlePaginatedApiCall<T>(
     Future<Response<dynamic>> apiCall,
     T Function(Map<String, dynamic>) fromJson, {
     String? logTag,
-  }) => _execute(apiCall, (r) => ApiResponseHandler.handlePageableResponse<T>(r, fromJson), logTag: logTag);
+  }) => _execute(
+    apiCall,
+    (r) => ApiResponseHandler.handlePageableResponse<T>(r, fromJson),
+    logTag: logTag,
+  );
 
   /// 处理 int 响应
   Future<Either<Failure, int>> handleApiIntCall(
     Future<Response<dynamic>> apiCall, {
     String? logTag,
     String dataKey = 'data',
-  }) => _execute(apiCall, (r) => ApiResponseHandler.handleIntResponse(r, dataKey: dataKey), logTag: logTag);
+  }) => _execute(
+    apiCall,
+    (r) => ApiResponseHandler.handleIntResponse(r, dataKey: dataKey),
+    logTag: logTag,
+  );
 
   /// 处理布尔响应，适用于返回简单成功/失败状态的 API
   Future<Either<Failure, bool>> handleApiBoolCall(
     Future<Response<dynamic>> apiCall, {
     String? logTag,
-  }) => _execute(apiCall, ApiResponseHandler.handleBooleanResponse, logTag: logTag);
+  }) => _execute(
+    apiCall,
+    ApiResponseHandler.handleBooleanResponse,
+    logTag: logTag,
+  );
 
   /// 处理字符串响应，适用于返回 token、消息等字符串的 API
   Future<Either<Failure, String>> handleApiStringCall(
     Future<Response<dynamic>> apiCall, {
     String? logTag,
     String dataKey = 'data',
-  }) => _execute(apiCall, (r) => ApiResponseHandler.handleStringResponse(r, dataKey: dataKey), logTag: logTag);
+  }) => _execute(
+    apiCall,
+    (r) => ApiResponseHandler.handleStringResponse(r, dataKey: dataKey),
+    logTag: logTag,
+  );
 }

@@ -88,7 +88,7 @@ class ApiClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
-          options.extra['dio_instance'] = _dio;
+          options.extra[RetryInterceptor.kDioInstanceKey] = _dio;
           options.extra['requestId'] ??= LogSanitizer.generateRequestId();
           handler.next(options);
         },
@@ -120,7 +120,9 @@ class ApiClient {
           retryDelay: retryDelay,
         ),
       );
-      AppLogger.info('已启用自动重试功能: maxRetries=$maxRetries, retryDelay=${retryDelay.inMilliseconds}ms');
+      AppLogger.info(
+        '已启用自动重试功能: maxRetries=$maxRetries, retryDelay=${retryDelay.inMilliseconds}ms',
+      );
     }
   }
 
@@ -141,7 +143,14 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
     Options? options,
     CancelToken? cancelToken,
-  }) => _request(() => _dio.get<T>(path, queryParameters: queryParameters, options: options, cancelToken: cancelToken));
+  }) => _request(
+    () => _dio.get<T>(
+      path,
+      queryParameters: queryParameters,
+      options: options,
+      cancelToken: cancelToken,
+    ),
+  );
 
   /// POST请求
   Future<Response<T>> post<T>(
@@ -151,7 +160,13 @@ class ApiClient {
     Options? options,
     CancelToken? cancelToken,
   }) => _request(
-    () => _dio.post<T>(path, data: data, queryParameters: queryParameters, options: options, cancelToken: cancelToken),
+    () => _dio.post<T>(
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      options: options,
+      cancelToken: cancelToken,
+    ),
   );
 
   /// PUT请求
@@ -162,7 +177,13 @@ class ApiClient {
     Options? options,
     CancelToken? cancelToken,
   }) => _request(
-    () => _dio.put<T>(path, data: data, queryParameters: queryParameters, options: options, cancelToken: cancelToken),
+    () => _dio.put<T>(
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      options: options,
+      cancelToken: cancelToken,
+    ),
   );
 
   /// DELETE请求
@@ -173,11 +194,20 @@ class ApiClient {
     Options? options,
     CancelToken? cancelToken,
   }) => _request(
-    () =>
-        _dio.delete<T>(path, data: data, queryParameters: queryParameters, options: options, cancelToken: cancelToken),
+    () => _dio.delete<T>(
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      options: options,
+      cancelToken: cancelToken,
+    ),
   );
 
   /// 上传文件
+  ///
+  /// Content-Type 不手动指定：Dio 检测到 FormData 会自动生成
+  /// 带 boundary 的 multipart/form-data 头，手动写死会丢失 boundary
+  /// 导致服务端无法解析请求体。
   Future<Response<T>> uploadFile<T>(
     String path,
     String filePath, {
@@ -193,7 +223,6 @@ class ApiClient {
       data: formData,
       onSendProgress: onSendProgress,
       cancelToken: cancelToken,
-      options: Options(headers: {'Content-Type': 'multipart/form-data'}),
     );
   });
 
@@ -203,16 +232,25 @@ class ApiClient {
     String savePath, {
     ProgressCallback? onReceiveProgress,
     CancelToken? cancelToken,
-  }) =>
-      _request(() => _dio.download(urlPath, savePath, onReceiveProgress: onReceiveProgress, cancelToken: cancelToken));
+  }) => _request(
+    () => _dio.download(
+      urlPath,
+      savePath,
+      onReceiveProgress: onReceiveProgress,
+      cancelToken: cancelToken,
+    ),
+  );
 }
 
 /// Dio错误处理
 class DioErrorHandler {
   /// 处理Dio错误
   static AppException handleDioError(DioException error) {
-    final requestId = error.requestOptions.extra['requestId'] as String? ?? 'unknown';
-    final sanitizedHeaders = LogSanitizer.sanitizeHeaders(error.requestOptions.headers);
+    final requestId =
+        error.requestOptions.extra['requestId'] as String? ?? 'unknown';
+    final sanitizedHeaders = LogSanitizer.sanitizeHeaders(
+      error.requestOptions.headers,
+    );
     final sanitizedBody = LogSanitizer.sanitizeBody(error.response?.data);
 
     AppLogger.error(
@@ -327,7 +365,9 @@ class DioErrorHandler {
   /// 仅从 Map 结构中提取已知字段，避免将完整响应体（可能含敏感数据）暴露到错误消息。
   static String? _getErrorMessage(dynamic data) {
     if (data is Map<String, dynamic>) {
-      return data['message']?.toString() ?? data['error']?.toString() ?? data['msg']?.toString();
+      return data['message']?.toString() ??
+          data['error']?.toString() ??
+          data['msg']?.toString();
     }
     if (data is String && data.length <= 200) {
       return data;

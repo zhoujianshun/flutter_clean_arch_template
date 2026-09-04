@@ -37,6 +37,8 @@
 │ │AuthInterceptor│ │Other │ │
 │ │ │ │Interceptors │ │
 │ │- 检测 401 │ │- 检测其他错误 │ │
+│ │- 自愈:刷新+重放│ │ │ │
+│ │- 失败才通知 │ │ │ │
 │ └──────┬───────┘ └──────┬───────┘ │
 │ │ │ │
 │ └────────┬───────────────┘ │
@@ -143,7 +145,7 @@ class NetworkErrorNotifier {
 - 提供过滤流，各 Provider 只接收关心的错误
 - 提供便捷方法，增强类型安全
 
-#### 3. AuthInterceptor (错误检测)
+#### 3. AuthInterceptor (错误检测 + 401 自愈恢复)
 
 **位置**: `lib/core/network/interceptors/auth_interceptor.dart`
 
@@ -152,37 +154,30 @@ class NetworkErrorNotifier {
 - Token 为空时拒绝请求（`handler.reject`），不发出无 auth 请求
 - 检测 HTTP 401 状态码（服务器拒绝带 token 的请求）
 - 检测业务层 code=401
-- 通过 NetworkErrorNotifier 发送错误通知（防抖由 NetworkErrorNotifier 统一处理）
+- **401 自愈恢复**（双 Token 模式）：`forceRefresh`（单飞锁合并并发刷新 + 30s 冷却）→ 成功则走完整拦截链重放一次（`extra['auth_retried']` 标记防死循环）
+- **仅恢复失败/不可恢复时**通过 NetworkErrorNotifier 发送错误通知（防抖由 NetworkErrorNotifier 统一处理）
+- 通知语义：致命刷新失败由策略层 `onAuthExpired` 发 `tokenExpired`；重放后仍 401 / 单 Token 401 由拦截器发 `authenticationFailed`；刷新临时失败（网络/5xx）不通知
 
 **关键代码**:
 
 ```dart
 class AuthInterceptor extends Interceptor {
- TokenManager get _tokenManager => getIt<TokenManager>();
- NetworkErrorNotifier get _errorNotifier => getIt<NetworkErrorNotifier>();
+  late final TokenManager _tokenManager = getIt<TokenManager>();
+  late final NetworkErrorNotifier _errorNotifier =
+      getIt<NetworkErrorNotifier>();
+  // AuthConfig 运行时会被 AuthProvider 重注册，必须实时解析不可缓存
+  AuthConfig get _authConfig => getIt<AuthConfig>();
 
- @override
- Future<void> onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
- final token = await _tokenManager.getValidToken();
-
- // token 为空时拒绝请求，防止无 auth 请求触发重复 401 通知
- if (token == null || token.isEmpty) {
- return handler.reject(
- DioException(requestOptions: options, type: DioExceptionType.cancel),
- true,
- );
- }
-
- options.headers['Authorization'] = 'Bearer $token';
- handler.next(options);
- }
-
- void _publishAuthenticationFailedEvent(String message) {
- // 防抖由 NetworkErrorNotifier.notifyAuthError() 统一处理
- _errorNotifier.notifyAuthError(
- NetworkAuthError.authenticationFailed(message),
- );
- }
+  @override
+  Future<void> onError(DioException err, ErrorInterceptorHandler handler) async {
+    if (err.response?.statusCode == 401) {
+      // 先自愈：刷新 + 重放（仅双 Token 模式）
+      if (await _tryRefreshAndReplayOnError(err, handler)) return;
+      // 恢复失败才通知终态登出
+      _notifyTerminalAuthFailure(err.requestOptions, err.message ?? 'HTTP auth failed');
+    }
+    handler.next(err);
+  }
 }
 ```
 
@@ -315,11 +310,12 @@ AuthProvider (可能不知道状态变化)
 - ❌ 难以扩展：添加新错误类型需要修改多处
 - ❌ 测试困难：组件耦合度高
 
-### 改进后（事件驱动）
+### 改进后（事件驱动 + 401 先自愈）
 
 ```
 AuthInterceptor (检测 401)
- ↓ 通知错误
+ ↓ 双 Token 模式：先自愈（刷新 + 重放一次，成功则流程终止，用户无感）
+ ↓ 恢复失败 / 单 Token
 NetworkErrorNotifier (广播)
  ↓ 过滤流
 AuthProvider (监听)
@@ -459,9 +455,9 @@ class NetworkStatus extends _$NetworkStatus {
 
 ### 2. 防抖机制
 
-- 防抖统一在 `NetworkErrorNotifier.notifyAuthError()` 中实现（500ms）
+- 防抖统一在 `NetworkErrorNotifier.notifyAuthError()` 中实现（500ms，同类错误才去重）
 - 调用方（AuthInterceptor、DualTokenStrategy.onAuthExpired）无需额外防抖
-- 两条通知路径互斥：`onAuthExpired`（刷新致命失败）与 AuthInterceptor（服务器 401）不会同时触发
+- 两条通知路径分工明确：`onAuthExpired`（刷新致命失败 → `tokenExpired`）与 AuthInterceptor（重放后仍 401 / 单 Token 401 → `authenticationFailed`）；刷新临时失败与恢复成功均不发通知
 
 ### 3. 过滤流优化
 
@@ -593,7 +589,7 @@ testWidgets('should navigate to login on auth failure', (tester) async {
 
 ### Q3: 如何避免重复通知？
 
-**A**: 通过两层机制避免：1）架构层面，`DualTokenStrategy.onAuthExpired`（刷新致命失败）和 AuthInterceptor（服务器 401）两条路径互斥；2）`NetworkErrorNotifier.notifyAuthError()` 内置 500ms 防抖，短时间内重复的认证错误会被过滤。
+**A**: 通过三层机制避免：1）架构层面，`DualTokenStrategy.onAuthExpired`（刷新致命失败）和 AuthInterceptor（重放后仍 401 / 单 Token 401）路径分工明确、不会对同一请求重复触发，刷新临时失败与恢复成功均不发通知；2）`NetworkErrorNotifier.notifyAuthError()` 内置 500ms 防抖（同类错误才去重），短时间内重复的认证错误会被过滤；3）`NetworkAuthError` 基类统一持有 `message` 字段，防抖比较基于 `runtimeType` 不受消息内容影响。
 
 ### Q4: 为什么使用 sealed class？
 

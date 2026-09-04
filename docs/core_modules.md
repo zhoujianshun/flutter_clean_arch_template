@@ -7,7 +7,7 @@ Overview of `lib/core/` building blocks and how they fit together.
 | Piece | Path / role |
 |-------|----------------|
 | **`ApiClient`** | `core/network/api_client.dart` — owns `Dio`, base options, attaches interceptors |
-| **Interceptors** | `auth_interceptor.dart` (headers / token refresh hooks), `connectivity_interceptor.dart`, `retry_interceptor.dart`, optional `TalkerDioLogger` |
+| **Interceptors** | `auth_interceptor.dart` (headers / 401 self-healing: refresh + replay once in dual-token mode; notify only when unrecoverable), `connectivity_interceptor.dart`, `retry_interceptor.dart` (exponential backoff + jitter, idempotent-only), optional `TalkerDioLogger` |
 | **`BaseAPI`** | `core/network/base_api.dart` — helpers such as `handleApiCall` returning `Either<Failure, T>` |
 | **Token pipeline** | `token/token_manager.dart`, `token_storage.dart`, `single_token_strategy.dart`, `dual_token_strategy.dart` — read/write tokens and attach authorization |
 | **Errors** | `network_error.dart`, `network_error_notifier.dart` — surface connectivity or HTTP issues to the app |

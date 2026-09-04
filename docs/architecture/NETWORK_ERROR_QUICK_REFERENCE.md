@@ -6,23 +6,21 @@
 
 ### 1. 在 Interceptor 中发送错误通知
 
+> 注意：认证 401 场景下，`AuthInterceptor` 已内置"先自愈（双 Token 刷新 + 重放一次）→ 恢复失败才通知"的逻辑。以下仅演示**新增其他类型错误**时如何通知，不要在 401 场景跳过自愈直接通知。
+
 ```dart
 import 'package:flutter_clean_arch_template/core/network/errors/network_error.dart';
 import 'package:flutter_clean_arch_template/core/network/errors/network_error_notifier.dart';
 
-class AuthInterceptor extends Interceptor {
- NetworkErrorNotifier get _errorNotifier => getIt<NetworkErrorNotifier>();
+class SomeInterceptor extends Interceptor {
+  NetworkErrorNotifier get _errorNotifier => getIt<NetworkErrorNotifier>();
 
- @override
- void onError(DioException err, ErrorInterceptorHandler handler) {
- if (err.response?.statusCode == 401) {
- // 通知认证失败错误
- _errorNotifier.notifyAuthError(
- NetworkAuthError.authenticationFailed('认证失败'),
- );
- }
- handler.next(err);
- }
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    // 非认证类错误的通知示例
+    _errorNotifier.notify(SomeNetworkError('...'));
+    handler.next(err);
+  }
 }
 ```
 
@@ -110,52 +108,58 @@ class NetworkErrorNotifier {
 
 ```dart
 sealed class NetworkAuthError extends NetworkError {
+ const NetworkAuthError(this.message);
+
  /// Token 过期
  const factory NetworkAuthError.tokenExpired(String message) = TokenExpiredError;
 
  /// 认证失败（401）
  const factory NetworkAuthError.authenticationFailed(String message) = AuthenticationFailedError;
+
+ /// 错误消息（基类统一持有）
+ final String message;
 }
 ```
 
 ## 🎯 使用场景
 
-### 场景 1: 检测到 HTTP 401
+### 场景 1: 检测到 HTTP 401（先自愈，失败才通知）
 
 ```dart
-@override
-void onError(DioException err, ErrorInterceptorHandler handler) {
- if (err.response?.statusCode == 401) {
- _errorNotifier.notifyAuthError(
- NetworkAuthError.authenticationFailed('HTTP 401'),
- );
- }
- handler.next(err);
+// AuthInterceptor 的实际逻辑（简化）：
+// 1. 双 Token 模式：forceRefresh（单飞锁 + 冷却）→ 成功则重放一次
+// 2. 重放仍 401 / 单 Token：通知终态登出
+// 3. 刷新临时失败（网络/5xx）：不通知
+if (err.response?.statusCode == 401) {
+  if (await _tryRefreshAndReplayOnError(err, handler)) return;
+  _errorNotifier.notifyAuthError(
+    NetworkAuthError.authenticationFailed('HTTP 401'),
+  );
 }
 ```
 
-### 场景 2: 检测到业务层 401
+### 场景 2: 检测到业务层 401（onResponse，同样先自愈）
 
 ```dart
-@override
-void onResponse(Response response, ResponseInterceptorHandler handler) {
- if (response.data is Map && response.data['code'] == 401) {
- _errorNotifier.notifyAuthError(
- NetworkAuthError.authenticationFailed(response.data['msg']),
- );
- }
- handler.next(response);
+// HTTP 200 + code=401 的业务层失败同样走刷新 + 重放恢复；
+// 重放后仍 401（auth_retried 已标记）才通知
+if (response.data is Map && response.data['code'] == 401) {
+  if (options.extra[kAuthRetriedKey] == true) {
+    _errorNotifier.notifyAuthError(
+      NetworkAuthError.authenticationFailed(response.data['msg']),
+    );
+  }
 }
 ```
 
-### 场景 3: Token 过期
+### 场景 3: Token 过期（策略层致命刷新失败）
 
 ```dart
-if (isTokenExpired()) {
- _errorNotifier.notifyAuthError(
- NetworkAuthError.tokenExpired('Token 已过期'),
- );
-}
+// DualTokenStrategy 内部：refresh token 过期/不存在时由
+// onAuthExpired 回调发出（拦截器不重复通知）
+onAuthExpired: (message) => errorNotifier.notifyAuthError(
+  NetworkAuthError.tokenExpired(message),
+),
 ```
 
 ## ⚠️ 注意事项

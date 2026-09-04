@@ -35,7 +35,11 @@ class TokenStorageImpl implements TokenStorage {
 
       return _cachedAccessToken;
     } catch (e) {
-      AppLogger.e('[TokenStorage] 获取 access token 失败', error: e, stackTrace: StackTrace.current);
+      AppLogger.e(
+        '[TokenStorage] 获取 access token 失败',
+        error: e,
+        stackTrace: StackTrace.current,
+      );
       return null;
     }
   }
@@ -62,12 +66,18 @@ class TokenStorageImpl implements TokenStorage {
 
     try {
       final refreshToken = await _storageService.getRefreshToken();
-      _cachedRefreshToken = (refreshToken != null && refreshToken.isNotEmpty) ? refreshToken : null;
+      _cachedRefreshToken = (refreshToken != null && refreshToken.isNotEmpty)
+          ? refreshToken
+          : null;
       _refreshTokenLoaded = true;
 
       return _cachedRefreshToken;
     } catch (e) {
-      AppLogger.e('[TokenStorage] 获取 refresh token 失败', error: e, stackTrace: StackTrace.current);
+      AppLogger.e(
+        '[TokenStorage] 获取 refresh token 失败',
+        error: e,
+        stackTrace: StackTrace.current,
+      );
       return null;
     }
   }
@@ -88,7 +98,6 @@ class TokenStorageImpl implements TokenStorage {
 
   @override
   Future<void> clearAll() async {
-    await clearAccessToken();
-    await clearRefreshToken();
+    await Future.wait([clearAccessToken(), clearRefreshToken()]);
   }
 }

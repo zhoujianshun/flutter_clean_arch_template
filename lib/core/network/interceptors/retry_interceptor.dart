@@ -1,6 +1,8 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
 
 /// 重试拦截器
@@ -11,6 +13,7 @@ import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
 /// - 默认仅重试幂等请求（GET/HEAD/OPTIONS），非幂等请求需显式标记 `retryable`
 /// - 仅对特定错误类型进行重试（超时、服务器错误等）
 /// - 避免对客户端错误（4xx）进行无意义的重试
+/// - 429 场景优先采用服务端 `Retry-After` 头指示的等待时间
 ///
 /// 配置：
 /// - maxRetries: 最大重试次数（默认 3 次）
@@ -20,6 +23,11 @@ import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
 /// 幂等安全策略：
 /// - GET/HEAD/OPTIONS 默认可重试
 /// - POST/PUT/DELETE/PATCH 默认不重试，需通过 `requestOptions.extra['retryable'] = true` 显式启用
+///
+/// 已知限制：
+/// - 重试通过 `dio.fetch` 重放，会重新走 onRequest 拦截器链（token/日志均为最新），
+///   但成功响应用 handler.resolve 直接返回，不再过 onResponse 链；
+///   若需 onResponse 链的处理逻辑对重试响应生效，需在此处补充。
 ///
 /// 使用场景：
 /// - 网络不稳定环境
@@ -33,6 +41,12 @@ class RetryInterceptor extends Interceptor {
     this.idempotentMethods = const ['GET', 'HEAD', 'OPTIONS'],
     Random? random,
   }) : _random = random ?? Random();
+
+  /// extra 中存放重试计数的键名（对调用方可见的公开契约）
+  static const String kRetryCountKey = 'retry_count';
+
+  /// extra 中存放 Dio 实例引用的键名（由 ApiClient 的预处理拦截器注入）
+  static const String kDioInstanceKey = 'dio_instance';
 
   /// 最大重试次数
   final int maxRetries;
@@ -49,43 +63,76 @@ class RetryInterceptor extends Interceptor {
   final Random _random;
 
   @override
-  Future<void> onError(DioException err, ErrorInterceptorHandler handler) async {
-    if (_shouldRetry(err)) {
-      final requestOptions = err.requestOptions;
-      final currentRetryCount = requestOptions.extra['retry_count'] as int? ?? 0;
+  Future<void> onError(
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
+    final requestOptions = err.requestOptions;
+    final currentRetryCount = requestOptions.extra[kRetryCountKey] as int? ?? 0;
 
-      if (currentRetryCount < maxRetries) {
-        requestOptions.extra['retry_count'] = currentRetryCount + 1;
-
-        AppLogger.warning(
-          '重试请求 (${currentRetryCount + 1}/$maxRetries): '
-          '[${requestOptions.method}] ${requestOptions.uri}',
-        );
-
-        final delay = _calculateDelay(currentRetryCount);
-        await Future<void>.delayed(delay);
-
-        try {
-          final dio = requestOptions.extra['dio_instance'] as Dio;
-          final response = await dio.fetch<dynamic>(requestOptions);
-
-          AppLogger.info('重试成功: ${requestOptions.uri}');
-          return handler.resolve(response);
-        } on DioException catch (e) {
-          AppLogger.error('重试失败 (${currentRetryCount + 1}/$maxRetries): ${e.message}');
-
-          if (currentRetryCount + 1 < maxRetries) {
-            return onError(e, handler);
-          }
-        } catch (e) {
-          AppLogger.error('重试过程中发生意外错误: $e');
-        }
-      } else {
-        AppLogger.error('已达到最大重试次数 ($maxRetries): ${requestOptions.uri}');
-      }
+    if (currentRetryCount >= maxRetries) {
+      AppLogger.error('已达到最大重试次数 ($maxRetries): ${requestOptions.uri}');
+      handler.next(err);
+      return;
     }
 
-    handler.next(err);
+    if (!_shouldRetry(err)) {
+      handler.next(err);
+      return;
+    }
+
+    requestOptions.extra[kRetryCountKey] = currentRetryCount + 1;
+
+    AppLogger.warning(
+      '重试请求 (${currentRetryCount + 1}/$maxRetries): '
+      '[${requestOptions.method}] ${requestOptions.uri}',
+    );
+
+    final delay = _retryDelayFor(err, currentRetryCount);
+    await Future<void>.delayed(delay);
+
+    try {
+      final dio = requestOptions.extra[kDioInstanceKey] as Dio;
+      final response = await dio.fetch<dynamic>(requestOptions);
+
+      AppLogger.info('重试成功: ${requestOptions.uri}');
+      handler.resolve(response);
+    } on DioException catch (e) {
+      // 不递归调用 onError：将新错误交给 handler.next，
+      // 由 Dio 沿拦截器链继续传播（AuthInterceptor 等仍有机会处理，
+      // 例如重试请求的 401 会正常触发认证失效通知），
+      // 最终再次进入本拦截器时 retry_count 已累加，形成循环而非递归，
+      // 栈深度恒定
+      AppLogger.error(
+        '重试失败 (${currentRetryCount + 1}/$maxRetries): ${e.message}',
+      );
+      handler.next(e);
+    } catch (e) {
+      AppLogger.error('重试过程中发生意外错误: $e');
+      handler.next(err);
+    }
+  }
+
+  /// 计算重试延迟：429 优先读 Retry-After，否则指数退避 + 抖动
+  Duration _retryDelayFor(DioException err, int attempt) {
+    if (err.response?.statusCode == 429) {
+      final retryAfter = _parseRetryAfter(
+        err.response?.headers.value('retry-after'),
+      );
+      if (retryAfter != null) {
+        return retryAfter;
+      }
+    }
+    return _calculateDelay(attempt);
+  }
+
+  /// 解析 Retry-After（仅支持秒数格式，HTTP-date 格式忽略）
+  Duration? _parseRetryAfter(String? value) {
+    if (value == null) return null;
+    final seconds = int.tryParse(value.trim());
+    if (seconds == null || seconds < 0) return null;
+    // 服务端指示过长时不无限等待，封顶 30s
+    return Duration(seconds: seconds.clamp(0, 30));
   }
 
   /// 计算指数退避延迟（含随机抖动）
@@ -96,6 +143,10 @@ class RetryInterceptor extends Interceptor {
     final jitterMs = _random.nextInt(300);
     return Duration(milliseconds: exponentialMs + jitterMs);
   }
+
+  /// 供测试验证退避曲线
+  @visibleForTesting
+  Duration calculateDelayForTest(int attempt) => _calculateDelay(attempt);
 
   /// 判断请求方法是否允许重试
   ///
@@ -110,7 +161,9 @@ class RetryInterceptor extends Interceptor {
     if (options.extra['retryable'] == true) {
       return true;
     }
-    AppLogger.debug('[RetryInterceptor] 非幂等方法 $method 且未标记 retryable，跳过重试: ${options.uri}');
+    AppLogger.debug(
+      '[RetryInterceptor] 非幂等方法 $method 且未标记 retryable，跳过重试: ${options.uri}',
+    );
     return false;
   }
 
@@ -129,8 +182,10 @@ class RetryInterceptor extends Interceptor {
       return false;
     }
 
-    if (err.requestOptions.extra['dio_instance'] is! Dio) {
-      AppLogger.warning('[RetryInterceptor] 缺少 dio_instance 引用，跳过重试: ${err.requestOptions.uri}');
+    if (err.requestOptions.extra[kDioInstanceKey] is! Dio) {
+      AppLogger.warning(
+        '[RetryInterceptor] 缺少 $kDioInstanceKey 引用，跳过重试: ${err.requestOptions.uri}',
+      );
       return false;
     }
 
@@ -154,12 +209,13 @@ class RetryInterceptor extends Interceptor {
       return statusCode >= 500 || retryableStatusCodes.contains(statusCode);
     }
 
-    if (err.type == DioExceptionType.unknown || err.type == DioExceptionType.connectionError) {
-      final message = err.message?.toLowerCase() ?? '';
-      return message.contains('network') ||
-          message.contains('connection') ||
-          message.contains('socket') ||
-          message.contains('failed host lookup');
+    if (err.type == DioExceptionType.connectionError) {
+      return true;
+    }
+
+    if (err.type == DioExceptionType.unknown) {
+      final error = err.error;
+      return error is SocketException || error is HttpException;
     }
 
     return false;

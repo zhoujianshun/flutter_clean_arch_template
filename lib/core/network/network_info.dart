@@ -25,7 +25,9 @@ class NetworkInfo {
   /// 监听网络连接状态变化
   Stream<NetworkStatus> get networkStatusStream {
     return _connectivity.onConnectivityChanged.map((results) {
-      return !results.contains(ConnectivityResult.none) ? NetworkStatus.connected : NetworkStatus.disconnected;
+      return !results.contains(ConnectivityResult.none)
+          ? NetworkStatus.connected
+          : NetworkStatus.disconnected;
     });
   }
 

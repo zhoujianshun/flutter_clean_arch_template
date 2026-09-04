@@ -6,7 +6,7 @@
 
 本项目采用基于 **Clean Architecture + DDD + Feature-First** 的认证架构，通过网络错误通知系统实现网络层与应用层的解耦，确保了高内聚、低耦合的设计。
 
-**架构版本**: V2.3  
+**架构版本**: V2.4（AuthInterceptor 增加 401 自愈恢复：刷新 + 重放；通知语义收敛）  
 **架构风格**: Clean Architecture + DDD + Event-Driven
 
 ## 🏗️ 架构设计
@@ -69,7 +69,8 @@
 │ │ AuthInterceptor │ │
 │ │ - 添加认证头 │ │
 │ │ - 检测 401 错误 │ │
-│ │ - 通知 NetworkErrorNotifier │ │
+│ │ - 401 自愈：刷新+重放（双 Token）│ │
+│ │ - 恢复失败才通知 │ │
 │ └──────────────┬───────────────────────┘ │
 │ │ │
 │ ▼ 通知错误 │
@@ -337,7 +338,7 @@ class NetworkErrorNotifier {
 }
 ```
 
-### 5. AuthInterceptor (错误检测)
+### 5. AuthInterceptor (错误检测 + 401 自愈恢复)
 
 **位置**: `lib/core/network/interceptors/auth_interceptor.dart`
 
@@ -345,34 +346,49 @@ class NetworkErrorNotifier {
 - 通过 TokenManager 获取有效 token，添加认证头
 - Token 为空时拒绝请求（`handler.reject`），不发出无 auth 请求
 - 检测认证错误（HTTP 401、业务层 401）
-- 通过 NetworkErrorNotifier 发送通知（防抖由 NetworkErrorNotifier 统一处理）
+- **双 Token 模式下的 401 自愈恢复**：检测到 401 → `forceRefresh`（内部 Completer 单飞锁合并并发刷新，冷却期内直接返回 null 防刷新风暴）→ 刷新成功则重放原请求一次（走完整拦截链）
+- 通过 NetworkErrorNotifier 发送通知（**仅在恢复失败/不可恢复时**，防抖由 NetworkErrorNotifier 统一处理）
+
+**401 处理三层模型**:
+
+```
+1. 预刷（快路径）：TokenManager.getValidToken() 请求前主动续期
+   ↓ 漏网场景：服务端提前作废 token（改密码/踢下线）/ 多端互踢 / 时钟偏移
+2. 401 兜底恢复（慢路径）：onError/onResponse 双入口检测 401
+   → forceRefresh（单飞锁 + 30s 冷却）
+   → 成功则 dio.fetch 重放一次（extra['auth_retried'] 标记防死循环）
+   ↓ 重放后仍 401
+3. 登出（终态）：通知 NetworkErrorNotifier.authenticationFailed
+```
+
+**五重防死循环防护**: 公共路径不恢复 / 单 Token 模式不恢复 / `auth_retried` 标记防二次重放 / 刷新端点自身 401 不恢复 / 已取消的请求不重放。
+
+**通知语义收敛（避免双登出）**:
+- 刷新致命失败（refresh token 过期/不存在）→ 策略层 `onAuthExpired` 发 `tokenExpired`
+- 重放后仍 401（新 token 也被拒）→ 拦截器发 `authenticationFailed`
+- 刷新临时失败（网络/5xx）→ 不通知不登出，请求按原错误返回
+- 单 Token 模式 401 → 通知登出（无恢复手段）
+
+**依赖获取注意**: `TokenManager`/`NetworkErrorNotifier` 用 `late final` 延迟缓存；**`AuthConfig` 必须用 getter 实时解析**——AuthProvider 启动时会重注册带 `publicPaths` 的实例，缓存会把空配置永久固化导致公共路径被误判为需认证。
 
 **核心逻辑**:
 ```dart
 class AuthInterceptor extends Interceptor {
- TokenManager get _tokenManager => getIt<TokenManager>();
- NetworkErrorNotifier get _errorNotifier => getIt<NetworkErrorNotifier>();
+  late final TokenManager _tokenManager = getIt<TokenManager>();
+  late final NetworkErrorNotifier _errorNotifier =
+      getIt<NetworkErrorNotifier>();
+  // AuthConfig 运行时会被重注册，不可缓存
+  AuthConfig get _authConfig => getIt<AuthConfig>();
 
- @override
- Future<void> onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
- final token = await _tokenManager.getValidToken();
- if (token == null || token.isEmpty) {
- // 拒绝请求，防止无 auth 请求触发重复 401 通知
- return handler.reject(
- DioException(requestOptions: options, type: DioExceptionType.cancel),
- true,
- );
- }
- options.headers['Authorization'] = 'Bearer $token';
- handler.next(options);
- }
-
- void _publishAuthenticationFailedEvent(String message) {
- // 防抖由 NetworkErrorNotifier.notifyAuthError() 统一处理
- _errorNotifier.notifyAuthError(
- NetworkAuthError.authenticationFailed(message),
- );
- }
+  @override
+  Future<void> onError(DioException err, ErrorInterceptorHandler handler) async {
+    if (err.response?.statusCode == 401) {
+      // 先尝试刷新 + 重放恢复；失败才走终态登出通知
+      if (await _tryRefreshAndReplayOnError(err, handler)) return;
+      _notifyTerminalAuthFailure(...);
+    }
+    handler.next(err);
+  }
 }
 ```
 
@@ -441,16 +457,21 @@ AuthNavigationListener 监听状态变化
 - ✅ 直接更新状态
 - ✅ 通过 `changeContext` 传递登出原因
 
-### 3. Token 过期流程（使用事件通知）
+### 3. Token 过期流程（先自愈恢复，失败才事件通知）
 
 ```
 网络请求
  ↓
-AuthInterceptor 检测到 401
+AuthInterceptor 检测到 401（HTTP 状态码或业务层 code）
  ↓
-NetworkErrorNotifier.notifyAuthError(
- NetworkAuthError.authenticationFailed(message)
-)
+双 Token 模式？
+ ├─ 是 → forceRefresh（Completer 单飞锁合并并发刷新，冷却期防风暴）
+ │       ├─ 刷新成功 → 走完整拦截链重放原请求一次（auth_retried 防死循环）
+ │       │       ├─ 重放成功 → 请求正常返回，用户无感，流程结束
+ │       │       └─ 重放仍 401 → NetworkErrorNotifier 广播 authenticationFailed
+ │       ├─ 致命失败（refresh token 过期）→ 策略层 onAuthExpired → tokenExpired
+ │       └─ 临时失败（网络/5xx）→ 不通知，请求按原错误返回
+ └─ 否（单 Token）→ NetworkErrorNotifier 广播 authenticationFailed
  ↓ 广播
 networkAuthErrorStreamProvider
  ↓
@@ -468,7 +489,8 @@ AuthNavigationListener 监听状态变化
 ```
 
 **关键点**:
-- ✅ 使用事件通知（网络层 → 应用层）
+- ✅ 优先自愈恢复（刷新 + 重放），恢复成功用户无感
+- ✅ 事件通知仅在恢复失败/不可恢复时发出
 - ✅ AuthProvider 负责调用 Repository
 - ✅ 解耦 Interceptor 和 Repository
 
@@ -504,6 +526,8 @@ API 返回 401
  ↓
 AuthInterceptor 检测
  ↓
+双 Token：先尝试刷新 + 重放恢复（成功则流程在此终止，用户无感）
+ ↓ 恢复失败 / 单 Token
 NetworkErrorNotifier 广播
  ↓
 AuthProvider 监听
@@ -521,6 +545,7 @@ AuthNavigationListener 监听
 - 事件驱动
 - 网络层 → 应用层单向通知
 - 解耦彻底
+- 恢复优先：可自愈的 401 不上升为登出事件
 
 ## 🎯 设计原则
 
@@ -620,13 +645,13 @@ Stream<NetworkAuthError> get authErrorStream =>
 
 ### 1. 防重复通知
 
-**防抖统一在 `NetworkErrorNotifier.notifyAuthError()` 中处理（500ms）**，调用方无需额外防抖。
+**防抖统一在 `NetworkErrorNotifier.notifyAuthError()` 中处理（500ms，同类错误才去重）**，调用方无需额外防抖。
 
-同时，两条认证通知路径互斥：
+同时，两条认证通知路径互斥且有明确分工：
 - `DualTokenStrategy.onAuthExpired`：刷新致命失败（refresh token 过期/缺失）→ `tokenExpired`
-- `AuthInterceptor`：服务器拒绝带 token 的请求 → `authenticationFailed`
+- `AuthInterceptor`：重放后仍 401（新 token 也被服务端拒绝）或单 Token 模式 401 → `authenticationFailed`
 
-Token 为空时 AuthInterceptor 拒绝请求，不发出无 auth 请求，确保两条路径不会同时触发。
+刷新临时失败（网络/5xx）不通知不登出。Token 为空时 AuthInterceptor 拒绝请求，不发出无 auth 请求。恢复成功时（刷新 + 重放成功）整个链路不发任何通知。
 
 ### 2. 防重复处理
 
@@ -650,10 +675,12 @@ void _handleAuthStateChange(AuthState next) {
 ### 4. Token 管理
 
 - 使用 TokenManager 统一管理（纯编排器，不依赖 NetworkErrorNotifier）
-- Token 持久化通过 `TokenStorage` 接口（`TokenStorageImpl` 使用 SecureStorage）
+- Token 持久化通过 `TokenStorage` 接口（`TokenStorageImpl` 使用 SecureStorage + 内存缓存）
 - 当前使用 SingleTokenStrategy（单 Token 模式），Token 过期依赖服务器 401 检测
 - 支持切换到 DualTokenStrategy（双 Token 自动刷新），通过 `onAuthExpired` 回调通知致命刷新失败
 - DualTokenStrategy 支持可配置字段名（`accessTokenField`/`refreshTokenField`）
+- `forceRefresh()` 带冷却保护：冷却期内直接返回 null，供 AuthInterceptor 的 401 兜底路径防刷新风暴（单飞锁只防"同时"的并发，冷却防"连续"的到来）
+- `TokenStorageImpl.clearAll()` 并行清除两个 token（任一清除失败不影响另一个执行）
 
 ## 📊 架构对比
 
@@ -688,7 +715,7 @@ AuthInterceptor → NetworkErrorNotifier → AuthProvider → Repository
 
 - ✅ 认证错误（401错误）
 
-> **注意**：`TokenExpiredError` 类型已定义但当前未被实际触发。`AuthInterceptor` 对所有 HTTP 401 和业务层 code=401 统一发出 `AuthenticationFailedError`。`AuthProvider` 中的 `_handleTokenExpiredAsync` 已实现但在当前流程中不会被调用。未来如需区分 Token 过期和其他认证失败，可在 `AuthInterceptor` 中根据具体场景发出 `TokenExpiredError`。
+> **注意**：`TokenExpiredError` 仅在双 Token 模式（DualTokenStrategy）下由策略层 `onAuthExpired` 回调触发（refresh token 过期/缺失的致命刷新失败）；当前项目使用 SingleTokenStrategy，故实际运行中不会触发。`AuthInterceptor` 对重放后仍 401、单 Token 模式 401 发出 `AuthenticationFailedError`；刷新临时失败（网络/5xx）不发通知。
 
 ### 未来可扩展
 

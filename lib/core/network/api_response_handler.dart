@@ -69,7 +69,10 @@ class ApiResponseHandler {
 
       if (apiResponse.isSuccess && apiResponse.hasData) {
         try {
-          final dataList = apiResponse.data!.cast<Map<String, dynamic>>().map((json) => fromJson(json)).toList();
+          final dataList = apiResponse.data!
+              .cast<Map<String, dynamic>>()
+              .map((json) => fromJson(json))
+              .toList();
           return Right(dataList);
         } catch (e) {
           AppLogger.error('列表数据解析失败', error: e);
@@ -89,7 +92,9 @@ class ApiResponseHandler {
     try {
       if (response.data == null) {
         // 对于void调用，如果状态码是成功的，即使没有数据也认为成功
-        if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+        if (response.statusCode != null &&
+            response.statusCode! >= 200 &&
+            response.statusCode! < 300) {
           return const Right(null);
         }
         return const Left(ServerFailure(message: '请求失败'));
@@ -112,11 +117,15 @@ class ApiResponseHandler {
   }
 
   /// 处理简单的布尔响应（如成功/失败操作）
-  static Either<Failure, bool> handleBooleanResponse(Response<dynamic> response) {
+  static Either<Failure, bool> handleBooleanResponse(
+    Response<dynamic> response,
+  ) {
     try {
       if (response.data == null) {
         // 如果没有响应体，根据状态码判断
-        if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+        if (response.statusCode != null &&
+            response.statusCode! >= 200 &&
+            response.statusCode! < 300) {
           return const Right(true);
         }
         return const Left(ServerFailure(message: '请求失败'));
@@ -194,7 +203,9 @@ class ApiResponseHandler {
         if (parsed != null) {
           return Right(parsed);
         }
-        AppLogger.error('数字响应解析失败: 无法从 ${apiResponse.data.runtimeType} 中提取 int');
+        AppLogger.error(
+          '数字响应解析失败: 无法从 ${apiResponse.data.runtimeType} 中提取 int',
+        );
         return const Left(ServerFailure(message: '数字响应解析失败: 数据类型不匹配'));
       } else {
         return Left(_mapApiResponseToFailure(apiResponse));
@@ -216,7 +227,9 @@ class ApiResponseHandler {
       }
 
       // 检查HTTP状态码
-      if (response.statusCode == null || response.statusCode! < 200 || response.statusCode! >= 300) {
+      if (response.statusCode == null ||
+          response.statusCode! < 200 ||
+          response.statusCode! >= 300) {
         return Left(
           ServerFailure(
             message: '请求失败',
@@ -324,6 +337,9 @@ class ApiResponseHandler {
 
   /// 将 ApiResponse 映射为对应的 Failure 类型
   static Failure _mapApiResponseToFailure<T>(ApiResponse<T> apiResponse) {
-    return mapApiResponseToFailure(code: apiResponse.statusCode, message: apiResponse.message);
+    return mapApiResponseToFailure(
+      code: apiResponse.statusCode,
+      message: apiResponse.message,
+    );
   }
 }

@@ -256,23 +256,9 @@ class EnvConfigManager {
   /// 从字符串加载配置（主要用于测试）
   /// 直接设置环境变量而不通过文件加载
   static void loadFromString(String content) {
-    // 先清理现有状态
-    dotenv.clean();
-
-    // 手动解析环境变量字符串并直接设置到 dotenv.env
-    final lines = content.split('\n');
-    for (final line in lines) {
-      final trimmed = line.trim();
-      if (trimmed.isEmpty || trimmed.startsWith('#')) continue;
-
-      final parts = trimmed.split('=');
-      if (parts.length >= 2) {
-        final key = parts[0].trim();
-        final value = parts.sublist(1).join('=').trim();
-        // 直接设置环境变量
-        dotenv.env[key] = value;
-      }
-    }
+    // 委托 flutter_dotenv 官方 API：其内部 clean + 解析 + 置位初始化标志，
+    // 避免手动 clean 后直接写 env（未初始化时 getter 会抛 NotInitializedError）
+    dotenv.loadFromString(envString: content);
 
     _isInitialized = true;
   }

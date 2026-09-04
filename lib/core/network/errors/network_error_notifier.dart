@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
 import 'package:flutter_clean_arch_template/core/network/errors/network_error.dart';
 import 'package:injectable/injectable.dart';
@@ -36,12 +37,16 @@ class NetworkErrorNotifier {
     AppLogger.i('NetworkErrorNotifier: 初始化网络错误通知器');
   }
 
-  final StreamController<NetworkError> _controller = StreamController<NetworkError>.broadcast();
+  final StreamController<NetworkError> _controller =
+      StreamController<NetworkError>.broadcast();
 
   /// 认证错误防抖：上次发布时间
   DateTime? _lastAuthErrorAt;
 
-  /// 认证错误防抖时长（500ms 内不重复发布）
+  /// 防抖判断依据的最近一次错误（同类 500ms 内去重，异类放行）
+  NetworkAuthError? _lastAuthError;
+
+  /// 认证错误防抖时长（500ms 内不重复发布同类错误）
   static const Duration _authErrorDebounce = Duration(milliseconds: 500);
 
   /// 错误流
@@ -57,8 +62,9 @@ class NetworkErrorNotifier {
   ///
   /// 只包含认证相关的错误
   /// 供 AuthProvider 订阅，避免处理无关错误
-  Stream<NetworkAuthError> get authErrorStream =>
-      _controller.stream.where((error) => error is NetworkAuthError).cast<NetworkAuthError>();
+  Stream<NetworkAuthError> get authErrorStream => _controller.stream
+      .where((error) => error is NetworkAuthError)
+      .cast<NetworkAuthError>();
 
   /// 通知网络错误
   ///
@@ -84,17 +90,24 @@ class NetworkErrorNotifier {
 
   /// 通知认证错误（带防抖）
   ///
-  /// 500ms 内重复的认证错误会被过滤，避免短时间内多次触发相同处理。
-  /// 防抖职责统一在此处，调用方（AuthInterceptor、TokenManager）无需额外防抖。
+  /// 500ms 内**同类型**的认证错误会被过滤，避免短时间内多次触发相同处理。
+  /// 防抖键包含错误类型：TokenExpired 与 AuthenticationFailed 各自独立防抖，
+  /// 异类错误不被吞掉。防抖职责统一在此处，调用方无需额外防抖。
   ///
   /// [error] 认证错误
   void notifyAuthError(NetworkAuthError error) {
-    final now = DateTime.now();
-    if (_lastAuthErrorAt != null && now.difference(_lastAuthErrorAt!) < _authErrorDebounce) {
+    final now = clock.now();
+    final isDuplicate =
+        _lastAuthErrorAt != null &&
+        now.difference(_lastAuthErrorAt!) < _authErrorDebounce &&
+        _lastAuthError.runtimeType == error.runtimeType;
+
+    if (isDuplicate) {
       AppLogger.d('NetworkErrorNotifier: 认证错误防抖，跳过重复通知');
       return;
     }
     _lastAuthErrorAt = now;
+    _lastAuthError = error;
     notify(error);
   }
 

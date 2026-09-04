@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:clock/clock.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
 import 'package:flutter_clean_arch_template/core/network/interceptors/auth_interceptor.dart';
@@ -109,7 +110,7 @@ class DualTokenStrategy implements TokenStrategy {
     _tokenExpiryTime = _parseTokenExpiry(accessToken);
 
     if (_tokenExpiryTime != null) {
-      final now = DateTime.now();
+      final now = clock.now();
       final expiresIn = _tokenExpiryTime!.difference(now);
       AppLogger.info(
         '[$name] Token 将在 ${expiresIn.inMinutes} 分钟后过期 '
@@ -147,7 +148,7 @@ class DualTokenStrategy implements TokenStrategy {
       return false;
     }
 
-    final isExpired = DateTime.now().isAfter(_tokenExpiryTime!);
+    final isExpired = clock.now().isAfter(_tokenExpiryTime!);
     if (isExpired) {
       AppLogger.warning('[$name] Token 已过期');
     }
@@ -164,10 +165,10 @@ class DualTokenStrategy implements TokenStrategy {
     }
 
     final refreshTime = _tokenExpiryTime!.subtract(refreshBeforeExpiry);
-    final should = DateTime.now().isAfter(refreshTime);
+    final should = clock.now().isAfter(refreshTime);
 
     if (should) {
-      final minutesLeft = _tokenExpiryTime!.difference(DateTime.now()).inMinutes;
+      final minutesLeft = _tokenExpiryTime!.difference(clock.now()).inMinutes;
       AppLogger.info('[$name] Token 将在 $minutesLeft 分钟后过期，需要刷新');
     }
 
@@ -223,6 +224,14 @@ class DualTokenStrategy implements TokenStrategy {
 
       if (newAccessToken == null || newAccessToken.isEmpty) {
         AppLogger.error('[$name] 响应中未包含新的 access token');
+        return null;
+      }
+
+      // CAS 校验：刷新期间若 refresh token 已被清除（登出）或轮换为新值，
+      // 本次刷新结果属于过期会话，拒绝写回，防止迟到结果复活已登出的登录态
+      final currentRefreshToken = await _tokenStorage.getRefreshToken();
+      if (currentRefreshToken != refreshToken) {
+        AppLogger.warning('[$name] refresh token 已变更/清除，丢弃迟到的刷新结果');
         return null;
       }
 

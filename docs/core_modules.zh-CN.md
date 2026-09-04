@@ -7,7 +7,7 @@
 | 组件 | 路径 / 职责 |
 |------|------------|
 | **`ApiClient`** | `core/network/api_client.dart` — 持有 `Dio` 实例、基础配置、挂载拦截器 |
-| **拦截器** | `auth_interceptor.dart`（认证头/Token 刷新钩子）、`connectivity_interceptor.dart`（连接检测）、`retry_interceptor.dart`（失败重试）、可选 `TalkerDioLogger` |
+| **拦截器** | `auth_interceptor.dart`（认证头/401 自愈：双 Token 模式下刷新+重放一次，仅恢复失败才通知登出）、`connectivity_interceptor.dart`（连接检测）、`retry_interceptor.dart`（指数退避+抖动、仅幂等请求）、可选 `TalkerDioLogger` |
 | **`BaseAPI`** | `core/network/base_api.dart` — 提供 `handleApiCall` 等助手方法，返回 `Either<Failure, T>` |
 | **Token 管线** | `token/token_manager.dart`、`token_storage.dart`、`single_token_strategy.dart`、`dual_token_strategy.dart` — 读写 Token、挂载 Authorization |
 | **错误** | `network_error.dart`、`network_error_notifier.dart` — 将连接或 HTTP 问题通知给应用 |

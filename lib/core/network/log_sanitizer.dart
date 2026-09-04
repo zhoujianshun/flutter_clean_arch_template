@@ -29,15 +29,24 @@ class LogSanitizer {
     'phone',
     'phone_number',
     'phonenumber',
+    'mobile',
     'idcard',
     'id_card',
+    'idnumber',
+    'id_number',
     'email',
     'credit_card',
     'creditcard',
     'bank_account',
     'bankaccount',
     'cvv',
+    'realname',
+    'real_name',
+    'address',
   };
+
+  /// 递归最大深度，防御异常深嵌套结构导致栈溢出
+  static const int _maxDepth = 10;
 
   static final _random = Random();
 
@@ -62,7 +71,11 @@ class LogSanitizer {
     return _sanitizeValue(data);
   }
 
-  static dynamic _sanitizeValue(dynamic value) {
+  static dynamic _sanitizeValue(dynamic value, {int depth = 0}) {
+    if (depth > _maxDepth) {
+      return '<max-depth-reached>';
+    }
+
     if (value is Map) {
       final sanitized = <String, dynamic>{};
       for (final entry in value.entries) {
@@ -71,14 +84,16 @@ class LogSanitizer {
         if (_isSensitiveBodyKey(key)) {
           sanitized[key] = _mask(entryValue?.toString() ?? '');
         } else {
-          sanitized[key] = _sanitizeValue(entryValue);
+          sanitized[key] = _sanitizeValue(entryValue, depth: depth + 1);
         }
       }
       return sanitized;
     }
 
     if (value is List) {
-      return value.map(_sanitizeValue).toList(growable: false);
+      return value
+          .map((e) => _sanitizeValue(e, depth: depth + 1))
+          .toList(growable: false);
     }
 
     return value;

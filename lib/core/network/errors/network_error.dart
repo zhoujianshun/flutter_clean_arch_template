@@ -21,7 +21,7 @@ sealed class NetworkError {
 ///
 /// 包含所有与认证相关的网络错误
 sealed class NetworkAuthError extends NetworkError {
-  const NetworkAuthError();
+  const NetworkAuthError(this.message);
 
   /// Token 过期错误
   ///
@@ -46,22 +46,19 @@ sealed class NetworkAuthError extends NetworkError {
   /// - 更新状态为未认证
   /// - AuthNavigationListener 监听状态变化，导航到登录页
   const factory NetworkAuthError.authenticationFailed(String message) = AuthenticationFailedError;
+
+  /// 错误消息
+  final String message;
 }
 
 /// Token 过期错误
 class TokenExpiredError extends NetworkAuthError {
-  const TokenExpiredError(this.message);
-
-  /// 错误消息
-  final String message;
+  const TokenExpiredError(super.message);
 }
 
 /// 认证失败错误
 class AuthenticationFailedError extends NetworkAuthError {
-  const AuthenticationFailedError(this.message);
-
-  /// 错误消息
-  final String message;
+  const AuthenticationFailedError(super.message);
 }
 
 // ============================================================================
