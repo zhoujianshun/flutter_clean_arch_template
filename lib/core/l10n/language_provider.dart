@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'dart:ui';
+
 import 'package:flutter_clean_arch_template/core/l10n/app_language.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -11,9 +12,12 @@ part 'language_provider.g.dart';
 class AppLanguageSetting extends _$AppLanguageSetting {
   @override
   AppLanguage build() {
-    // _loadSavedLanguage();
-    // 默认是中文，不允许切换语言
-    return AppLanguage.chinese;
+    // 无保存值时回退系统语言（仅按 languageCode 匹配）
+    return LanguageService.getSavedLanguageSync() ?? _getSystemLanguage();
+  }
+
+  AppLanguage _getSystemLanguage() {
+    return AppLanguage.fromLocale(PlatformDispatcher.instance.locale);
   }
 
   /// 切换语言

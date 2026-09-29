@@ -59,6 +59,10 @@ class EnvConfigManager {
         AppLogger.info('已加载环境配置文件: $existingEnvFiles');
       } catch (e) {
         AppLogger.error('无法加载环境配置文件: $defaultEnvFile，$existingEnvFiles', error: e, stackTrace: StackTrace.current);
+        // load 失败后 dotenv 内部已 clean 且未置初始化标志，
+        // 后续 AppConfig 的 dotenv.get(..., fallback:) 会在 env getter 抛 NotInitializedError
+        // 导致首帧前崩溃。这里加载空配置使其进入已初始化态，让 fallback 真正生效。
+        dotenv.loadFromString();
       }
 
       _isInitialized = true;
@@ -314,6 +318,15 @@ class EnvConfigManager {
 
   static Future<void> setValue(String key, String value) async {
     _checkInitialized();
-    await dotenv.load(mergeWith: {key: value});
+    // 不能用 dotenv.load(mergeWith:)：其内部先 clean() 清空全部现有配置，
+    // 且默认 fileName '.env' 路径错误必然抛 FileNotFoundError。
+    // 这里复制当前 env -> 覆盖目标 key -> 序列化后整体重建。
+    // 注意：值中包含换行符或 '#' 时 dotenv 解析有限制，运行时覆盖仅适用于简单标量值。
+    final currentEnv = Map<String, String>.from(dotenv.env);
+    currentEnv[key] = value;
+    final envString = currentEnv.entries
+        .map((entry) => '${entry.key}=${entry.value.replaceAll('\n', r'\n')}')
+        .join('\n');
+    dotenv.loadFromString(envString: envString);
   }
 }

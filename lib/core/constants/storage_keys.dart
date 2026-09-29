@@ -9,6 +9,10 @@ class StorageKeys {
   static const String isFirstLaunch = 'is_first_launch';
   static const String onboardingCompleted = 'onboarding_completed';
 
+  // 应用设置Keys（SharedPreferences）
+  static const String themeMode = 'theme_mode';
+  static const String appLanguage = 'app_language';
+
   // 隐私协议Keys
   static const String privacyPolicyAgreed = 'privacy_policy_agreed';
 

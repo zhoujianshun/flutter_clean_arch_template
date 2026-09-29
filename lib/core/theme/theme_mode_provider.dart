@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_clean_arch_template/core/constants/storage_keys.dart';
 import 'package:flutter_clean_arch_template/core/di/service_locator.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
 import 'package:flutter_clean_arch_template/core/storage/storage_service.dart';
@@ -11,37 +12,24 @@ part 'theme_mode_provider.g.dart';
 /// 生成的 Provider: appThemeModeProvider
 @Riverpod(keepAlive: true)
 class AppThemeMode extends _$AppThemeMode {
-  static const String _themeKey = 'theme_mode';
-
   @override
   ThemeMode build() {
-    // 异步加载主题设置
-    // _loadThemeMode();
-    // 默认是浅色主题，不允许切换主题
-    return ThemeMode.light;
-  }
-
-  /// 从本地存储加载主题模式
-  Future<void> loadThemeMode() async {
+    // StorageService 经 @preResolve 在 runApp 前就绪，此处同步读取安全
     try {
-      final storageService = getIt<StorageService>();
-      final savedTheme = storageService.getSetting(_themeKey);
+      final savedTheme =
+          ServiceLocator.getOrNull<StorageService>()?.getSetting(StorageKeys.themeMode);
       if (savedTheme != null) {
-        switch (savedTheme) {
-          case 'light':
-            state = ThemeMode.light;
-          case 'dark':
-            state = ThemeMode.dark;
-          case 'system':
-          default:
-            state = ThemeMode.system;
-        }
-        AppLogger.debug('主题模式已加载: $savedTheme');
+        return switch (savedTheme) {
+          'light' => ThemeMode.light,
+          'dark' => ThemeMode.dark,
+          'system' => ThemeMode.system,
+          _ => ThemeMode.light,
+        };
       }
     } catch (e, stackTrace) {
       AppLogger.warning('加载主题偏好失败，使用默认主题', error: e, stackTrace: stackTrace);
-      state = ThemeMode.system;
     }
+    return ThemeMode.light;
   }
 
   /// 切换到下一个主题模式
@@ -76,7 +64,7 @@ class AppThemeMode extends _$AppThemeMode {
           modeString = 'system';
       }
 
-      await getIt<StorageService>().setSetting(_themeKey, modeString);
+      await getIt<StorageService>().setSetting(StorageKeys.themeMode, modeString);
       AppLogger.debug('主题模式已保存: $modeString');
     } catch (e, stackTrace) {
       AppLogger.warning('保存主题模式失败', error: e, stackTrace: stackTrace);

@@ -16,29 +16,37 @@ class AppInitializer {
 
     final timer = AppLogger.startTimer('App initialization');
 
-    // 1. Environment config (must be first, other modules depend on it)
-    await EnvConfigManager.initialize();
+    try {
+      // 1. Environment config (must be first, other modules depend on it)
+      await EnvConfigManager.initialize();
 
-    // 2. Logger (pass environment params)
-    await AppLogger.initialize(
-      environment: AppConfig.environment,
-      logLevel: AppConfig.logLevel,
-    );
-    timer.checkpoint('Environment and logger initialized');
+      // 2. Logger (pass environment params)
+      await AppLogger.initialize(
+        environment: AppConfig.environment,
+        logLevel: AppConfig.logLevel,
+      );
+      timer.checkpoint('Environment and logger initialized');
 
-    // 3. Orientation policy.
-    final view = PlatformDispatcher.instance.views.first;
-    final orientationPolicy = OrientationPolicy(
-      lockPhonePortrait: AppConfig.lockPhonePortrait,
-    );
-    await orientationPolicy.apply(view);
+      // 3. Orientation policy.
+      final view = PlatformDispatcher.instance.views.first;
+      final orientationPolicy = OrientationPolicy(
+        lockPhonePortrait: AppConfig.lockPhonePortrait,
+      );
+      await orientationPolicy.apply(view);
 
-    // 4. Dependency injection (GetIt)
-    await ServiceLocator.initialize();
+      // 4. Dependency injection (GetIt)
+      await ServiceLocator.initialize();
 
-    // 5. EasyRefresh global config
-    refreshInit();
+      // 5. EasyRefresh global config
+      refreshInit();
 
-    timer.stop();
+      timer.stop();
+    } catch (e, stackTrace) {
+      timer.stop();
+      AppLogger.fatal('应用初始化失败', error: e, stackTrace: stackTrace);
+      // 必须移除原生 Splash，否则 main 渲染的兜底错误页会被其遮挡
+      FlutterNativeSplash.remove();
+      rethrow;
+    }
   }
 }
