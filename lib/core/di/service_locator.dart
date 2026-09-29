@@ -93,6 +93,14 @@ abstract class RegisterModule {
     dioLogger: AppLogger.dioLogger,
     networkInfo: networkInfo,
   );
+
+  /// 缓存服务（临时数据 + TTL）
+  ///
+  /// 用 lazySingleton 延迟到首次访问时才创建：此时 StorageService 已初始化
+  /// （Hive 已就绪），且早于依赖它的仓库被急切实例化。
+  @lazySingleton
+  CacheService cacheService() =>
+      CacheService(Hive.box<dynamic>(HiveService.cacheBoxName));
 }
 
 class ServiceLocator {
@@ -100,7 +108,6 @@ class ServiceLocator {
     try {
       AppLogger.info('Initializing GetIt dependency injection...');
       await configureDependencies();
-      _registerCacheService();
       unawaited(lazyInitialize());
       AppLogger.info('GetIt dependency injection initialized');
     } catch (e) {
@@ -135,15 +142,9 @@ class ServiceLocator {
     AppLogger.info('GetIt container reset');
   }
 
-  /// 显式注册缓存服务，避免隐藏在 StorageService 构造流程中的副作用注册。
-  static void _registerCacheService() {
-    if (getIt.isRegistered<CacheService>()) return;
-    final cacheBox = Hive.box<dynamic>(HiveService.cacheBoxName);
-    getIt.registerSingleton<CacheService>(CacheService(cacheBox));
-  }
-
   static T get<T extends Object>() => getIt<T>();
-  static T? getOrNull<T extends Object>() => getIt.isRegistered<T>() ? getIt<T>() : null;
+  static T? getOrNull<T extends Object>() =>
+      getIt.isRegistered<T>() ? getIt<T>() : null;
   static bool isRegistered<T extends Object>() => getIt.isRegistered<T>();
   static Future<T> getAsync<T extends Object>() => getIt.getAsync<T>();
 }
