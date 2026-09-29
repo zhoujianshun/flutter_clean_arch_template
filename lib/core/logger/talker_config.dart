@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_clean_arch_template/core/logger/filters/log_level_filter.dart'
     as app_filters;
 import 'package:flutter_clean_arch_template/core/logger/log_context.dart';
+import 'package:flutter_clean_arch_template/core/network/log_sanitizer.dart';
 import 'package:talker_dio_logger/talker_dio_logger.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:talker_riverpod_logger/talker_riverpod_logger.dart';
@@ -41,6 +42,17 @@ class TalkerConfig {
         printRequestData: isDebug,
         printResponseHeaders: isDebug,
         printResponseData: isDebug,
+        // 请求/响应体渲染的统一必经钩子：结构化脱敏后再格式化，
+        // 防止 password/token/手机号明文进入日志（含 TalkerScreen 历史与落盘）
+        jsonFormatter: _SanitizingJsonFormatter(),
+        // 敏感请求头由库遮蔽为 *****（大小写不敏感）
+        hiddenHeaders: const {
+          'Authorization',
+          'Content-Language',
+          'ClientId',
+          'Cookie',
+          'Set-Cookie',
+        },
         requestPen: AnsiPen()..blue(),
         responsePen: AnsiPen()..green(),
         errorPen: AnsiPen()..red(),
@@ -114,5 +126,20 @@ class TalkerObserverWrapper extends TalkerObserver {
     for (final observer in observers) {
       observer.onException(err);
     }
+  }
+}
+
+/// 脱敏 JSON 格式化器
+///
+/// DioRequestLog/DioResponseLog/DioErrorLog 渲染 body 时统一经过
+/// jsonFormatter.format，在此对结构化数据先做递归脱敏（比正则更可靠，
+/// 能正确处理嵌套 Map/List 与非 JSON 值），再交给默认格式化器。
+class _SanitizingJsonFormatter extends TalkerJsonFormatter {
+  @override
+  String format(dynamic data) {
+    if (data is Map || data is List) {
+      return super.format(LogSanitizer.sanitizeBody(data));
+    }
+    return super.format(data);
   }
 }

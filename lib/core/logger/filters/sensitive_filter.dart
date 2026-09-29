@@ -4,6 +4,9 @@ import 'package:talker_flutter/talker_flutter.dart';
 /// 用于屏蔽日志中的敏感数据
 class SensitiveFilter {
   /// 敏感关键词列表
+  ///
+  /// 与 core/network/log_sanitizer.dart 的 _sensitiveBodyKeys 保持并集
+  /// （此处偏正则场景，LogSanitizer 偏结构化场景），修改任一侧时同步另一侧。
   static const sensitiveKeys = [
     'password',
     'passwd',
@@ -25,6 +28,24 @@ class SensitiveFilter {
     'cvv',
     'ssn',
     'id_card',
+    // PII（并集补充，来自 LogSanitizer）
+    'phone',
+    'phone_number',
+    'phonenumber',
+    'mobile',
+    'idcard',
+    'idnumber',
+    'id_number',
+    'email',
+    'bank_account',
+    'bankaccount',
+    'realname',
+    'real_name',
+    'address',
+    // password 族变体（改密码接口常见字段）
+    'new_password',
+    'old_password',
+    'confirm_password',
   ];
 
   /// 屏蔽占位符

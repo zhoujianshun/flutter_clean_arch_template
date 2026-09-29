@@ -1,3 +1,4 @@
+import 'package:flutter_clean_arch_template/core/logger/filters/sensitive_filter.dart';
 import 'package:flutter_clean_arch_template/core/network/log_sanitizer.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -93,6 +94,39 @@ void main() {
       expect(result['cvv'], '***');
     });
 
+    test('凭证类（password 族/secret/sms_code）长值也完全遮蔽，不保留片段', () {
+      final result =
+          LogSanitizer.sanitizeBody({
+                'new_password': 'Sup3rS3cretLongPassword!',
+                'old_password': 'Another0ldPassword!',
+                'confirm_password': 'Sup3rS3cretLongPassword!',
+                'sms_code': '123456',
+                'secret': 'my-long-secret-value',
+              })
+              as Map<String, dynamic>;
+
+      expect(result['new_password'], '***');
+      expect(result['old_password'], '***');
+      expect(result['confirm_password'], '***');
+      expect(result['sms_code'], '***');
+      expect(result['secret'], '***');
+      // 确认没有泄漏任何原文片段
+      expect(result['new_password'].toString(), isNot(contains('S3cret')));
+    });
+
+    test('PII 类（phone/token）长值保留首尾片段供排障', () {
+      final result =
+          LogSanitizer.sanitizeBody({
+                'phone': '13812345678',
+                'token': 'eyJhbGciOiJIUzI1NiJ9.payload.sig',
+              })
+              as Map<String, dynamic>;
+
+      // 前 3 后 2 遮罩策略
+      expect(result['phone'], '138***78');
+      expect(result['token'], isNot(contains('payload')));
+    });
+
     test('超过最大深度（10）时截断，不栈溢出', () {
       dynamic deep = {'leaf': 'value'};
       for (var i = 0; i < 50; i++) {
@@ -110,6 +144,33 @@ void main() {
     test('生成 8 位十六进制', () {
       final id = LogSanitizer.generateRequestId();
       expect(id, matches(RegExp(r'^[0-9a-f]{8}$')));
+    });
+  });
+
+  group('SensitiveFilter（与 LogSanitizer 并集后的 PII/password 族覆盖）', () {
+    test('password 族变体在 JSON 日志中被过滤', () {
+      const log =
+          '{"new_password":"Abc12345!","old_password":"Old7890!","confirm_password":"Abc12345!"}';
+      final filtered = SensitiveFilter.filterSensitiveData(log);
+
+      expect(filtered, isNot(contains('Abc12345!')));
+      expect(filtered, isNot(contains('Old7890!')));
+      expect(filtered, contains(SensitiveFilter.mask));
+    });
+
+    test('phone/mobile 在 URL 参数与 JSON 中被过滤', () {
+      const log = 'GET /user?phone=13812345678&mobile=13987654321';
+      final filtered = SensitiveFilter.filterSensitiveData(log);
+
+      expect(filtered, isNot(contains('13812345678')));
+      expect(filtered, isNot(contains('13987654321')));
+    });
+
+    test('error 对象 toString 场景（Header 格式）中的 token 被过滤', () {
+      const log = 'DioException: headers: Authorization: Bearer eyJabc.def.ghi';
+      final filtered = SensitiveFilter.filterSensitiveData(log);
+
+      expect(filtered, isNot(contains('eyJabc.def.ghi')));
     });
   });
 }

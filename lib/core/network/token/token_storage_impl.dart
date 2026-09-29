@@ -30,10 +30,16 @@ class TokenStorageImpl implements TokenStorage {
 
     try {
       final token = await _storageService.getUserToken();
-      _cachedAccessToken = (token != null && token.isNotEmpty) ? token : null;
-      _accessTokenLoaded = true;
-
-      return _cachedAccessToken;
+      if (token != null && token.isNotEmpty) {
+        _cachedAccessToken = token;
+        _accessTokenLoaded = true;
+        return _cachedAccessToken;
+      }
+      // 读到 null/空不缓存：SecureStorageService.read 失败与"键不存在"均返回 null
+      // （iOS Keychain 启动期竞态是已知瞬时失败源），置 loaded 会把瞬时失败
+      // 永久固化为"未登录"。保持未加载态，下次读取重试 Secure Storage，
+      // 由写操作（save/clear）终态化缓存。
+      return null;
     } catch (e) {
       AppLogger.e(
         '[TokenStorage] 获取 access token 失败',
@@ -66,12 +72,13 @@ class TokenStorageImpl implements TokenStorage {
 
     try {
       final refreshToken = await _storageService.getRefreshToken();
-      _cachedRefreshToken = (refreshToken != null && refreshToken.isNotEmpty)
-          ? refreshToken
-          : null;
-      _refreshTokenLoaded = true;
-
-      return _cachedRefreshToken;
+      if (refreshToken != null && refreshToken.isNotEmpty) {
+        _cachedRefreshToken = refreshToken;
+        _refreshTokenLoaded = true;
+        return _cachedRefreshToken;
+      }
+      // 同 getAccessToken：空值不终态化缓存，避免瞬时读取失败被固化
+      return null;
     } catch (e) {
       AppLogger.e(
         '[TokenStorage] 获取 refresh token 失败',

@@ -21,6 +21,10 @@ class LogSanitizer {
     'refresh_token',
     'refreshtoken',
     'password',
+    'new_password',
+    'old_password',
+    'confirm_password',
+    'passwordconfirm',
     'secret',
     'api_key',
     'apikey',
@@ -43,6 +47,23 @@ class LogSanitizer {
     'realname',
     'real_name',
     'address',
+  };
+
+  /// 凭证类 key：值连片段都不可暴露，完全遮蔽为 ***
+  /// （PII 类如 phone/address 保留首尾片段供排障，凭证类不行）
+  static const _credentialKeys = {
+    'password',
+    'new_password',
+    'old_password',
+    'confirm_password',
+    'passwordconfirm',
+    'secret',
+    'cvv',
+    'api_key',
+    'apikey',
+    'private_key',
+    'smscode',
+    'sms_code',
   };
 
   /// 递归最大深度，防御异常深嵌套结构导致栈溢出
@@ -81,7 +102,11 @@ class LogSanitizer {
       for (final entry in value.entries) {
         final key = entry.key.toString();
         final entryValue = entry.value;
-        if (_isSensitiveBodyKey(key)) {
+        final lowerKey = key.toLowerCase();
+        if (_credentialKeys.contains(lowerKey)) {
+          // 凭证类：完全遮蔽，不保留任何片段
+          sanitized[key] = _fullMask;
+        } else if (_isSensitiveBodyKey(key)) {
           sanitized[key] = _mask(entryValue?.toString() ?? '');
         } else {
           sanitized[key] = _sanitizeValue(entryValue, depth: depth + 1);
@@ -108,4 +133,7 @@ class LogSanitizer {
     if (value.length <= 6) return '***';
     return '${value.substring(0, 3)}***${value.substring(value.length - 2)}';
   }
+
+  /// 凭证类专用完全遮蔽值
+  static const String _fullMask = '***';
 }

@@ -121,19 +121,29 @@ class ServiceLocator {
   }
 
   static Future<void> lazyInitialize() async {
+    // 此方法经 unawaited 调用（initialize 内），rethrow 会成为无人接管的
+    // zone 异常，故只记录不抛出。失败影响仅为懒初始化功能缺失，不阻断启动。
     try {
       final appInfoService = getIt<AppInfoService>();
-      unawaited(appInfoService.initialize());
+      unawaited(
+        appInfoService.initialize().catchError((Object e, StackTrace st) {
+          AppLogger.error(
+            'AppInfoService lazy initialization failed',
+            error: e,
+            stackTrace: st,
+          );
+        }),
+      );
 
+      // clearExpiredCache 内部自带 try-catch，失败返回 0，无需额外兜底
       final cacheService = getIt<CacheService>();
       unawaited(cacheService.clearExpiredCache());
-    } catch (e) {
+    } catch (e, stackTrace) {
       AppLogger.error(
         'Lazy initialization failed',
         error: e,
-        stackTrace: StackTrace.current,
+        stackTrace: stackTrace,
       );
-      rethrow;
     }
   }
 

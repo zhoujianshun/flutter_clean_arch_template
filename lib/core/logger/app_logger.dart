@@ -248,8 +248,14 @@ class AppLogger {
     final filteredMessage = SensitiveFilter.filterSensitiveData(message);
 
     if (error != null) {
-      // 如果有error对象，使用handle方法
-      _talker.handle(error, stackTrace, filteredMessage);
+      // TalkerError 会原样输出 error.toString()（如 DioException 含完整
+      // Authorization 头/手机号），message 过滤覆盖不到，
+      // 须对 error 文本同样脱敏。包装为 Exception 以通过 Talker 类型约束，
+      // 原始堆栈不受影响。
+      final sanitizedError = Exception(
+        SensitiveFilter.filterSensitiveData(error.toString()),
+      );
+      _talker.handle(sanitizedError, stackTrace, filteredMessage);
     } else {
       _talker.error(filteredMessage);
     }
@@ -265,8 +271,11 @@ class AppLogger {
     final filteredMessage = SensitiveFilter.filterSensitiveData(message);
 
     if (error != null) {
-      // 如果有error对象，使用handle方法
-      _talker.handle(error, stackTrace, filteredMessage);
+      // 同 error()：error 对象文本脱敏后再交给 Talker
+      final sanitizedError = Exception(
+        SensitiveFilter.filterSensitiveData(error.toString()),
+      );
+      _talker.handle(sanitizedError, stackTrace, filteredMessage);
     } else {
       _talker.critical(filteredMessage);
     }

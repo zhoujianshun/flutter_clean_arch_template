@@ -7,8 +7,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// SharedPreferences service for simple key-value storage
 class SharedPrefsService {
   SharedPreferences? _prefs;
-  static bool _initialized = false;
-  static Completer<void>? _initCompleter;
+
+  // 实例字段（原为 static）：static 与实例字段 _prefs 混用时，getIt.reset()
+  // 后的新实例会因 static _initCompleter 指向旧完成态而跳过初始化，
+  // 导致 _prefs 永远为 null、所有读写抛 StorageException。
+  // 同实例内的并发初始化防护由 Completer 承担；
+  // 跨实例并发时 SharedPreferences.getInstance 本身幂等，无新增风险。
+  bool _initialized = false;
+  Completer<void>? _initCompleter;
 
   /// Initialize SharedPreferences
   Future<void> initialize() async {

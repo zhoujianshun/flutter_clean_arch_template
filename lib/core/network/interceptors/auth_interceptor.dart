@@ -131,7 +131,14 @@ class AuthInterceptor extends Interceptor {
     try {
       if (response.data is Map<String, dynamic>) {
         final data = response.data as Map<String, dynamic>;
-        final code = data['code'] as int?;
+        // 与 ApiResponse.fromJson 相同的容错：后端可能返回字符串 code（如 "401"），
+        // 严格 as int? 会抛 TypeError 并被下方 catch 吞掉，认证恢复静默失效
+        final rawCode = data['code'];
+        final code = rawCode is int
+            ? rawCode
+            : rawCode is String
+                  ? int.tryParse(rawCode)
+                  : null;
         final message = data['msg'] as String?;
 
         if (code == 401) {
@@ -158,7 +165,13 @@ class AuthInterceptor extends Interceptor {
         }
       }
       handler.next(response);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // 业务 401 检测自身出 bug 时不能静默：否则刷新/登出全部不触发且排障不可见
+      AppLogger.error(
+        '[AuthInterceptor] Response inspection failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
       handler.next(response);
     }
   }
@@ -169,22 +182,32 @@ class AuthInterceptor extends Interceptor {
     ErrorInterceptorHandler handler,
   ) async {
     if (err.response?.statusCode == 401) {
-      AppLogger.warning('HTTP 401 auth failure detected: ${err.message}');
-      final options = err.requestOptions;
-      final retried = options.extra[kAuthRetriedKey] == true;
+      // getIt 延迟解析的依赖（_tokenManager/_authConfig）在 DI 未就绪或
+      // reset 后会抛异常，被 Dio 包装成 unknown 错误丢失 401 语义，需兜底
+      try {
+        AppLogger.warning('HTTP 401 auth failure detected: ${err.message}');
+        final options = err.requestOptions;
+        final retried = options.extra[kAuthRetriedKey] == true;
 
-      if (!retried && await _tryRefreshAndReplayOnError(err, handler)) {
-        return;
-      }
+        if (!retried && await _tryRefreshAndReplayOnError(err, handler)) {
+          return;
+        }
 
-      // 到这里说明恢复未发生或恢复失败：
-      // - retried：重放（inner 链）已发过终态通知，此处为防抖兜底
-      // - 单 Token：无恢复手段，通知登出
-      // - 刷新失败：致命由策略层通知，临时设计上不登出——均不在此通知
-      if ((retried || !_tokenManager.strategy.supportsRefresh) &&
-          !_isRefreshRequest(options.path) &&
-          !_shouldSkipAuth(options.path)) {
-        _publishAuthenticationFailedEvent(err.message ?? 'HTTP auth failed');
+        // 到这里说明恢复未发生或恢复失败：
+        // - retried：重放（inner 链）已发过终态通知，此处为防抖兜底
+        // - 单 Token：无恢复手段，通知登出
+        // - 刷新失败：致命由策略层通知，临时设计上不登出——均不在此通知
+        if ((retried || !_tokenManager.strategy.supportsRefresh) &&
+            !_isRefreshRequest(options.path) &&
+            !_shouldSkipAuth(options.path)) {
+          _publishAuthenticationFailedEvent(err.message ?? 'HTTP auth failed');
+        }
+      } catch (e, stackTrace) {
+        AppLogger.error(
+          '[AuthInterceptor] 401 handling failed',
+          error: e,
+          stackTrace: stackTrace,
+        );
       }
     }
 
