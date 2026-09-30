@@ -13,11 +13,7 @@ class AppLanguageSetting extends _$AppLanguageSetting {
   @override
   AppLanguage build() {
     // 无保存值时回退系统语言（仅按 languageCode 匹配）
-    return LanguageService.getSavedLanguageSync() ?? _getSystemLanguage();
-  }
-
-  AppLanguage _getSystemLanguage() {
-    return AppLanguage.fromLocale(PlatformDispatcher.instance.locale);
+    return LanguageService.getSavedOrSystemLanguage();
   }
 
   /// 切换语言
@@ -31,8 +27,7 @@ class AppLanguageSetting extends _$AppLanguageSetting {
   /// 重置为系统语言
   Future<void> resetToSystemLanguage() async {
     await LanguageService.clearSavedLanguage();
-    final systemLanguage = await LanguageService.getSavedLanguage();
-    state = systemLanguage;
+    state = LanguageService.systemLanguage;
   }
 }
 
