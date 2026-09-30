@@ -7,7 +7,8 @@ plugins {
 
 android {
     namespace = "com.example.flutter_clean_arch_template"
-    compileSdk = flutter.compileSdkVersion
+    // permission_handler 13 要求 compileSdk 37，高于 Flutter 3.47 默认值 36
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
