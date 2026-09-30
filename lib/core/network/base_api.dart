@@ -92,6 +92,9 @@ abstract class BaseAPI {
   /// // ... 执行请求 ...
   /// // 需要取消时：cancelRequest('upload_image');
   /// ```
+  ///
+  /// 注意：请求正常完成后应调用 [cleanupCancelToken] 移除条目，
+  /// 否则令牌会常驻 [_cancelTokens] 映射（单例数据源场景下缓慢累积）。
   CancelToken createCancelToken(String key) {
     final token = CancelToken();
     _cancelTokens[key] = token;

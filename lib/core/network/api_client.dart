@@ -186,6 +186,23 @@ class ApiClient {
     ),
   );
 
+  /// PATCH请求
+  Future<Response<T>> patch<T>(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    CancelToken? cancelToken,
+  }) => _request(
+    () => _dio.patch<T>(
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      options: options,
+      cancelToken: cancelToken,
+    ),
+  );
+
   /// DELETE请求
   Future<Response<T>> delete<T>(
     String path, {
@@ -363,11 +380,16 @@ class DioErrorHandler {
   /// 从响应数据中提取错误信息
   ///
   /// 仅从 Map 结构中提取已知字段，避免将完整响应体（可能含敏感数据）暴露到错误消息。
+  /// 空字符串视为缺失（继续尝试后续字段），后端可能返回 message: ""。
   static String? _getErrorMessage(dynamic data) {
     if (data is Map<String, dynamic>) {
-      return data['message']?.toString() ??
-          data['error']?.toString() ??
-          data['msg']?.toString();
+      for (final key in const ['message', 'error', 'msg']) {
+        final value = data[key]?.toString();
+        if (value != null && value.isNotEmpty) {
+          return value;
+        }
+      }
+      return null;
     }
     if (data is String && data.length <= 200) {
       return data;

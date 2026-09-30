@@ -61,8 +61,10 @@ class AuthInterceptor extends Interceptor {
     RequestInterceptorHandler handler,
   ) async {
     try {
-      final languageCode = AppLanguage.chinese.locale.toString();
-      options.headers['content-language'] = languageCode;
+      // 读取用户保存的语言（无保存值回退系统语言），
+      // 避免硬编码导致英文用户始终收到中文响应
+      final language = LanguageService.getSavedOrSystemLanguage();
+      options.headers['content-language'] = language.locale.toString();
       options.headers['ClientId'] = AppConfig.clientId;
 
       if (_shouldSkipAuth(options.path)) {
@@ -323,14 +325,24 @@ class AuthInterceptor extends Interceptor {
       final refreshPath =
           Uri.tryParse(strategy.refreshEndpoint)?.path ??
           strategy.refreshEndpoint;
-      if (normalizedPath == refreshPath ||
-          normalizedPath.endsWith(refreshPath)) {
+      if (_pathEndsWithSegments(normalizedPath, refreshPath)) {
         return true;
       }
     }
 
-    return normalizedPath == '/auth/refresh' ||
-        normalizedPath.endsWith('/auth/refresh');
+    return _pathEndsWithSegments(normalizedPath, '/auth/refresh');
+  }
+
+  /// 段级尾匹配：path 以 target 的路径段序列结尾。
+  ///
+  /// 比 endsWith 更严格——'/xauth/refresh' 不会误配 '/auth/refresh'
+  /// （段边界完整），但 '/api/v1/auth/refresh' 仍正确匹配。
+  bool _pathEndsWithSegments(String path, String target) {
+    if (target.isEmpty) return false;
+    if (path == target) return true;
+    return path.endsWith(target) &&
+        path.length > target.length &&
+        path[path.length - target.length - 1] == '/';
   }
 
   void _publishAuthenticationFailedEvent(String message) {

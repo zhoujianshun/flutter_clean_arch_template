@@ -46,6 +46,7 @@ class DualTokenStrategy implements TokenStrategy {
     this.accessTokenField = 'access_token',
     this.refreshTokenField = 'refresh_token',
     this.codeField = 'code',
+    this.dataWrapper = false,
     this.onAuthExpired,
   }) : _tokenStorage = tokenStorage,
        _dio = dio {
@@ -79,6 +80,15 @@ class DualTokenStrategy implements TokenStrategy {
 
   /// 刷新响应中 code 的字段名
   final String codeField;
+
+  /// 刷新响应是否使用 ApiResponse 统一包裹（`{code, msg, data: {...}}`）。
+  ///
+  /// - false（默认）：token 字段在响应顶层 `{access_token, ...}`
+  /// - true：token 字段在 `data` 内 `{code: 200, data: {access_token, ...}}`
+  ///
+  /// 开启时若顶层无 token 字段会自动尝试 `data` 内解包（两级容错），
+  /// 保证后端包裹格式变化时刷新不静默失败。
+  final bool dataWrapper;
 
   /// 认证过期回调，仅在确认需要重新登录时调用（refresh token 过期/不存在）
   final TokenAuthExpiredCallback? onAuthExpired;
@@ -202,8 +212,9 @@ class DualTokenStrategy implements TokenStrategy {
       }
 
       final data = response.data!;
-      final newAccessToken = data[accessTokenField] as String?;
-      final newRefreshToken = data[refreshTokenField] as String?;
+      final tokenSource = _resolveTokenSource(data);
+      final newAccessToken = tokenSource[accessTokenField] as String?;
+      final newRefreshToken = tokenSource[refreshTokenField] as String?;
       final rawCode = data[codeField];
 
       int? code;
@@ -263,6 +274,16 @@ class DualTokenStrategy implements TokenStrategy {
       );
       return null;
     }
+  }
+
+  /// 从刷新响应中定位 token 字段所在的 Map。
+  ///
+  /// - `dataWrapper` 关闭 → 直接取顶层字段
+  /// - `dataWrapper` 开启 → 优先顶层，顶层无 token 则尝试 `data` 内层
+  Map<String, dynamic> _resolveTokenSource(Map<String, dynamic> data) {
+    if (!dataWrapper || data[accessTokenField] != null) return data;
+    final inner = data['data'];
+    return inner is Map<String, dynamic> ? inner : data;
   }
 
   /// 解析 JWT token 获取过期时间
