@@ -28,6 +28,9 @@ class ResponsiveTokens {
 
   static bool get _isCompact => ScreenUtil().screenWidth < ResponsiveBreakpoints.compact;
 
+  static bool get _isExpanded =>
+      ScreenUtil().screenWidth >= ResponsiveBreakpoints.expanded;
+
   static double _compactScale() {
     final scale = ScreenUtil().screenWidth / phoneDesignWidth;
     return scale.clamp(minCompactScaleRatio, maxCompactScaleRatio);
@@ -87,8 +90,7 @@ class ResponsiveTokens {
     double? expanded,
   }) {
     if (_isCompact) return compactValue.toDouble();
-    if (ScreenUtil().screenWidth >= ResponsiveBreakpoints.expanded &&
-        expanded != null) {
+    if (_isExpanded && expanded != null) {
       return expanded;
     }
     return medium ?? expanded ?? compactValue.toDouble();
@@ -108,8 +110,7 @@ class ResponsiveTokens {
     double? expanded,
   }) {
     if (_isCompact) return compactValue.toDouble();
-    if (ScreenUtil().screenWidth >= ResponsiveBreakpoints.expanded &&
-        expanded != null) {
+    if (_isExpanded && expanded != null) {
       return expanded;
     }
     return medium ?? expanded ?? compactValue.toDouble();
@@ -130,8 +131,7 @@ class ResponsiveTokens {
     double? expanded,
   }) {
     if (_isCompact) return compact(compactValue);
-    if (ScreenUtil().screenWidth >= ResponsiveBreakpoints.expanded &&
-        expanded != null) {
+    if (_isExpanded && expanded != null) {
       return expanded;
     }
     return medium ?? expanded ?? compactValue.toDouble();
@@ -152,8 +152,7 @@ class ResponsiveTokens {
     double? expanded,
   }) {
     if (_isCompact) return ScreenUtil().setSp(compactValue.toDouble());
-    if (ScreenUtil().screenWidth >= ResponsiveBreakpoints.expanded &&
-        expanded != null) {
+    if (_isExpanded && expanded != null) {
       return expanded;
     }
     return medium ?? expanded ?? compactValue.toDouble();

@@ -32,6 +32,23 @@ class _ResponsiveChatPageState extends State<ResponsiveChatPage> {
       time: '10:30',
       unread: 2,
       online: true,
+      messages: [
+        _Message(text: '你好！最近项目进展怎么样？', isMe: false, time: '10:20'),
+        _Message(text: '还不错，正在做平板适配的功能', isMe: true, time: '10:22'),
+        _Message(
+          text: '用的什么方案？ScreenUtil 还是 responsive_framework？',
+          isMe: false,
+          time: '10:23',
+        ),
+        _Message(
+          text: '用的 LayoutBuilder + ScreenUtil 组合方案，渐进式增强',
+          isMe: true,
+          time: '10:25',
+        ),
+        _Message(text: '这种方案不错，折叠屏也能支持', isMe: false, time: '10:26'),
+        _Message(text: '是的，基于可用空间而非设备类型来做判断', isMe: true, time: '10:28'),
+        _Message(text: '好的，明天见！', isMe: false, time: '10:30'),
+      ],
     ),
     _Contact(
       name: '李四',
@@ -40,6 +57,13 @@ class _ResponsiveChatPageState extends State<ResponsiveChatPage> {
       time: '09:15',
       unread: 0,
       online: true,
+      messages: [
+        _Message(text: '平板版聊天页的设计稿发你了', isMe: false, time: '09:10'),
+        _Message(text: '收到，我看下', isMe: true, time: '09:12'),
+        _Message(text: '这次左边列表选中态的高亮再明显一些', isMe: false, time: '09:13'),
+        _Message(text: '好的，我用 M3 的 selectedTileColor 处理', isMe: true, time: '09:14'),
+        _Message(text: '设计稿已更新', isMe: false, time: '09:15'),
+      ],
     ),
     _Contact(
       name: '产品群',
@@ -48,6 +72,13 @@ class _ResponsiveChatPageState extends State<ResponsiveChatPage> {
       time: '昨天',
       unread: 5,
       online: false,
+      messages: [
+        _Message(text: '王五：下周三发版，大家抓紧自测', isMe: false, time: '昨天 16:20'),
+        _Message(text: '收到', isMe: true, time: '昨天 16:22'),
+        _Message(text: '王五：回归范围包括平板和折叠屏布局', isMe: false, time: '昨天 16:25'),
+        _Message(text: '李四：聊天页的选中态修复我下午提 PR', isMe: false, time: '昨天 16:30'),
+        _Message(text: '王五：下周发版计划确认', isMe: false, time: '昨天 16:35'),
+      ],
     ),
     _Contact(
       name: '王五',
@@ -56,6 +87,11 @@ class _ResponsiveChatPageState extends State<ResponsiveChatPage> {
       time: '昨天',
       unread: 0,
       online: false,
+      messages: [
+        _Message(text: 'Master-Detail 那页在平板上滚动有点卡', isMe: false, time: '昨天 14:00'),
+        _Message(text: '可能是列表没有用 builder 构造', isMe: true, time: '昨天 14:05'),
+        _Message(text: '收到，我看一下', isMe: false, time: '昨天 14:10'),
+      ],
     ),
     _Contact(
       name: '赵六',
@@ -64,6 +100,11 @@ class _ResponsiveChatPageState extends State<ResponsiveChatPage> {
       time: '前天',
       unread: 0,
       online: true,
+      messages: [
+        _Message(text: '给你看下折叠屏展开的效果图', isMe: false, time: '前天 11:00'),
+        _Message(text: '[图片]', isMe: false, time: '前天 11:01'),
+        _Message(text: '展开态走 expanded 分栏，比例正好', isMe: true, time: '前天 11:20'),
+      ],
     ),
     _Contact(
       name: '技术群',
@@ -72,6 +113,12 @@ class _ResponsiveChatPageState extends State<ResponsiveChatPage> {
       time: '前天',
       unread: 12,
       online: false,
+      messages: [
+        _Message(text: '孙七：Flutter 4.0 要来了', isMe: false, time: '前天 20:00'),
+        _Message(text: 'stable 渠道什么时候切？', isMe: false, time: '前天 20:05'),
+        _Message(text: '先等 beta 稳定几周再说', isMe: true, time: '前天 20:10'),
+        _Message(text: '孙七：Dart 3.12 的 pattern 也更完善了', isMe: false, time: '前天 20:15'),
+      ],
     ),
     _Contact(
       name: '孙七',
@@ -80,6 +127,11 @@ class _ResponsiveChatPageState extends State<ResponsiveChatPage> {
       time: '3天前',
       unread: 0,
       online: false,
+      messages: [
+        _Message(text: '周末一起吃饭？', isMe: false, time: '3天前 18:30'),
+        _Message(text: '可以，老地方？', isMe: true, time: '3天前 18:35'),
+        _Message(text: '行，周六中午', isMe: false, time: '3天前 18:36'),
+      ],
     ),
   ];
 
@@ -130,7 +182,85 @@ class _ResponsiveChatPageState extends State<ResponsiveChatPage> {
         const VerticalDivider(width: 1),
         Expanded(
           child: _selectedContact != null
-              ? _ChatPanel(contact: _contacts[_selectedContact!])
+              ? Column(
+                  children: [
+                    // 联系人头部：明确标识当前对话对象
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceContainerLow,
+                        border: Border(
+                          bottom: BorderSide(
+                            color: Theme.of(context).dividerColor,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Stack(
+                            children: [
+                              CircleAvatar(
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.primaryContainer,
+                                child: Text(
+                                  _contacts[_selectedContact!].avatar,
+                                ),
+                              ),
+                              if (_contacts[_selectedContact!].online)
+                                Positioned(
+                                  right: 0,
+                                  bottom: 0,
+                                  child: Container(
+                                    width: 12,
+                                    height: 12,
+                                    decoration: BoxDecoration(
+                                      color: Colors.green,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.surface,
+                                        width: 2,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            _contacts[_selectedContact!].name,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          if (_contacts[_selectedContact!].online) ...[
+                            const SizedBox(width: 8),
+                            Text(
+                              '在线',
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: Colors.green),
+                            ),
+                          ],
+                          const Spacer(),
+                          IconButton(
+                            onPressed: () =>
+                                setState(() => _selectedContact = null),
+                            icon: const Icon(Icons.close),
+                            tooltip: '关闭对话',
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: _ChatPanel(
+                        contact: _contacts[_selectedContact!],
+                      ),
+                    ),
+                  ],
+                )
               : Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -203,6 +333,7 @@ class _Contact {
     required this.time,
     required this.unread,
     required this.online,
+    this.messages,
   });
 
   final String name;
@@ -211,6 +342,9 @@ class _Contact {
   final String time;
   final int unread;
   final bool online;
+
+  /// 该联系人的对话内容；null 时 [_ChatPanel] 使用默认消息。
+  final List<_Message>? messages;
 }
 
 class _ContactTile extends StatelessWidget {
@@ -225,74 +359,78 @@ class _ContactTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: isSelected
-          ? Theme.of(
-              context,
-            ).colorScheme.primaryContainer.withValues(alpha: 0.3)
-          : null,
-      child: ListTile(
-        leading: Stack(
-          children: [
-            CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              child: Text(contact.avatar),
+    final colorScheme = Theme.of(context).colorScheme;
+    return ListTile(
+      // 选中态背景绘制在 ListTile 自己的 Material 上，
+      // 避免外层 ColoredBox 遮挡水波纹（Flutter 框架会对此报异常）
+      selected: isSelected,
+      selectedTileColor: colorScheme.secondaryContainer,
+      selectedColor: colorScheme.onSecondaryContainer,
+      leading: Stack(
+        children: [
+          CircleAvatar(
+            backgroundColor: isSelected
+                ? colorScheme.primaryContainer
+                : colorScheme.surfaceContainerHighest,
+            child: Text(
+              contact.avatar,
+              style: TextStyle(color: colorScheme.onSurfaceVariant),
             ),
-            if (contact.online)
-              Positioned(
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: Colors.green,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.surface,
-                      width: 2,
-                    ),
+          ),
+          if (contact.online)
+            Positioned(
+              right: 0,
+              bottom: 0,
+              child: Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.surface,
+                    width: 2,
                   ),
                 ),
               ),
-          ],
-        ),
-        title: Text(
-          contact.name,
-          style: TextStyle(
-            fontWeight: contact.unread > 0
-                ? FontWeight.bold
-                : FontWeight.normal,
-          ),
-        ),
-        subtitle: Text(
-          contact.lastMessage,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(contact.time, style: Theme.of(context).textTheme.bodySmall),
-            if (contact.unread > 0) ...[
-              const SizedBox(height: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.error,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '${contact.unread}',
-                  style: const TextStyle(color: Colors.white, fontSize: 11),
-                ),
-              ),
-            ],
-          ],
-        ),
-        onTap: onTap,
+            ),
+        ],
       ),
+      title: Text(
+        contact.name,
+        style: TextStyle(
+          fontWeight: contact.unread > 0 || isSelected
+              ? FontWeight.bold
+              : FontWeight.normal,
+        ),
+      ),
+      subtitle: Text(
+        contact.lastMessage,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      trailing: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(contact.time, style: Theme.of(context).textTheme.bodySmall),
+          if (contact.unread > 0) ...[
+            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.error,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                '${contact.unread}',
+                style: const TextStyle(color: Colors.white, fontSize: 11),
+              ),
+            ),
+          ],
+        ],
+      ),
+      onTap: onTap,
     );
   }
 }
@@ -304,23 +442,14 @@ class _ChatPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final messages = [
-      _Message(text: '你好！最近项目进展怎么样？', isMe: false, time: '10:20'),
-      _Message(text: '还不错，正在做平板适配的功能', isMe: true, time: '10:22'),
-      _Message(
-        text: '用的什么方案？ScreenUtil 还是 responsive_framework？',
-        isMe: false,
-        time: '10:23',
-      ),
-      _Message(
-        text: '用的 LayoutBuilder + ScreenUtil 组合方案，渐进式增强',
-        isMe: true,
-        time: '10:25',
-      ),
-      _Message(text: '这种方案不错，折叠屏也能支持', isMe: false, time: '10:26'),
-      _Message(text: '是的，基于可用空间而非设备类型来做判断', isMe: true, time: '10:28'),
-      _Message(text: '好的，明天见！', isMe: false, time: '10:30'),
-    ];
+    final messages =
+        contact.messages ??
+        const <_Message>[
+          _Message(text: '你好！最近项目进展怎么样？', isMe: false, time: '10:20'),
+          _Message(text: '还不错，正在做平板适配的功能', isMe: true, time: '10:22'),
+          _Message(text: '这种方案不错，折叠屏也能支持', isMe: false, time: '10:26'),
+          _Message(text: '好的，明天见！', isMe: false, time: '10:30'),
+        ];
 
     return Column(
       children: [

@@ -6,6 +6,7 @@ import 'package:flutter_clean_arch_template/core/router/guards/debouncer_guard.d
 import 'package:flutter_clean_arch_template/features/_example/presentation/pages/example_detail_page.dart';
 import 'package:flutter_clean_arch_template/features/_example/presentation/pages/example_list_page.dart';
 import 'package:flutter_clean_arch_template/features/_example_simple/presentation/pages/todo_list_page.dart';
+import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/fold_aware_demo_page.dart';
 import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/master_detail_detail_page.dart';
 import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/master_detail_page.dart';
 import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/responsive_article_page.dart';
@@ -150,6 +151,10 @@ class AppRouter extends RootStackRouter {
       AutoRoute(
         page: ResponsiveChatRoute.page,
         path: '/responsive-demo/chat',
+      ),
+      AutoRoute(
+        page: FoldAwareDemoRoute.page,
+        path: '/responsive-demo/fold-aware',
       ),
 
       // Widget demo pages

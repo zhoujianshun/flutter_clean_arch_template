@@ -13,6 +13,7 @@
 - [AdaptiveLayoutBuilder 自适应布局构建器](#adaptivelayoutbuilder-自适应布局构建器)
 - [StatefulAdaptiveBuilder 有状态自适应构建器](#statefuladaptivebuilder-有状态自适应构建器)
 - [ContentConstraint 内容约束](#contentconstraint-内容约束)
+- [折叠屏适配（FoldInfo / FoldAwareBuilder / HingeSplitLayout）](#折叠屏适配foldinfo--foldawarebuilder--hingesplitlayout)
 - [AppShellPage 自适应导航](#appshellpage-自适应导航)
 - [示例页面](#示例页面)
 - [自适应缩放方法](#自适应缩放方法)
@@ -215,8 +216,11 @@ AdaptiveBuilder(
 
 ### 回退规则
 
-- expanded 宽度但 `expanded` 为 null → 使用 `medium`
-- medium 宽度但 `medium` 为 null → 使用 `expanded`（如有）或 `compact`
+渐进回退（同 `AdaptiveLayoutBuilder` / `StatefulAdaptiveBuilder`）：
+
+- expanded 宽度但 `expanded` 为 null → 使用 `medium`，再退到 `compact`
+- medium 宽度但 `medium` 为 null → **只退到 `compact`**（不会跳到 `expanded`，
+  避免中等宽度误渲染桌面级布局）
 
 ---
 
@@ -294,6 +298,9 @@ StatefulAdaptiveBuilder(
 
 在大屏上限制内容最大宽度并居中。手机上无视觉影响。
 
+> **生效条件**：约束仅在**父容器宽度超过 `maxWidth` 时**生效（内容居中、两侧留白）；
+> 父宽度不足时子组件自然填满，不产生额外效果。`maxHeight` 同理。
+
 ```dart
 // 登录页 —— 使用语义化常量
 ContentConstraint(
@@ -321,6 +328,7 @@ ContentConstraint(
 |------|------|--------|------|
 | `child` | Widget | 必填 | 子组件 |
 | `maxWidth` | double | `ResponsiveTokens.maxWidthList`（600） | 最大宽度限制（dp） |
+| `maxHeight` | double? | null | 最大高度限制；展开态横持等纵向有限形态使用，超出由滚动接管 |
 | `alignment` | Alignment | topCenter | 对齐方式 |
 | `padding` | EdgeInsets? | null | 可选外边距 |
 
@@ -335,7 +343,114 @@ ContentConstraint(
 
 ---
 
-## AppShellPage 自适应导航
+## 折叠屏适配（FoldInfo / FoldAwareBuilder / HingeSplitLayout）
+
+**路径**: `lib/shared/responsive/fold_aware.dart`
+
+### 核心心智模型
+
+**一般页面适配只需要 `AdaptiveBuilder`。** 折叠屏展开/折叠本质上只是窗口宽度变化
+（如 iPhone Duo 折叠态 466dp ↔ 展开态 890dp），断点体系天然覆盖——折叠态走
+compact、展开态走 medium/expanded，`AdaptiveBuilder` 的渐进回退自动兜底。
+
+`FoldAwareBuilder` 系列**只在布局需要感知铰链位置时使用**：
+
+| 需求 | 用什么 |
+|------|--------|
+| 支持"折叠屏"（宽度变化适配） | `AdaptiveBuilder`，无需额外代码 |
+| 两栏布局，分栏线恰好压在铰链/折痕上 | `FoldAwareBuilder` |
+| 交互元素（按钮/输入框）必须避开物理铰链遮挡 | `HingeSplitLayout` |
+| 只需要铰链坐标做自定义布局 | `FoldInfo.fromContext` |
+| 对话框等浮层避铰链 | 官方 `DisplayFeatureSubScreen` |
+
+### ⚠️ 平台限制：仅 Android 生效
+
+`MediaQuery.displayFeatures` **目前只在 Android 上由系统填充**
+（Galaxy Fold / Pixel Fold 等会报告铰链位置）。
+
+- iPhone Duo 上 `FoldInfo` 恒为 `none`，`HingeSplitLayout` 恒走 `fallback`
+- iOS 的折叠屏适配完全依赖断点体系（466/626/890 → compact/medium/expanded），
+  不依赖本组 API
+- 因此 **`fallback` / 比例分栏兜底必须完整可用**——它是绝大多数用户的实际路径
+
+### FoldInfo 姿态数据类
+
+解析 `displayFeatures` 得到语义明确的折叠姿态：
+
+| 字段 | 类型 | 含义 | 来源 |
+|------|------|------|------|
+| `obstruction` | `Rect?` | 物理铰链，**遮挡**内容，需避让 | 仅 `DisplayFeatureType.hinge` |
+| `foldCrease` | `Rect?` | 折痕，不遮挡，可作分栏参考线 | 仅 `DisplayFeatureType.fold` |
+| `isHalfOpened` | `bool` | 半开姿态（帐篷/笔记本形态） | `postureHalfOpened` |
+| `hingeBounds` | `Rect?` getter | 分栏参考线（优先铰链，无则折痕） | — |
+| `isFoldable` | `bool` getter | 是否折叠屏设备 | — |
+
+```dart
+final fold = FoldInfo.fromContext(context);
+
+if (fold.isHalfOpened) {
+  // 半开姿态：可做帐篷/笔记本形态的专属 UI
+}
+if (fold.obstruction != null) {
+  // 有物理铰链，交互元素需避让此区域
+}
+```
+
+### FoldAwareBuilder：断点布局 + 分栏对齐折痕
+
+在 `AdaptiveLayoutBuilder` 的断点语义上额外暴露 `FoldInfo`，
+供两栏布局把分栏线对齐铰链/折痕：
+
+```dart
+FoldAwareBuilder(
+  compact: (_, __) => const ContactList(),  // 手机：单栏
+  medium: (constraints, fold) => Row(
+    children: [
+      // 分栏线优先对齐铰链左侧，无铰链按 40% 比例兜底
+      SizedBox(
+        width: fold.hingeBounds?.left ?? constraints.maxWidth * 0.4,
+        child: const ContactList(),
+      ),
+      // 铰链本体区域留空（遮挡部分不放内容）
+      if (fold.obstruction != null)
+        SizedBox(width: fold.obstruction!.width),
+      const Expanded(child: DetailPanel()),
+    ],
+  ),
+)
+```
+
+回退规则与 `AdaptiveLayoutBuilder` 一致（渐进回退：
+expanded→medium→compact，medium→compact）。
+
+### HingeSplitLayout：物理避让铰链
+
+把内容拆分到铰链左右两侧，适用于交互元素不能落在遮挡区的场景：
+
+```dart
+HingeSplitLayout(
+  left: const CameraPanel(),     // 铰链左侧
+  right: const AlbumPanel(),     // 铰链右侧
+  fallback: const SinglePanel(), // 必填：非折叠设备 / iOS 走这里
+  hingeMargin: 8,                // 距铰链的安全间距
+)
+```
+
+内部逻辑：有 `obstruction` 且两侧宽度合法时按
+`左宽 + 铰链宽 + margin×2 + 右宽` 拆分；否则（无铰链 / 宽度 ≤0 / iOS）
+直接渲染 `fallback`。
+
+### 示例页面
+
+**文件**: `lib/features/_responsive_demo/presentation/pages/fold_aware_demo_page.dart`
+
+从「响应式适配示例 → 折叠屏适配」进入。由于普通设备上 `FoldInfo` 恒为
+`none`，页面提供**模拟铰链开关**（通过 `MediaQuery.copyWith` 注入虚拟
+`DisplayFeature`），可在任何设备/模拟器上演示三个 API 的完整行为，
+Android 折叠屏真机上关闭模拟即可观察系统真实数据。
+
+---
+
 
 **路径**: `lib/features/app/presentation/pages/app_shell.dart`
 
@@ -475,7 +590,7 @@ Text('标题', style: TextStyle(fontSize: 20))
 
 ## 示例页面
 
-项目包含 8 个响应式适配示例页面，可从 **Profile → Responsive Demo** 进入：
+项目包含 9 个响应式适配示例页面，可从 **Profile → Responsive Demo** 进入：
 
 ### 1. Dashboard 仪表盘
 
@@ -597,6 +712,21 @@ Text('标题', style: TextStyle(fontSize: 20))
 - 底部输入框固定在键盘上方（`SafeArea(top: false)`）
 - 手机用 `Navigator.push()` 进入对话（有意保留原生导航，因为对话页是内部临时视图），平板用 `setState` 切换右侧面板
 - 对比 `MasterDetailPage` 的 AutoRoute 方案，了解两种导航选择的取舍
+
+### 9. 折叠屏适配
+
+**文件**: `lib/features/_responsive_demo/presentation/pages/fold_aware_demo_page.dart`
+
+| 普通设备 | 模拟铰链开启后 |
+|---------|--------------|
+| `FoldInfo` 为 none，`HingeSplitLayout` 走 fallback | 完整演示三个 API 的折叠屏行为 |
+
+**学习要点**：
+- `FoldInfo` 读取折叠姿态（铰链 `obstruction` / 折痕 `foldCrease` / 半开 `isHalfOpened`）
+- `FoldAwareBuilder` 断点布局 + 分栏线对齐铰链/折痕
+- `HingeSplitLayout` 交互元素物理避让铰链遮挡区
+- 内置「模拟铰链」开关（`MediaQuery.copyWith` 注入虚拟 `DisplayFeature`），无需 Android 折叠屏真机即可调试
+- 详见 [折叠屏适配](#折叠屏适配foldinfo--foldawarebuilder--hingesplitlayout) 章节
 
 ---
 

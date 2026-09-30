@@ -29,6 +29,7 @@ class ResponsiveBreakpoints {
   }
 
   static WindowSizeClass fromConstraints(BoxConstraints constraints) {
+    if (!constraints.hasBoundedWidth) return WindowSizeClass.compact;
     return fromWidth(constraints.maxWidth);
   }
 
@@ -54,32 +55,35 @@ class ResponsiveBreakpoints {
   static bool isExpandedScreen(BuildContext context) =>
       fromContext(context) == WindowSizeClass.expanded;
 
+  /// 按断点返回对应值，渐进回退（expanded→medium→compact）。
+  ///
+  /// medium 缺失时回退到 compact（而非 expanded），
+  /// 避免 600dp 窗口使用为 840dp+ 设计的布局导致溢出。
   static T valueOf<T>(
     BoxConstraints constraints, {
     required T compactValue,
     T? mediumValue,
     T? expandedValue,
   }) {
-    // 回退顺序：expanded -> medium -> compact
     final windowClass = fromConstraints(constraints);
     return switch (windowClass) {
       WindowSizeClass.expanded => expandedValue ?? mediumValue ?? compactValue,
-      WindowSizeClass.medium => mediumValue ?? expandedValue ?? compactValue,
+      WindowSizeClass.medium => mediumValue ?? compactValue,
       WindowSizeClass.compact => compactValue,
     };
   }
 
+  /// 按窗口宽度返回对应值，渐进回退（expanded→medium→compact）。
   static T screenValueOf<T>(
     BuildContext context, {
     required T compactValue,
     T? mediumValue,
     T? expandedValue,
   }) {
-    // 回退顺序：expanded -> medium -> compact
     final windowClass = fromContext(context);
     return switch (windowClass) {
       WindowSizeClass.expanded => expandedValue ?? mediumValue ?? compactValue,
-      WindowSizeClass.medium => mediumValue ?? expandedValue ?? compactValue,
+      WindowSizeClass.medium => mediumValue ?? compactValue,
       WindowSizeClass.compact => compactValue,
     };
   }

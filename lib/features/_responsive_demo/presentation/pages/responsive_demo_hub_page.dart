@@ -72,6 +72,13 @@ class ResponsiveDemoHubPage extends StatelessWidget {
         onTap: () =>
             unawaited(context.router.push(const ResponsiveChatRoute())),
       ),
+      _DemoEntry(
+        title: '折叠屏适配',
+        subtitle: '铰链避让 / 分栏对齐折痕 / 半开姿态（支持模拟铰链）',
+        icon: Icons.devices_fold_outlined,
+        onTap: () =>
+            unawaited(context.router.push(const FoldAwareDemoRoute())),
+      ),
     ];
 
     return Scaffold(

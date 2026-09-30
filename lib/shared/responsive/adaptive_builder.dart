@@ -6,15 +6,15 @@ import 'package:flutter_clean_arch_template/shared/responsive/breakpoints.dart';
 /// 基于 [LayoutBuilder] 的父组件约束宽度，在不同断点返回不同的子组件。
 /// 内部使用 [ResponsiveBreakpoints] 的断点常量（compact < 600dp, expanded >= 840dp）。
 ///
-/// 回退规则：
-/// - expanded 宽度但 [expanded] 为 null → 使用 [medium]
-/// - medium 宽度但 [medium] 为 null → 使用 [expanded]（如有）或 [compact]
+/// 渐进回退规则（大→小安全降级）：
+/// - expanded 宽度但 [expanded] 为 null → [medium] → [compact]
+/// - medium 宽度但 [medium] 为 null → [compact]
 ///
 /// ```dart
 /// // 基础用法：手机和平板两种布局
 /// AdaptiveBuilder(
 ///   compact: MobileLayout(),      // < 600dp
-///   medium: TabletLayout(),       // >= 600dp
+///   medium: TabletLayout(),       // >= 600dp（expanded 也会回退到此）
 /// )
 ///
 /// // 三种布局
@@ -45,13 +45,14 @@ class AdaptiveBuilder extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (ResponsiveBreakpoints.isExpanded(constraints) && expanded != null) {
-          return expanded!;
-        }
-        if (!ResponsiveBreakpoints.isCompact(constraints)) {
-          return medium ?? expanded ?? compact;
-        }
-        return compact;
+        final windowClass = ResponsiveBreakpoints.fromConstraints(constraints);
+        return switch (windowClass) {
+          WindowSizeClass.expanded =>
+            expanded ?? medium ?? compact,
+          WindowSizeClass.medium =>
+            medium ?? compact,
+          WindowSizeClass.compact => compact,
+        };
       },
     );
   }
@@ -59,7 +60,8 @@ class AdaptiveBuilder extends StatelessWidget {
 
 /// 自适应布局构建器（Builder 回调版本）
 ///
-/// 与 [AdaptiveBuilder] 相同的断点逻辑，但通过回调传递 [BoxConstraints]，
+/// 与 [AdaptiveBuilder] 相同的断点和渐进回退逻辑，
+/// 但通过回调传递 [BoxConstraints]，
 /// 允许子组件根据约束值做进一步的布局计算（如分栏比例、宽度值等）。
 ///
 /// 使用场景：
@@ -103,14 +105,15 @@ class AdaptiveLayoutBuilder extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (ResponsiveBreakpoints.isExpanded(constraints) && expanded != null) {
-          return expanded!(constraints);
-        }
-        if (!ResponsiveBreakpoints.isCompact(constraints)) {
-          final builder = medium ?? expanded ?? compact;
-          return builder(constraints);
-        }
-        return compact(constraints);
+        final windowClass = ResponsiveBreakpoints.fromConstraints(constraints);
+        final builder = switch (windowClass) {
+          WindowSizeClass.expanded =>
+            expanded ?? medium ?? compact,
+          WindowSizeClass.medium =>
+            medium ?? compact,
+          WindowSizeClass.compact => compact,
+        };
+        return builder(constraints);
       },
     );
   }
@@ -118,21 +121,23 @@ class AdaptiveLayoutBuilder extends StatelessWidget {
 
 /// 有状态的自适应布局构建器
 ///
-/// 与 [AdaptiveBuilder] 相同的断点逻辑，但使用 [IndexedStack] 保持
-/// 所有已构建的子组件状态。断点切换时切换显示而非销毁重建。
+/// 与 [AdaptiveBuilder] 相同的断点和渐进回退逻辑，
+/// 但使用 [IndexedStack] 保持已构建子组件的状态。
+/// 断点切换时切换显示而非销毁重建。
 ///
-/// 适用场景：
-/// - 包含表单输入的页面（旋转屏幕不丢失输入内容）
-/// - 包含滚动列表的页面（旋转屏幕保持滚动位置）
+/// **适用场景**：同一子树在不同断点下复用（如旋转屏幕保持滚动位置）。
 ///
-/// 注意：所有断点的子组件会同时存在于内存中，不适合非常重的页面。
+/// **不适用**：compact 和 medium 是两套独立表单组件——`IndexedStack`
+/// 只保持各自状态，不会在两套表单之间迁移输入内容。
+/// 跨布局共享表单数据请将状态上提到 Controller 或 Provider。
+///
+/// 注意：所有断点子组件同时存在于内存中，不适合包含重资源的页面。
 /// 如果不需要状态保持，优先使用更轻量的 [AdaptiveBuilder]。
 ///
 /// ```dart
-/// // 旋转屏幕后表单输入不丢失
 /// StatefulAdaptiveBuilder(
 ///   compact: CompactForm(),
-///   medium: MediumForm(),
+///   medium: MediumForm(), // 与 CompactForm 共享 TextEditingController
 /// )
 /// ```
 class StatefulAdaptiveBuilder extends StatelessWidget {
@@ -156,18 +161,18 @@ class StatefulAdaptiveBuilder extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final children = <Widget>[
-          compact,
-          medium ?? expanded ?? compact,
-          expanded ?? medium ?? compact,
-        ];
-        final index =
-            ResponsiveBreakpoints.isExpanded(constraints) && expanded != null
-            ? 2
-            : !ResponsiveBreakpoints.isCompact(constraints) &&
-                  (medium ?? expanded) != null
-            ? 1
-            : 0;
+        // 只构建实际存在的不同子组件，避免重复挂载同一实例
+        final children = <Widget>[compact];
+        if (medium != null) children.add(medium!);
+        if (expanded != null) children.add(expanded!);
+
+        // 断点 → children 下标（与 AdaptiveBuilder 渐进回退一致）
+        final index = switch (ResponsiveBreakpoints.fromConstraints(constraints)) {
+          WindowSizeClass.expanded => expanded != null ? children.length - 1 : (medium != null ? 1 : 0),
+          WindowSizeClass.medium => medium != null ? 1 : 0,
+          WindowSizeClass.compact => 0,
+        };
+
         return IndexedStack(index: index, children: children);
       },
     );
