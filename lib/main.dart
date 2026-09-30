@@ -133,8 +133,11 @@ class _BootstrapErrorAppState extends State<_BootstrapErrorApp> {
     try {
       await widget.onRetry();
     } catch (error, stackTrace) {
-      AppLogger.error('应用初始化重试失败（$_retryCount/$_maxRetries）',
-          error: error, stackTrace: stackTrace);
+      AppLogger.error(
+        '应用初始化重试失败（$_retryCount/$_maxRetries）',
+        error: error,
+        stackTrace: stackTrace,
+      );
     } finally {
       if (mounted) {
         setState(() => _isRetrying = false);
@@ -164,7 +167,9 @@ class _BootstrapErrorAppState extends State<_BootstrapErrorApp> {
                   Text(
                     _exhausted ? '初始化失败，请重新安装应用' : '应用初始化失败',
                     style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.w600),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   if (kDebugMode)
@@ -226,28 +231,62 @@ class MyApp extends ConsumerWidget {
         return fontSize * scale;
       },
       builder: (context, child) {
-        return AuthNavigationListener(
-          child: KeyboardDismissOnTap(
-            dismissOnCapturedTaps: true,
-            child: MaterialApp.router(
-              title: 'Flutter Clean Arch',
-              routerConfig: appRouter.config(
-                navigatorObservers: () => [
-                  if (AppLogger.routeObserver != null) AppLogger.routeObserver!,
-                ],
+        return _AppDisposeHook(
+          child: AuthNavigationListener(
+            child: KeyboardDismissOnTap(
+              dismissOnCapturedTaps: true,
+              child: MaterialApp.router(
+                title: 'Flutter Clean Arch',
+                routerConfig: appRouter.config(
+                  navigatorObservers: () => [
+                    if (AppLogger.routeObserver != null)
+                      AppLogger.routeObserver!,
+                  ],
+                ),
+                theme: AppTheme.lightTheme,
+                darkTheme: AppTheme.darkTheme,
+                themeMode: themeMode,
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                locale: locale,
+                builder: EasyLoading.init(),
+                debugShowCheckedModeBanner: false,
               ),
-              theme: AppTheme.lightTheme,
-              darkTheme: AppTheme.darkTheme,
-              themeMode: themeMode,
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
-              supportedLocales: AppLocalizations.supportedLocales,
-              locale: locale,
-              builder: EasyLoading.init(),
-              debugShowCheckedModeBanner: false,
             ),
           ),
         );
       },
     );
   }
+}
+
+/// App 退出时清理初始化期间创建的全局资源
+///
+/// （如 OrientationPolicy 的折叠/展开 metrics 监听）。
+class _AppDisposeHook extends StatefulWidget {
+  const _AppDisposeHook({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_AppDisposeHook> createState() => _AppDisposeHookState();
+}
+
+class _AppDisposeHookState extends State<_AppDisposeHook>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    AppInitializer.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
