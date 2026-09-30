@@ -2,9 +2,12 @@ import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_clean_arch_template/core/l10n/language_provider.dart';
 import 'package:flutter_clean_arch_template/core/router/app_router.dart';
 import 'package:flutter_clean_arch_template/features/auth/presentation/providers/auth_provider.dart';
+import 'package:flutter_clean_arch_template/generated/l10n/app_localizations.dart';
 import 'package:flutter_clean_arch_template/shared/responsive/content_constraint.dart';
+import 'package:flutter_clean_arch_template/shared/widgets/language_switcher.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -14,6 +17,8 @@ class ProfilePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final currentLanguage = ref.watch(appLanguageSettingProvider);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
       body: ContentConstraint(
@@ -47,6 +52,14 @@ class ProfilePage extends ConsumerWidget {
             Card(
               child: Column(
                 children: [
+                  ListTile(
+                    leading: const Icon(Icons.language_outlined),
+                    title: Text(AppLocalizations.of(context).profile_language),
+                    subtitle: Text(currentLanguage.displayName),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => unawaited(LanguageSwitcherDialog.show(context)),
+                  ),
+                  const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.palette_outlined),
                     title: const Text('Theme Settings'),

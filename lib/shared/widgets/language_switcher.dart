@@ -87,7 +87,7 @@ class LanguageSwitcher extends ConsumerWidget {
                       ),
                       child: Center(
                         child: Text(
-                          _getLanguageFlag(language),
+                          language.flag,
                           style: const TextStyle(fontSize: 16),
                         ),
                       ),
@@ -137,7 +137,7 @@ class LanguageSwitcher extends ConsumerWidget {
           child: Row(
             children: [
               Text(
-                _getLanguageFlag(language),
+                language.flag,
                 style: const TextStyle(fontSize: 16),
               ),
               const SizedBox(width: 8),
@@ -171,7 +171,7 @@ class LanguageSwitcher extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              _getLanguageFlag(currentLanguage),
+              currentLanguage.flag,
               style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(width: 8),
@@ -195,15 +195,6 @@ class LanguageSwitcher extends ConsumerWidget {
     await ref.read(appLanguageSettingProvider.notifier).changeLanguage(language);
   }
 
-  /// 获取语言对应的旗帜表情符号
-  String _getLanguageFlag(AppLanguage language) {
-    switch (language) {
-      case AppLanguage.chinese:
-        return '🇨🇳';
-      case AppLanguage.english:
-        return '🇺🇸';
-    }
-  }
 }
 
 /// 语言切换对话框
@@ -256,7 +247,7 @@ class LanguageSwitcherButton extends ConsumerWidget {
         radius: 12,
         backgroundColor: Theme.of(context).colorScheme.surface,
         child: Text(
-          _getLanguageFlag(currentLanguage),
+          currentLanguage.flag,
           style: const TextStyle(fontSize: 12),
         ),
       ),
@@ -264,13 +255,4 @@ class LanguageSwitcherButton extends ConsumerWidget {
     );
   }
 
-  /// 获取语言对应的旗帜表情符号
-  String _getLanguageFlag(AppLanguage language) {
-    switch (language) {
-      case AppLanguage.chinese:
-        return '🇨🇳';
-      case AppLanguage.english:
-        return '🇺🇸';
-    }
-  }
 }
