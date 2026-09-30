@@ -74,27 +74,30 @@ class AppLogger {
     Object? error,
     StackTrace? stackTrace,
   }) {
-    // 在 debug 模式下输出到控制台并缓存
+    final filteredMessage = SensitiveFilter.filterSensitiveData(message);
+    final sanitizedError = error == null ? null : _sanitizeError(error);
+
+    // Debug 控制台和后续缓冲都只能接触脱敏后的内容。
     if (kDebugMode) {
       final timestamp = DateTime.now().toIso8601String();
-      debugPrint('[$timestamp][$level] $message');
-      if (error != null) {
-        debugPrint('Error: $error');
+      debugPrint('[$timestamp][$level] $filteredMessage');
+      if (sanitizedError != null) {
+        debugPrint('Error: $sanitizedError');
       }
       if (stackTrace != null) {
         debugPrint('StackTrace: $stackTrace');
       }
+    }
 
-      // 缓存日志（限制数量）
-      if (_earlyLogBuffer.length < _maxEarlyLogs) {
-        _earlyLogBuffer.add({
-          'level': level,
-          'message': message,
-          'error': error,
-          'stackTrace': stackTrace,
-          'timestamp': DateTime.now(),
-        });
-      }
+    // Release 下也缓存初始化前的重要日志，待 Talker 就绪后统一输出。
+    if (_earlyLogBuffer.length < _maxEarlyLogs) {
+      _earlyLogBuffer.add({
+        'level': level,
+        'message': filteredMessage,
+        'error': sanitizedError,
+        'stackTrace': stackTrace,
+        'timestamp': DateTime.now(),
+      });
     }
   }
 
@@ -114,8 +117,10 @@ class AppLogger {
         final formattedTimestamp =
             '${timestamp.hour}:${timestamp.minute}:${timestamp.second} ${timestamp.millisecond}ms';
 
-        // 添加标记表示这是早期日志
-        final earlyMessage = '[早期日志] $formattedTimestamp $message';
+        // 缓冲写入时（_handleEarlyLog）已完成脱敏，此处直接使用，
+        // 避免二次过滤与 Exception 嵌套包装。
+        final earlyMessage =
+            '[早期日志] $formattedTimestamp $message';
 
         switch (level) {
           case 'DEBUG':
@@ -137,7 +142,11 @@ class AppLogger {
           case 'WARNING':
             if (error != null || stackTrace != null) {
               _talker.logCustom(
-                TalkerLog(earlyMessage, title: 'WARNING', stackTrace: stackTrace),
+                TalkerLog(
+                  earlyMessage,
+                  title: 'WARNING',
+                  stackTrace: stackTrace,
+                ),
               );
             } else {
               _talker.warning(earlyMessage);
@@ -170,6 +179,12 @@ class AppLogger {
     if (!_initialized) {
       throw StateError('AppLogger 未初始化，请先调用 AppLogger.initialize()');
     }
+  }
+
+  static Exception _sanitizeError(Object error) {
+    return Exception(
+      SensitiveFilter.filterSensitiveData(error.toString()),
+    );
   }
 
   /// Debug 级别日志
@@ -252,9 +267,7 @@ class AppLogger {
       // Authorization 头/手机号），message 过滤覆盖不到，
       // 须对 error 文本同样脱敏。包装为 Exception 以通过 Talker 类型约束，
       // 原始堆栈不受影响。
-      final sanitizedError = Exception(
-        SensitiveFilter.filterSensitiveData(error.toString()),
-      );
+      final sanitizedError = _sanitizeError(error);
       _talker.handle(sanitizedError, stackTrace, filteredMessage);
     } else {
       _talker.error(filteredMessage);
@@ -272,9 +285,7 @@ class AppLogger {
 
     if (error != null) {
       // 同 error()：error 对象文本脱敏后再交给 Talker
-      final sanitizedError = Exception(
-        SensitiveFilter.filterSensitiveData(error.toString()),
-      );
+      final sanitizedError = _sanitizeError(error);
       _talker.handle(sanitizedError, stackTrace, filteredMessage);
     } else {
       _talker.critical(filteredMessage);
@@ -312,7 +323,9 @@ class AppLogger {
 
     // 过滤敏感信息
     final filteredMessage = SensitiveFilter.filterSensitiveData(message);
-    final filteredData = data != null ? SensitiveFilter.maskSensitiveMap(data) : null;
+    final filteredData = data != null
+        ? SensitiveFilter.maskSensitiveMap(data)
+        : null;
 
     _talker.logCustom(
       HttpTalkerLog(filteredMessage, data: filteredData),
@@ -328,10 +341,13 @@ class AppLogger {
   }) {
     if (!_initialized) return;
 
-    final logMessage = message != null ? '$message: $exception' : exception.toString();
+    final logMessage = message != null
+        ? '$message: $exception'
+        : exception.toString();
     final filteredMessage = SensitiveFilter.filterSensitiveData(logMessage);
+    final sanitizedException = _sanitizeError(exception);
 
-    _talker.handle(exception, stackTrace, filteredMessage);
+    _talker.handle(sanitizedException, stackTrace, filteredMessage);
   }
 
   /// 获取 Talker 实例（用于高级用法，如 TalkerScreen）

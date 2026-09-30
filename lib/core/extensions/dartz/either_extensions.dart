@@ -36,18 +36,23 @@ extension EitherExtensions<L, R> on Either<L, R> {
   }
 }
 
+/// 将 Either 的左侧值转换为 AsyncValue.error
+///
+/// 供 [EitherToAsync] 和 [FutureEitherExtensions] 共用，避免逻辑重复。
+AsyncValue<R> failureToAsyncError<L, R>(L failure) {
+  if (failure is Object) {
+    return AsyncValue.error(failure, StackTrace.current);
+  }
+  return AsyncValue.error(
+    UnknownFailure(message: 'Unknown error: $failure'),
+    StackTrace.current,
+  );
+}
+
 /// Either → Riverpod AsyncValue 转换
 extension EitherToAsync<L, R> on Either<L, R> {
-  /// 将 Either 转换为 AsyncValue，供 AsyncValueWidget 筍直接消费
+  /// 将 Either 转换为 AsyncValue，供 AsyncValueWidget 等直接消费
   AsyncValue<R> toAsyncValue() {
-    return fold(
-      (failure) {
-        if (failure is Object) {
-          return AsyncValue.error(failure, StackTrace.current);
-        }
-        return AsyncValue.error(UnknownFailure(message: 'Unknown error: $failure'), StackTrace.current);
-      },
-      AsyncValue.data,
-    );
+    return fold(failureToAsyncError, AsyncValue.data);
   }
 }

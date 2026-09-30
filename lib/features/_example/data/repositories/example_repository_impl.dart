@@ -2,13 +2,13 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter_clean_arch_template/core/env/app_config.dart';
 import 'package:flutter_clean_arch_template/core/errors/failures.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
-import 'package:flutter_clean_arch_template/core/network/models/api_response.dart';
 import 'package:flutter_clean_arch_template/features/_example/data/datasources/example_mock_datasource.dart';
 import 'package:flutter_clean_arch_template/features/_example/data/datasources/example_remote_datasource.dart';
 import 'package:flutter_clean_arch_template/features/_example/data/models/example_mapper.dart';
 import 'package:flutter_clean_arch_template/features/_example/data/models/get_example_list_request.dart';
 import 'package:flutter_clean_arch_template/features/_example/domain/entities/example_item.dart';
 import 'package:flutter_clean_arch_template/features/_example/domain/repositories/example_repository.dart';
+import 'package:flutter_clean_arch_template/shared/models/page_result.dart';
 import 'package:injectable/injectable.dart';
 
 /// 示例 Repository 实现（Data 层）
@@ -27,7 +27,7 @@ class ExampleRepositoryImpl implements ExampleRepository {
   final ExampleMockDataSource _mockDataSource = ExampleMockDataSource();
 
   @override
-  Future<Either<Failure, PaginatedData<ExampleItem>>> getList({
+  Future<Either<Failure, PageResult<ExampleItem>>> getList({
     required int pageNum,
     int pageSize = 20,
   }) async {
@@ -47,8 +47,8 @@ class ExampleRepositoryImpl implements ExampleRepository {
         'total=${paginatedDto.total}',
       );
 
-      return PaginatedData<ExampleItem>(
-        rows: paginatedDto.rows.toEntities(),
+      return PageResult<ExampleItem>(
+        items: paginatedDto.rows.toEntities(),
         total: paginatedDto.total,
         hasNext: paginatedDto.hasNext,
         hasPrevious: paginatedDto.hasPrevious,
@@ -60,7 +60,9 @@ class ExampleRepositoryImpl implements ExampleRepository {
 
   @override
   Future<Either<Failure, ExampleItem>> getDetail(String id) async {
-    final result = AppConfig.mockData ? await _mockDataSource.getDetail(id) : await _remoteDataSource.getDetail(id);
+    final result = AppConfig.mockData
+        ? await _mockDataSource.getDetail(id)
+        : await _remoteDataSource.getDetail(id);
     return result.map((dto) => dto.toEntity());
   }
 }

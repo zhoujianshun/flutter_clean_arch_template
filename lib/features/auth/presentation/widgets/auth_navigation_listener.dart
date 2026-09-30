@@ -14,10 +14,12 @@ class AuthNavigationListener extends ConsumerStatefulWidget {
   final Widget child;
 
   @override
-  ConsumerState<AuthNavigationListener> createState() => _AuthNavigationListenerState();
+  ConsumerState<AuthNavigationListener> createState() =>
+      _AuthNavigationListenerState();
 }
 
-class _AuthNavigationListenerState extends ConsumerState<AuthNavigationListener> {
+class _AuthNavigationListenerState
+    extends ConsumerState<AuthNavigationListener> {
   bool _isNavigatingToLogin = false;
   Timer? _resetNavigationTimer;
   DateTime? _lastProcessedChangeTime;
@@ -36,7 +38,10 @@ class _AuthNavigationListenerState extends ConsumerState<AuthNavigationListener>
 
   void _handleAuthStateChange(AuthState? previous, AuthState next) {
     if (next.changeReason == null) return;
-    if (next.changeTime != null && next.changeTime == _lastProcessedChangeTime) return;
+    if (next.changeTime != null &&
+        next.changeTime == _lastProcessedChangeTime) {
+      return;
+    }
     _lastProcessedChangeTime = next.changeTime;
 
     switch (next.changeReason!) {
@@ -47,6 +52,10 @@ class _AuthNavigationListenerState extends ConsumerState<AuthNavigationListener>
       case AuthStateChangeReason.tokenExpired:
       case AuthStateChangeReason.authenticationFailed:
         _navigateToLogin();
+      case AuthStateChangeReason.appInitializationFailed:
+        if (next.errorMessage != null) {
+          unawaited(MyEasyPopMessage.showError(next.errorMessage!));
+        }
       case AuthStateChangeReason.loginFailed:
       case AuthStateChangeReason.appInitializedNoToken:
       case AuthStateChangeReason.appInitializedWithToken:
@@ -79,7 +88,10 @@ class _AuthNavigationListenerState extends ConsumerState<AuthNavigationListener>
         }
       });
     } catch (e) {
-      AppLogger.e('AuthNavigationListener: Error navigating to login', error: e);
+      AppLogger.e(
+        'AuthNavigationListener: Error navigating to login',
+        error: e,
+      );
     }
   }
 }

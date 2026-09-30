@@ -20,11 +20,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  _setupErrorHandlers();
-
-  runZonedGuarded(
-    () => unawaited(_bootstrap()),
+  runZonedGuarded<void>(
+    () {
+      final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+      _setupErrorHandlers();
+      unawaited(_bootstrap(widgetsBinding));
+    },
     (error, stackTrace) {
       // AppLogger 初始化前的 release 场景下 Talker 不可用，debugPrint 兜底
       debugPrint('Uncaught zone error: $error');
@@ -37,9 +38,7 @@ void main() {
 ///
 /// 失败时渲染 [_BootstrapErrorApp] 兜底页（含重试），由 [_BootstrapErrorApp]
 /// 的重试按钮再次调用。
-Future<void> _bootstrap() async {
-  final widgetsBinding = WidgetsBinding.instance;
-
+Future<void> _bootstrap(WidgetsBinding widgetsBinding) async {
   try {
     await AppInitializer.initialize(widgetsBinding);
   } catch (error) {
@@ -50,7 +49,7 @@ Future<void> _bootstrap() async {
         onRetry: () async {
           // 清掉 GetIt 可能的半初始化状态再重试
           await ServiceLocator.reset();
-          await _bootstrap();
+          await _bootstrap(widgetsBinding);
         },
       ),
     );
@@ -108,11 +107,40 @@ void _setupErrorHandlers() {
 /// 初始化失败兜底页
 ///
 /// 独立于 DI / l10n / 主题体系（此时它们可能尚未就绪）。
-class _BootstrapErrorApp extends StatelessWidget {
+class _BootstrapErrorApp extends StatefulWidget {
   const _BootstrapErrorApp({required this.error, required this.onRetry});
 
   final Object error;
   final Future<void> Function() onRetry;
+
+  @override
+  State<_BootstrapErrorApp> createState() => _BootstrapErrorAppState();
+}
+
+class _BootstrapErrorAppState extends State<_BootstrapErrorApp> {
+  static const int _maxRetries = 3;
+
+  bool _isRetrying = false;
+  int _retryCount = 0;
+
+  bool get _exhausted => _retryCount >= _maxRetries;
+
+  Future<void> _retry() async {
+    if (_isRetrying || _exhausted) return;
+
+    setState(() => _isRetrying = true);
+    _retryCount++;
+    try {
+      await widget.onRetry();
+    } catch (error, stackTrace) {
+      AppLogger.error('应用初始化重试失败（$_retryCount/$_maxRetries）',
+          error: error, stackTrace: stackTrace);
+    } finally {
+      if (mounted) {
+        setState(() => _isRetrying = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -127,25 +155,36 @@ class _BootstrapErrorApp extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.error_outline, size: 56, color: Color(0xFFB00020)),
+                  const Icon(
+                    Icons.error_outline,
+                    size: 56,
+                    color: Color(0xFFB00020),
+                  ),
                   const SizedBox(height: 16),
-                  const Text(
-                    '应用初始化失败',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  Text(
+                    _exhausted ? '初始化失败，请重新安装应用' : '应用初始化失败',
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   if (kDebugMode)
                     Text(
-                      error.toString(),
+                      widget.error.toString(),
                       textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF757575)),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF757575),
+                      ),
                     ),
                   const SizedBox(height: 24),
                   FilledButton(
-                    onPressed: () {
-                      unawaited(onRetry());
-                    },
-                    child: const Text('重试'),
+                    onPressed: (_isRetrying || _exhausted) ? null : _retry,
+                    child: _isRetrying
+                        ? const SizedBox.square(
+                            dimension: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(_exhausted ? '已达最大重试次数' : '重试'),
                   ),
                 ],
               ),

@@ -53,15 +53,33 @@ class Auth extends _$Auth {
   }
 
   Future<void> _checkInitialAuthState() async {
-    final isLoggedIn = await _authRepository.isUserLoggedIn();
-    state = state.copyWith(
-      isAuthenticated: isLoggedIn,
-      changeReason: isLoggedIn
-          ? AuthStateChangeReason.appInitializedWithToken
-          : AuthStateChangeReason.appInitializedNoToken,
-      changeTime: DateTime.now(),
-    );
+    try {
+      final isLoggedIn = await _authRepository.isUserLoggedIn();
+      state = state.copyWith(
+        isAuthenticated: isLoggedIn,
+        errorMessage: null,
+        changeReason: isLoggedIn
+            ? AuthStateChangeReason.appInitializedWithToken
+            : AuthStateChangeReason.appInitializedNoToken,
+        changeTime: DateTime.now(),
+      );
+    } catch (error, stackTrace) {
+      AppLogger.error(
+        'Initial auth state check failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      // 存储读取失败不等同于“无 Token”，更不能清除可能仍有效的凭证。
+      state = state.copyWith(
+        errorMessage: '无法读取登录状态，请稍后重试',
+        changeReason: AuthStateChangeReason.appInitializationFailed,
+        changeTime: DateTime.now(),
+      );
+    }
   }
+
+  /// 重新检查本地登录状态，不清除现有凭证。
+  Future<void> retryInitialAuthCheck() => _checkInitialAuthState();
 
   Future<void> phoneLogin({
     required String phonenumber,

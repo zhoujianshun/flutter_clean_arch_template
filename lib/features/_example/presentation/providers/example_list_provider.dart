@@ -29,8 +29,8 @@ class ExampleList extends _$ExampleList {
     return result.fold(
       (failure) => throw failure,
       (data) {
-        _hasMore = _items.length + data.rows.length < data.total;
-        _items.addAll(data.rows);
+        _hasMore = data.hasNext;
+        _items.addAll(data.items);
         return List.unmodifiable(_items);
       },
     );

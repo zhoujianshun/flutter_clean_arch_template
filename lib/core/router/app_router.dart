@@ -333,10 +333,11 @@ class AppRouter extends RootStackRouter {
             path: 'home',
             initial: true,
           ),
-        AutoRoute(
-          page: ProfileRoute.page,
-          path: 'profile',
-        ),
+        if (AppConstants.includeDemos)
+          AutoRoute(
+            page: ProfileRoute.page,
+            path: 'profile',
+          ),
       ],
     ),
 

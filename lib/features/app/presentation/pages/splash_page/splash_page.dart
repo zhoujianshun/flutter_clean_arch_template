@@ -19,15 +19,31 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashPageState extends State<SplashPage> {
+  bool _initialDelayCompleted = false;
+  bool _isRetrying = false;
+  String? _errorMessage;
+
   @override
   void initState() {
     super.initState();
-    _initialize();
+    unawaited(_initialize());
   }
 
   Future<void> _initialize() async {
-    await Future<void>.delayed(AppConstants.splashDuration);
-    FlutterNativeSplash.remove();
+    if (_isRetrying) {
+      return;
+    }
+
+    setState(() {
+      _isRetrying = true;
+      _errorMessage = null;
+    });
+
+    if (!_initialDelayCompleted) {
+      await Future<void>.delayed(AppConstants.splashDuration);
+      _initialDelayCompleted = true;
+      FlutterNativeSplash.remove();
+    }
 
     if (!mounted) return;
 
@@ -47,10 +63,20 @@ class _SplashPageState extends State<SplashPage> {
         // Required mode: must login first
         unawaited(context.router.replaceAll([LoginRoute()]));
       }
-    } catch (e) {
-      AppLogger.error('Splash initialization error', error: e);
+    } catch (error, stackTrace) {
+      AppLogger.error(
+        'Splash initialization error',
+        error: error,
+        stackTrace: stackTrace,
+      );
       if (mounted) {
-        unawaited(context.router.replaceAll([LoginRoute()]));
+        setState(() {
+          _errorMessage = '无法读取登录状态，请检查设备状态后重试';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isRetrying = false);
       }
     }
   }
@@ -62,17 +88,45 @@ class _SplashPageState extends State<SplashPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.rocket_launch, size: 80, color: Theme.of(context).colorScheme.primary),
+            Icon(
+              Icons.rocket_launch,
+              size: 80,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             const SizedBox(height: 24),
             Text(
               'Flutter Clean Arch',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
               'Template',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
+            if (_errorMessage != null) ...[
+              const SizedBox(height: 24),
+              Text(
+                _errorMessage!,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.error,
+                ),
+              ),
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: _isRetrying ? null : _initialize,
+                child: _isRetrying
+                    ? const SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('重试'),
+              ),
+            ],
           ],
         ),
       ),

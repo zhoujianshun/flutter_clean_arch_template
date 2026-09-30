@@ -77,13 +77,9 @@ class AuthGuard extends AutoRouteGuard {
       }
     } catch (e, stackTrace) {
       AppLogger.error('Auth check failed', error: e, stackTrace: stackTrace);
-      resolver.redirectUntil(
-        LoginRoute(
-          onResult: ({success = false}) {
-            resolver.next(success);
-          },
-        ),
-      );
+      // 本地凭证读取故障不代表凭证失效，回到 Splash 提供重试入口，
+      // 避免错误地把用户送到登录页或清除仍有效的会话。
+      resolver.redirectUntil(const SplashRoute());
     } finally {
       _redirectingRoutes.remove(routeName);
     }

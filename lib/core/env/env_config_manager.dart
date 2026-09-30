@@ -321,11 +321,14 @@ class EnvConfigManager {
     // 不能用 dotenv.load(mergeWith:)：其内部先 clean() 清空全部现有配置，
     // 且默认 fileName '.env' 路径错误必然抛 FileNotFoundError。
     // 这里复制当前 env -> 覆盖目标 key -> 序列化后整体重建。
-    // 注意：值中包含换行符或 '#' 时 dotenv 解析有限制，运行时覆盖仅适用于简单标量值。
+    // 值用双引号包裹：flutter_dotenv 对成对引号只做去壳处理（substring），
+    // 使 '#' 与行内空格安全；但其不解析任何转义序列，
+    // 因此不能输出 \" 或 \\（字面量会留在值里），仅换行需预转义。
     final currentEnv = Map<String, String>.from(dotenv.env);
     currentEnv[key] = value;
     final envString = currentEnv.entries
-        .map((entry) => '${entry.key}=${entry.value.replaceAll('\n', r'\n')}')
+        .map((entry) =>
+            '${entry.key}="${entry.value.replaceAll('\n', r'\n')}"')
         .join('\n');
     dotenv.loadFromString(envString: envString);
   }

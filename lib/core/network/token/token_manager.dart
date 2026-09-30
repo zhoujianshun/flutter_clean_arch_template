@@ -109,7 +109,8 @@ class TokenManager {
   ///
   /// 返回：
   /// - 成功：返回有效的 access token
-  /// - 失败：返回 null（需要重新登录）
+  /// - 凭证不存在或失效：返回 null（需要重新登录）
+  /// - 存储等基础设施故障：保留异常语义并向上抛出
   Future<String?> getValidToken() async {
     try {
       // 1. 如果有刷新正在进行，等待刷新完成
@@ -142,9 +143,13 @@ class TokenManager {
       // 4. 直接返回当前 token
       AppLogger.debug('[TokenManager] 返回有效 token');
       return currentToken;
-    } catch (e) {
-      AppLogger.error('[TokenManager] 获取有效 token 失败', error: e);
-      return null;
+    } catch (error, stackTrace) {
+      AppLogger.error(
+        '[TokenManager] 获取有效 token 失败',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      rethrow;
     }
   }
 

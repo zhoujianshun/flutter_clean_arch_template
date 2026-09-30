@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_clean_arch_template/core/errors/failures.dart';
-import 'package:flutter_clean_arch_template/core/network/models/api_response.dart';
 import 'package:flutter_clean_arch_template/features/_example/domain/entities/example_item.dart';
+import 'package:flutter_clean_arch_template/shared/models/page_result.dart';
 
 /// 示例功能的 Repository 接口（Domain 层）
 ///
@@ -9,7 +9,7 @@ import 'package:flutter_clean_arch_template/features/_example/domain/entities/ex
 /// - 使用 Domain Entity [ExampleItem]，而非 DTO
 /// - 接口定义在 Domain 层，实现在 Data 层
 abstract class ExampleRepository {
-  Future<Either<Failure, PaginatedData<ExampleItem>>> getList({
+  Future<Either<Failure, PageResult<ExampleItem>>> getList({
     required int pageNum,
     int pageSize = 20,
   });

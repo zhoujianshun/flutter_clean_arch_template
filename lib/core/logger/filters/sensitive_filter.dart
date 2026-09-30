@@ -69,12 +69,16 @@ class SensitiveFilter {
       );
 
       // 匹配 URL 参数: key=value
+      // 注意：故意不加 \b 词边界——'_' 是单词字符，\b 会导致
+      // mobile_phone= / user_email= 等复合 key 匹配失败（漏脱敏）；
+      // 而模式要求 key 后紧跟 '='，auth 也匹配不到 author=，
+      // 无误匹配风险。宁多遮蔽，不漏遮蔽。
       result = result.replaceAllMapped(
         RegExp('$key=[^&\\s]*', caseSensitive: false),
         (match) => '$key=$mask',
       );
 
-      // 匹配 Header 格式: key: value
+      // 匹配 Header 格式: key: value（同上，不加词边界）
       result = result.replaceAllMapped(
         RegExp('$key\\s*:\\s*[^\\n]*', caseSensitive: false),
         (match) => '$key: $mask',
@@ -102,23 +106,15 @@ class SensitiveFilter {
       final error = data.error;
       if (error == null) return data;
       return TalkerError(
-        error,
+        _SanitizedError(filterSensitiveData(error.toString())),
         stackTrace: data.stackTrace,
         message: filteredMessage,
       );
     } else if (data is TalkerException) {
       final exception = data.exception;
       if (exception == null) return data;
-      if (exception is! Exception) {
-        // 如果不是Exception类型，包装成Exception
-        return TalkerException(
-          Exception(exception.toString()),
-          stackTrace: data.stackTrace,
-          message: filteredMessage,
-        );
-      }
       return TalkerException(
-        exception,
+        Exception(filterSensitiveData(exception.toString())),
         stackTrace: data.stackTrace,
         message: filteredMessage,
       );
@@ -154,4 +150,13 @@ class SensitiveFilter {
 
     return result;
   }
+}
+
+final class _SanitizedError extends Error {
+  _SanitizedError(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
 }

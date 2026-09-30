@@ -10,6 +10,7 @@ enum AuthStateChangeReason {
   authenticationFailed,
   appInitializedNoToken,
   appInitializedWithToken,
+  appInitializationFailed,
   userInfoLoaded,
   userInfoLoadFailed,
   dataCleared,

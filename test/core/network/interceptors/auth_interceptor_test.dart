@@ -7,7 +7,8 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_clean_arch_template/core/di/service_locator.dart';
 import 'package:flutter_clean_arch_template/core/env/env_config_manager.dart';
-import 'package:flutter_clean_arch_template/core/network/auth_config.dart';import 'package:flutter_clean_arch_template/core/network/errors/network_error.dart';
+import 'package:flutter_clean_arch_template/core/network/auth_config.dart';
+import 'package:flutter_clean_arch_template/core/network/errors/network_error.dart';
 import 'package:flutter_clean_arch_template/core/network/errors/network_error_notifier.dart';
 import 'package:flutter_clean_arch_template/core/network/interceptors/auth_interceptor.dart';
 import 'package:flutter_clean_arch_template/core/network/interceptors/retry_interceptor.dart';
@@ -96,6 +97,13 @@ class _FakeSingleStrategy extends _FakeDualStrategy {
   Future<String?> refreshToken() async => null;
 }
 
+class _ThrowingSingleStrategy extends _FakeSingleStrategy {
+  @override
+  Future<String?> getAccessToken() async {
+    throw StateError('secure storage unavailable');
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -142,6 +150,30 @@ void main() {
     dio.interceptors.add(AuthInterceptor());
     return dio;
   }
+
+  group('Token 存储读取失败', () {
+    test('不应将读取异常发布为认证失败事件', () async {
+      final manager = TokenManager(strategy: _ThrowingSingleStrategy());
+      final adapter = _ScriptedAdapter([
+        _Scenario.success({'code': 200}),
+      ]);
+      final dio = buildDio(adapter, manager);
+
+      await expectLater(
+        dio.get<dynamic>('/business/data'),
+        throwsA(
+          isA<DioException>().having(
+            (error) => error.error,
+            'error',
+            isA<StateError>(),
+          ),
+        ),
+      );
+
+      expect(adapter.callCount, 0, reason: 'Token 读取失败时不应发送业务请求');
+      expect(notifiedErrors, isEmpty, reason: '存储故障不等同于凭证失效');
+    });
+  });
 
   group('业务层 401（onResponse）刷新重放', () {
     test('刷新成功 → 重放成功：拿到新数据，无登出通知', () async {
@@ -538,9 +570,7 @@ class _Scenario {
     : _status = 200,
       _body = '{"code":401,"msg":"$msg"}';
 
-  _Scenario.http401()
-    : _status = 401,
-      _body = '';
+  _Scenario.http401() : _status = 401, _body = '';
 
   _Scenario.success(Map<String, dynamic> body)
     : _status = 200,
@@ -575,8 +605,10 @@ class _ScriptedAdapter implements HttpClientAdapter {
   ) async {
     callCount++;
     if (_script.isEmpty) {
-      return _Scenario.success({'code': 200, 'data': 'default'})
-          .toResponseBody();
+      return _Scenario.success({
+        'code': 200,
+        'data': 'default',
+      }).toResponseBody();
     }
     return _script.removeAt(0).toResponseBody();
   }

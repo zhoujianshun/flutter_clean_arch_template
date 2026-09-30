@@ -5,6 +5,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_clean_arch_template/core/constants/app_constants.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
 import 'package:flutter_clean_arch_template/core/router/app_router.dart';
 import 'package:flutter_clean_arch_template/shared/responsive/adaptive_builder.dart';
@@ -34,14 +35,27 @@ class _AppShellPageState extends ConsumerState<AppShellPage> {
   static const double _iosTabIconSize = 24;
 
   /// 导航目的地配置（共享给 NavigationBar 和 NavigationRail）
-  static const _destinations = <({IconData icon, IconData selectedIcon, String label})>[
-    (icon: Icons.home_outlined, selectedIcon: Icons.home, label: 'Home'),
-    (
-      icon: Icons.person_outline,
-      selectedIcon: Icons.person,
-      label: 'Profile',
-    ),
-  ];
+  static List<({IconData icon, IconData selectedIcon, String label})>
+  get _destinations => AppConstants.includeDemos
+      ? const [
+          (icon: Icons.home_outlined, selectedIcon: Icons.home, label: 'Home'),
+          (
+            icon: Icons.person_outline,
+            selectedIcon: Icons.person,
+            label: 'Profile',
+          ),
+        ]
+      : const [
+          (
+            icon: Icons.person_outline,
+            selectedIcon: Icons.person,
+            label: 'Profile',
+          ),
+        ];
+
+  static List<PageRouteInfo> get _tabRoutes => AppConstants.includeDemos
+      ? const [ExampleListRoute(), ProfileRoute()]
+      : const [ProfileRoute()];
 
   @override
   Widget build(BuildContext context) {
@@ -52,22 +66,23 @@ class _AppShellPageState extends ConsumerState<AppShellPage> {
         _handleBackPress();
       },
       child: AutoTabsRouter(
-        routes: const [
-          ExampleListRoute(),
-          ProfileRoute(),
-        ],
+        routes: _tabRoutes,
         builder: (context, child) {
           final tabsRouter = AutoTabsRouter.of(context);
           return AdaptiveLayoutBuilder(
             compact: (_) => _buildCompactShell(tabsRouter, child),
-            medium: (constraints) => _buildMediumShell(tabsRouter, child, constraints),
+            medium: (constraints) =>
+                _buildMediumShell(tabsRouter, child, constraints),
           );
         },
       ),
     );
   }
 
-  Widget _buildBottomNavigationBar(BuildContext context, TabsRouter tabsRouter) {
+  Widget _buildBottomNavigationBar(
+    BuildContext context,
+    TabsRouter tabsRouter,
+  ) {
     if (Platform.isIOS) {
       return CupertinoTabBar(
         currentIndex: tabsRouter.activeIndex,
@@ -75,44 +90,40 @@ class _AppShellPageState extends ConsumerState<AppShellPage> {
         activeColor: Theme.of(context).colorScheme.primary,
         // height: _iosTabBarHeight,
         iconSize: _iosTabIconSize,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Padding(
-              padding: EdgeInsets.only(top: _iosTabIconTopPadding),
-              child: Icon(CupertinoIcons.house),
-            ),
-            activeIcon: Padding(
-              padding: EdgeInsets.only(top: _iosTabIconTopPadding),
-              child: Icon(CupertinoIcons.house_fill),
-            ),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Padding(
-              padding: EdgeInsets.only(top: _iosTabIconTopPadding),
-              child: Icon(CupertinoIcons.person),
-            ),
-            activeIcon: Padding(
-              padding: EdgeInsets.only(top: _iosTabIconTopPadding),
-              child: Icon(CupertinoIcons.person_fill),
-            ),
-            label: 'Profile',
-          ),
-        ],
+        items: _destinations
+            .map(
+              (destination) => BottomNavigationBarItem(
+                icon: Padding(
+                  padding: const EdgeInsets.only(
+                    top: _iosTabIconTopPadding,
+                  ),
+                  child: Icon(destination.icon),
+                ),
+                activeIcon: Padding(
+                  padding: const EdgeInsets.only(
+                    top: _iosTabIconTopPadding,
+                  ),
+                  child: Icon(destination.selectedIcon),
+                ),
+                label: destination.label,
+              ),
+            )
+            .toList(growable: false),
       );
     }
 
     return NavigationBar(
       selectedIndex: tabsRouter.activeIndex,
       onDestinationSelected: tabsRouter.setActiveIndex,
-      destinations: const [
-        NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Home'),
-        NavigationDestination(
-          icon: Icon(Icons.person_outline),
-          selectedIcon: Icon(Icons.person),
-          label: 'Profile',
-        ),
-      ],
+      destinations: _destinations
+          .map(
+            (destination) => NavigationDestination(
+              icon: Icon(destination.icon),
+              selectedIcon: Icon(destination.selectedIcon),
+              label: destination.label,
+            ),
+          )
+          .toList(growable: false),
     );
   }
 
@@ -156,7 +167,8 @@ class _AppShellPageState extends ConsumerState<AppShellPage> {
 
   void _handleBackPress() {
     final now = DateTime.now();
-    if (_lastPressedAt != null && now.difference(_lastPressedAt!).inMilliseconds < _exitTimeWindow) {
+    if (_lastPressedAt != null &&
+        now.difference(_lastPressedAt!).inMilliseconds < _exitTimeWindow) {
       AppLogger.info('AppShell: Double-tap exit');
       if (Platform.isAndroid) {
         unawaited(SystemNavigator.pop());

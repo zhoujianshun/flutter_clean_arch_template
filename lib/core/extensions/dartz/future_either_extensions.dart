@@ -1,5 +1,5 @@
 import 'package:dartz/dartz.dart';
-import 'package:flutter_clean_arch_template/core/errors/failures.dart';
+import 'package:flutter_clean_arch_template/core/extensions/dartz/either_extensions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 extension FutureEitherExtensions<L, R> on Future<Either<L, R>> {
@@ -16,15 +16,7 @@ extension FutureEitherExtensions<L, R> on Future<Either<L, R>> {
   Future<AsyncValue<R>> toAsyncValue() async {
     try {
       final result = await this;
-      return result.fold(
-        (failure) {
-          if (failure is Object) {
-            return AsyncValue.error(failure, StackTrace.current);
-          }
-          return AsyncValue.error(UnknownFailure(message: 'Unknown error: $failure'), StackTrace.current);
-        },
-        AsyncValue.data,
-      );
+      return result.fold(failureToAsyncError, AsyncValue.data);
     } catch (error, stackTrace) {
       return AsyncValue.error(error, stackTrace);
     }

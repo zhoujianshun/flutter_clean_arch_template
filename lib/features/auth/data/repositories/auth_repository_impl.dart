@@ -19,9 +19,11 @@ class AuthRepositoryImpl implements AuthRepository {
   final TokenManager _tokenManager;
 
   @override
-  Future<Either<Failure, AuthInfoModel>> phoneLogin(PhoneLoginRequest request) async {
+  Future<Either<Failure, AuthInfoModel>> phoneLogin(
+    PhoneLoginRequest request,
+  ) async {
     if (AppConfig.mockAuth) {
-      return _mockLogin(request);
+      return _mockLogin();
     }
 
     final result = await _remoteDataSource.phoneLogin(request);
@@ -38,9 +40,9 @@ class AuthRepositoryImpl implements AuthRepository {
     );
   }
 
-  Future<Either<Failure, AuthInfoModel>> _mockLogin(PhoneLoginRequest request) async {
+  Future<Either<Failure, AuthInfoModel>> _mockLogin() async {
     await Future<void>.delayed(const Duration(milliseconds: 500));
-    AppLogger.info('[MOCK] Simulating login for ${request.phonenumber}');
+    AppLogger.info('[MOCK] Simulating phone login');
 
     const mockAuth = AuthInfoModel(
       accessToken: 'mock_access_token_demo_123',
@@ -60,7 +62,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, void>> sendVerificationCode(String phonenumber) {
     if (AppConfig.mockAuth) {
-      AppLogger.info('[MOCK] Simulating send verification code to $phonenumber');
+      AppLogger.info('[MOCK] Simulating send verification code');
       return Future.value(const Right(null));
     }
     return _remoteDataSource.sendVerificationCode(
