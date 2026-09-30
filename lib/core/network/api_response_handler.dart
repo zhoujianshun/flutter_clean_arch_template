@@ -3,7 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_clean_arch_template/core/errors/error_utils.dart';
 import 'package:flutter_clean_arch_template/core/errors/failures.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
-import 'package:flutter_clean_arch_template/shared/models/api/api_response.dart';
+import 'package:flutter_clean_arch_template/core/network/models/api_response.dart';
 
 /// API响应处理工具类
 ///

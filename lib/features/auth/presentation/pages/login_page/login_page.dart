@@ -9,6 +9,7 @@ import 'package:flutter_clean_arch_template/features/auth/presentation/providers
 import 'package:flutter_clean_arch_template/shared/responsive/content_constraint.dart';
 import 'package:flutter_clean_arch_template/shared/responsive/responsive_tokens.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/pop/my_easy_pop_message.dart';
+import 'package:flutter_clean_arch_template/shared/widgets/verification_code_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -79,13 +80,35 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ),
                 ),
                 SizedBox(height: 16.h),
-                TextField(
-                  controller: _codeController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    hintText: 'Verification code',
-                    prefixIcon: Icon(Icons.lock_outline),
-                  ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _codeController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          hintText: 'Verification code',
+                          prefixIcon: Icon(Icons.lock_outline),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    ValueListenableBuilder<TextEditingValue>(
+                      valueListenable: _phoneController,
+                      builder: (context, phoneValue, _) {
+                        return VerificationCodeButton(
+                          phone: phoneValue.text,
+                          minimumSize: const Size(110, 44),
+                          onSend: (phone) async {
+                            return ref
+                                .read(authProvider.notifier)
+                                .sendVerificationCode(phonenumber: phone);
+                          },
+                        );
+                      },
+                    ),
+                  ],
                 ),
                 SizedBox(height: 32.h),
                 SizedBox(

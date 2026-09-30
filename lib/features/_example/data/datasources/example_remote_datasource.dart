@@ -1,9 +1,9 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_clean_arch_template/core/errors/failures.dart';
 import 'package:flutter_clean_arch_template/core/network/base_api.dart';
+import 'package:flutter_clean_arch_template/core/network/models/api_response.dart';
 import 'package:flutter_clean_arch_template/features/_example/data/models/example_item_dto.dart';
 import 'package:flutter_clean_arch_template/features/_example/data/models/get_example_list_request.dart';
-import 'package:flutter_clean_arch_template/shared/models/api/api_response.dart';
 import 'package:injectable/injectable.dart';
 
 /// 示例功能的远程数据源

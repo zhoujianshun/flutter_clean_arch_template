@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_clean_arch_template/core/errors/failures.dart';
+import 'package:flutter_clean_arch_template/core/network/models/api_response.dart';
 import 'package:flutter_clean_arch_template/features/_example/domain/entities/example_item.dart';
-import 'package:flutter_clean_arch_template/shared/models/api/api_response.dart';
 
 /// 示例功能的 Repository 接口（Domain 层）
 ///

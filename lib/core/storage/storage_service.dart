@@ -78,7 +78,6 @@ class StorageService {
 
       await Future.wait([
         _hiveService.clearUserData(),
-        _hiveService.clearSettings(),
         _hiveService.clear(HiveService.cacheBoxName),
         _sharedPrefsService.clear(),
         _secureStorageService.deleteAll(),
@@ -99,7 +98,6 @@ class StorageService {
   Future<Map<String, dynamic>> getStorageInfo() async {
     try {
       final hiveUserKeys = _hiveService.getKeys(HiveService.userBoxName).length;
-      final hiveSettingsKeys = _hiveService.getKeys(HiveService.settingsBoxName).length;
       final hiveCacheKeys = _hiveService.getKeys(HiveService.cacheBoxName).length;
       final prefsKeys = _sharedPrefsService.getKeys().length;
       // 使用 getAllKeys 替代 readAll，避免加载所有敏感数据到内存
@@ -108,7 +106,6 @@ class StorageService {
       return {
         'hive': {
           'user_keys': hiveUserKeys,
-          'settings_keys': hiveSettingsKeys,
           'cache_keys': hiveCacheKeys,
         },
         'shared_preferences': {

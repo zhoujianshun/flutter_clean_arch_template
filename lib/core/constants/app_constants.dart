@@ -2,6 +2,14 @@
 class AppConstants {
   AppConstants._();
 
+  // Demo modules
+  /// 是否编译 demo 功能模块（_example/_riverpod_demo/_widget_demo 等）
+  ///
+  /// 模板项目默认开启（开箱即含示例）；产出真实 App 时通过
+  /// `--dart-define=INCLUDE_DEMOS=false` 在编译期剔除全部 demo 路由。
+  static const bool includeDemos =
+      bool.fromEnvironment('INCLUDE_DEMOS', defaultValue: true);
+
   // Animation
   static const Duration animationDuration = Duration(milliseconds: 300);
   static const Duration splashDuration = Duration(milliseconds: 2000);

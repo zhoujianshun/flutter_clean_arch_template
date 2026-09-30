@@ -7,7 +7,7 @@ import 'package:flutter_clean_arch_template/core/errors/failures.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
 import 'package:flutter_clean_arch_template/core/network/api_client.dart';
 import 'package:flutter_clean_arch_template/core/network/api_response_handler.dart';
-import 'package:flutter_clean_arch_template/shared/models/api/api_response.dart';
+import 'package:flutter_clean_arch_template/core/network/models/api_response.dart';
 
 /// 为请求参数添加时间戳
 ///

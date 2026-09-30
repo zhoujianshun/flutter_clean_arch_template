@@ -7,6 +7,7 @@ import 'package:flutter_clean_arch_template/features/auth/data/datasources/user_
 import 'package:flutter_clean_arch_template/features/auth/data/models/auth/auth_info_model.dart';
 import 'package:flutter_clean_arch_template/features/auth/data/models/auth/phone_login_request.dart';
 import 'package:flutter_clean_arch_template/features/auth/data/models/get_current_user_info/current_user_info_model.dart';
+import 'package:flutter_clean_arch_template/features/auth/data/models/send_verification_code/send_verification_code_request.dart';
 import 'package:flutter_clean_arch_template/features/auth/domain/repositories/auth_repository.dart';
 import 'package:injectable/injectable.dart';
 
@@ -54,6 +55,17 @@ class AuthRepositoryImpl implements AuthRepository {
 
     AppLogger.info('[MOCK] User logged in successfully');
     return const Right(mockAuth);
+  }
+
+  @override
+  Future<Either<Failure, void>> sendVerificationCode(String phonenumber) {
+    if (AppConfig.mockAuth) {
+      AppLogger.info('[MOCK] Simulating send verification code to $phonenumber');
+      return Future.value(const Right(null));
+    }
+    return _remoteDataSource.sendVerificationCode(
+      SendVerificationCodeRequest(phonenumber: phonenumber),
+    );
   }
 
   @override

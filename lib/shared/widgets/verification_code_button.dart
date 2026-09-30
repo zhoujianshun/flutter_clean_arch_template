@@ -1,10 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_clean_arch_template/core/di/service_locator.dart';
 import 'package:flutter_clean_arch_template/core/theme/app_theme.dart';
-import 'package:flutter_clean_arch_template/features/auth/data/datasources/user_remote_datasource.dart';
-import 'package:flutter_clean_arch_template/features/auth/data/models/send_verification_code/send_verification_code_request.dart';
 import 'package:flutter_clean_arch_template/shared/utils/validators.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/button/primary_button.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/pop/my_easy_pop_message.dart';
@@ -53,16 +50,18 @@ class VerificationCodeController {
 
 /// 获取验证码按钮组件
 ///
+/// 纯 UI 组件：只负责倒计时与 loading 状态管理，发送动作由 [onSend]
+/// 回调注入（依赖倒置，shared 层不依赖任何 feature）。
+///
 /// 功能特性：
-/// - 点击获取验证码
-/// - 接口调用成功后开始60秒倒计时
+/// - 点击调用 [onSend] 发送验证码
+/// - 回调返回 true 后开始倒计时（默认 60 秒）
 /// - 倒计时期间按钮不可点击
-/// - 支持自定义样式和回调
 class VerificationCodeButton extends ConsumerStatefulWidget {
   const VerificationCodeButton({
     required this.phone,
+    required this.onSend,
     super.key,
-    this.type,
     this.onSuccess,
     this.onError,
     this.width,
@@ -75,8 +74,10 @@ class VerificationCodeButton extends ConsumerStatefulWidget {
   /// 手机号码
   final String phone;
 
-  /// 验证码类型（可选）
-  final String? type;
+  /// 发送验证码的回调（由调用方注入，如走 AuthProvider）
+  ///
+  /// 返回 true 表示发送成功（组件开始倒计时），false 表示失败。
+  final Future<bool> Function(String phone) onSend;
 
   /// 成功回调
   final VoidCallback? onSuccess;
@@ -105,12 +106,10 @@ class _VerificationCodeButtonState extends ConsumerState<VerificationCodeButton>
   Timer? _timer;
   int _countdown = 0;
   bool _isLoading = false;
-  late final UserRemoteDataSource _userRemoteDataSource;
 
   @override
   void initState() {
     super.initState();
-    _userRemoteDataSource = getIt<UserRemoteDataSource>();
     // 绑定控制器
     widget.controller?._bindState(this);
   }
@@ -150,67 +149,41 @@ class _VerificationCodeButtonState extends ConsumerState<VerificationCodeButton>
 
       if (_countdown <= 0) {
         timer.cancel();
-        // setState(() {
-        //   _countdown = 0;
-        // });
       }
     });
   }
 
-  /// 外部发送验证码（通过控制器调用）
-  Future<bool> _sendVerificationCodeExternal({
-    required String phone,
-    String? type,
-    VoidCallback? onSuccess,
-    void Function(String error)? onError,
-  }) async {
+  /// 发送验证码（按钮点击时调用）
+  Future<void> sendVerificationCode() async {
     if (!_canTap) {
-      return false;
+      return;
     }
-    if (ValidatorsCheck.hasError(ValidatorsCheck.checkPhoneNumber(phone, context: context))) {
-      return false;
+    if (ValidatorsCheck.hasError(ValidatorsCheck.checkPhoneNumber(widget.phone, context: context))) {
+      return;
     }
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final result = await _userRemoteDataSource.sendVerificationCode(
-        SendVerificationCodeRequest(
-          phonenumber: phone,
-        ),
-      );
+      final success = await widget.onSend(widget.phone);
 
-      var success = false;
-      result.fold(
-        (failure) {
-          // 发送失败
-          final errorMessage = failure.message;
-          if (mounted) {
-            onError?.call(errorMessage);
-            MyEasyPopMessage.showError(errorMessage);
-          }
-        },
-        (successResult) {
-          // 发送成功
-          success = true;
-          if (mounted) {
-            onSuccess?.call();
-            _startCountdown();
-            final msg = '验证码已发送至 $phone';
-            MyEasyPopMessage.showSuccess(msg);
-          }
-        },
-      );
-
-      return success;
+      if (!mounted) return;
+      if (success) {
+        widget.onSuccess?.call();
+        _startCountdown();
+        MyEasyPopMessage.showSuccess('验证码已发送至 ${widget.phone}');
+      } else {
+        const errorMessage = '验证码发送失败，请稍后重试';
+        widget.onError?.call(errorMessage);
+        unawaited(MyEasyPopMessage.showError(errorMessage));
+      }
     } catch (e) {
       if (mounted) {
         const errorMessage = '网络异常，请稍后重试';
-        onError?.call(errorMessage);
+        widget.onError?.call(errorMessage);
         unawaited(MyEasyPopMessage.showError(errorMessage));
       }
-      return false;
     } finally {
       if (mounted) {
         setState(
@@ -222,20 +195,8 @@ class _VerificationCodeButtonState extends ConsumerState<VerificationCodeButton>
     }
   }
 
-  /// 发送验证码（按钮点击时调用）
-  Future<void> sendVerificationCode() async {
-    await _sendVerificationCodeExternal(
-      phone: widget.phone,
-      type: widget.type,
-      onSuccess: widget.onSuccess,
-      onError: widget.onError,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    // final theme = Theme.of(context);
-    // final colorScheme = theme.colorScheme;
     final btnColor = AppAdaptiveColors.primary(context);
     return PrimaryButton(
       isRounded: true,
@@ -254,46 +215,6 @@ class _VerificationCodeButtonState extends ConsumerState<VerificationCodeButton>
         style: AppTextStyles.bodyXSmall.copyWith(),
       ),
     );
-
-    // return SizedBox(
-    //   width: widget.width ?? 120.w,
-    //   height: widget.height ?? 44.h,
-    //   child: ElevatedButton(
-    //     onPressed: _canTap ? _sendVerificationCode : null,
-    //     style: ElevatedButton.styleFrom(
-    //       backgroundColor: _canTap
-    //           ? (widget.backgroundColor ?? colorScheme.primary)
-    //           : (widget.disabledBackgroundColor ?? colorScheme.outline),
-    //       foregroundColor: _canTap
-    //           ? (widget.textColor ?? colorScheme.onPrimary)
-    //           : (widget.disabledTextColor ?? colorScheme.onSurface.withOpacity(0.38)),
-    //       shape: RoundedRectangleBorder(
-    //         borderRadius: BorderRadius.circular(widget.borderRadius ?? 8.r),
-    //       ),
-    //       elevation: _canTap ? 2 : 0,
-    //       shadowColor: colorScheme.shadow.withOpacity(0.1),
-    //     ),
-    //     child: _isLoading
-    //         ? SizedBox(
-    //             width: 16.w,
-    //             height: 16.w,
-    //             child: CircularProgressIndicator(
-    //               strokeWidth: 2,
-    //               valueColor: AlwaysStoppedAnimation<Color>(
-    //                 widget.textColor ?? colorScheme.onPrimary,
-    //               ),
-    //             ),
-    //           )
-    //         : Text(
-    //             _buttonText,
-    //             style: widget.textStyle ??
-    //                 TextStyle(
-    //                   fontSize: 14.sp,
-    //                   fontWeight: FontWeight.w500,
-    //                 ),
-    //           ),
-    //   ),
-    // );
   }
 }
 
@@ -301,14 +222,14 @@ class _VerificationCodeButtonState extends ConsumerState<VerificationCodeButton>
 class SimpleVerificationCodeButton extends StatelessWidget {
   const SimpleVerificationCodeButton({
     required this.phone,
+    required this.onSend,
     super.key,
-    this.type,
     this.onSuccess,
     this.onError,
   });
 
   final String phone;
-  final String? type;
+  final Future<bool> Function(String phone) onSend;
   final VoidCallback? onSuccess;
   final void Function(String error)? onError;
 
@@ -316,7 +237,7 @@ class SimpleVerificationCodeButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return VerificationCodeButton(
       phone: phone,
-      type: type,
+      onSend: onSend,
       onSuccess: onSuccess,
       onError: onError,
     );

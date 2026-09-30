@@ -99,6 +99,12 @@ class Auth extends _$Auth {
     await _performLogout(LogoutReason.userInitiated, null);
   }
 
+  /// 发送验证码，返回是否成功（供验证码按钮判断是否开始倒计时）
+  Future<bool> sendVerificationCode({required String phonenumber}) async {
+    final result = await _authRepository.sendVerificationCode(phonenumber);
+    return result.isRight();
+  }
+
   Future<void> _performLogout(LogoutReason reason, String? message) async {
     await _authRepository.logout();
     state = AuthState(

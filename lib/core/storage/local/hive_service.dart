@@ -9,14 +9,10 @@ class HiveService {
   /// 用户数据 Box：存储用户个人信息、偏好等需要跟随账号的持久数据
   static const String userBoxName = 'user_box';
 
-  /// 应用设置 Box：存储应用级配置（非用户相关），如主题模式、语言等
-  static const String settingsBoxName = 'settings_box';
-
   /// 缓存 Box：存储临时数据（由 CacheService 管理），带 TTL 过期机制，可随时清除
   static const String cacheBoxName = 'cache_box';
 
   Box<dynamic>? _userBox;
-  Box<dynamic>? _settingsBox;
   Box<dynamic>? _cacheBox;
 
   bool _initialized = false;
@@ -43,7 +39,6 @@ class HiveService {
 
       // Open boxes
       _userBox = await Hive.openBox(userBoxName);
-      _settingsBox = await Hive.openBox(settingsBoxName);
       _cacheBox = await Hive.openBox(cacheBoxName);
 
       _initialized = true;
@@ -68,14 +63,6 @@ class HiveService {
       throw const StorageException(message: 'User box is not initialized or closed');
     }
     return _userBox!;
-  }
-
-  /// Get settings box
-  Box<dynamic> get settingsBox {
-    if (_settingsBox == null || !_settingsBox!.isOpen) {
-      throw const StorageException(message: 'Settings box is not initialized or closed');
-    }
-    return _settingsBox!;
   }
 
   /// Get cache box
@@ -186,11 +173,9 @@ class HiveService {
   Future<void> close() async {
     try {
       await _userBox?.close();
-      await _settingsBox?.close();
       await _cacheBox?.close();
 
       _userBox = null;
-      _settingsBox = null;
       _cacheBox = null;
       _initialized = false;
       _initCompleter = null;
@@ -210,12 +195,6 @@ class HiveService {
           _userBox = await Hive.openBox(userBoxName);
         }
         return _userBox!;
-      case settingsBoxName:
-        if (_settingsBox == null || !_settingsBox!.isOpen) {
-          AppLogger.w('Settings box is not properly initialized, attempting to reopen...');
-          _settingsBox = await Hive.openBox(settingsBoxName);
-        }
-        return _settingsBox!;
       case cacheBoxName:
         if (_cacheBox == null || !_cacheBox!.isOpen) {
           AppLogger.w('Cache box is not properly initialized, attempting to reopen...');
@@ -233,8 +212,6 @@ class HiveService {
     switch (boxName) {
       case userBoxName:
         return _userBox;
-      case settingsBoxName:
-        return _settingsBox;
       case cacheBoxName:
         return _cacheBox;
       default:
@@ -247,11 +224,4 @@ class HiveService {
   T? getUser<T>(String key, {T? defaultValue}) => get<T>(userBoxName, key, defaultValue: defaultValue);
   Future<void> deleteUser(String key) => delete(userBoxName, key);
   Future<void> clearUserData() => clear(userBoxName);
-
-  /// Settings convenience methods
-  Future<void> putSetting(String key, dynamic value) => put(settingsBoxName, key, value);
-  T? getSetting<T>(String key, {T? defaultValue}) =>
-      get<T>(settingsBoxName, key, defaultValue: defaultValue);
-  Future<void> deleteSetting(String key) => delete(settingsBoxName, key);
-  Future<void> clearSettings() => clear(settingsBoxName);
 }

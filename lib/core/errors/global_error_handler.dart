@@ -138,7 +138,13 @@ class _ErrorBoundaryState extends State<ErrorBoundary> {
 
 /// 平台通道错误捕获工具类
 ///
-/// 提供平台通道错误处理的实用方法
+/// 提供平台通道（MethodChannel / BasicMessageChannel）调用的安全包装：
+/// 原生侧抛出的 PlatformException 等错误经此统一记录到 AppLogger，
+/// 调用方拿到 null / 空 ByteData 而非异常。
+///
+/// 注意：全局未捕获异常请勿在此处理——
+/// 那是 main.dart 中 runZonedGuarded + FlutterError.onError +
+/// PlatformDispatcher.onError 的职责（见 lib/main.dart 的 _setupErrorHandlers）。
 class PlatformChannelErrorHandler {
   PlatformChannelErrorHandler._();
 
@@ -151,8 +157,11 @@ class PlatformChannelErrorHandler {
     try {
       return await channel.invokeMethod<T>(method, arguments);
     } catch (error, stackTrace) {
-      // 上报到全局错误处理器
-      AppLogger.error('SafeInvokeMethod: $error', error: error, stackTrace: stackTrace);
+      AppLogger.error(
+        'SafeInvokeMethod: $error',
+        error: error,
+        stackTrace: stackTrace,
+      );
       return null;
     }
   }
@@ -176,7 +185,11 @@ class PlatformChannelErrorHandler {
       try {
         return await handler(message);
       } catch (error, stackTrace) {
-        AppLogger.error('SafeSetMessageHandler: $error', error: error, stackTrace: stackTrace);
+        AppLogger.error(
+          'SafeSetMessageHandler: $error',
+          error: error,
+          stackTrace: stackTrace,
+        );
         // 返回空的ByteData而不是null
         return ByteData(0);
       }

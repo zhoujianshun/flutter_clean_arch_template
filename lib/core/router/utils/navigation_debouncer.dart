@@ -1,12 +1,11 @@
-import 'dart:async';
-
-import 'package:auto_route/auto_route.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
 
 /// 导航防抖动器
 ///
-/// 防止快速连续点击导致重复导航
+/// 防止快速连续点击导致重复导航。
+/// 由 [DebouncerGuard]（core/router/guards/）在路由层统一调用，
+/// 记录与检查都在本类内完成——调用方只管 push，不需要（也不能）自行检查，
+/// 否则双重检查会互相冲突导致导航被误吞。
 class NavigationDebouncer {
   NavigationDebouncer._();
 
@@ -62,77 +61,5 @@ class NavigationDebouncer {
   void reset() {
     _lastNavigationTime = null;
     _lastRouteName = null;
-  }
-}
-
-/// 扩展 StackRouter 添加防抖动导航方法
-extension DebouncedRouterExtension on StackRouter {
-  /// 带防抖动的 push
-  Future<T?>? pushDebounced<T extends Object?>(
-    PageRouteInfo route, {
-    OnNavigationFailure? onFailure,
-  }) {
-    final routeName = route.routeName;
-
-    if (!NavigationDebouncer.instance.canNavigate(routeName)) {
-      return null;
-    }
-
-    return push<T>(route, onFailure: onFailure);
-  }
-
-  /// 带防抖动的 replace
-  Future<T?>? replaceDebounced<T extends Object?>(
-    PageRouteInfo route, {
-    OnNavigationFailure? onFailure,
-  }) {
-    final routeName = route.routeName;
-
-    if (!NavigationDebouncer.instance.canNavigate(routeName)) {
-      return null;
-    }
-
-    return replace<T>(route, onFailure: onFailure);
-  }
-
-  /// 带防抖动的 navigate
-  Future<void>? navigateDebounced(
-    PageRouteInfo route, {
-    OnNavigationFailure? onFailure,
-  }) {
-    final routeName = route.routeName;
-
-    if (!NavigationDebouncer.instance.canNavigate(routeName)) {
-      return null;
-    }
-
-    return navigate(route, onFailure: onFailure);
-  }
-}
-
-/// BuildContext 扩展，提供便捷的防抖动导航方法
-extension DebouncedNavigationExtension on BuildContext {
-  /// 带防抖动的 push
-  Future<T?>? pushDebounced<T extends Object?>(
-    PageRouteInfo route, {
-    OnNavigationFailure? onFailure,
-  }) {
-    return router.pushDebounced<T>(route, onFailure: onFailure);
-  }
-
-  /// 带防抖动的 replace
-  Future<T?>? replaceDebounced<T extends Object?>(
-    PageRouteInfo route, {
-    OnNavigationFailure? onFailure,
-  }) {
-    return router.replaceDebounced<T>(route, onFailure: onFailure);
-  }
-
-  /// 带防抖动的 navigate
-  Future<void>? navigateDebounced(
-    PageRouteInfo route, {
-    OnNavigationFailure? onFailure,
-  }) {
-    return router.navigateDebounced(route, onFailure: onFailure);
   }
 }
