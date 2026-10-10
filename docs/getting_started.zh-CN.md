@@ -151,13 +151,10 @@ The following plugins do not support Swift Package Manager for ios:
 This will become an error in a future version of Flutter.
 ```
 
-**原因**：这两个插件尚未适配 iOS 的 Swift Package Manager (SPM)。目前仅为警告，不影响编译和运行，但在未来 Flutter 版本中会变为错误。
+**原因**：历史版本的 `permission_handler_apple` 和 `flutter_keyboard_visibility` 尚未适配 iOS 的 Swift Package Manager (SPM)。**当前项目已迁移至 SPM**（Podfile 已删除），且所用插件版本均已支持 SPM，该警告不再出现。
 
-**解决方案**：
+**迁移说明（2026-10）**：本项目 iOS 端已从 CocoaPods 完整迁移至 Swift Package Manager：
 
-| 方案 | 命令 / 操作 | 说明 |
-|------|------------|------|
-| **方案一（推荐）**：关闭 SPM | `flutter config --no-enable-swift-package-manager` | 让 iOS 继续使用 CocoaPods，快速消除警告 |
-| **方案二**：升级插件 | 检查 `permission_handler` 和 `flutter_keyboard_visibility` 是否有支持 SPM 的新版本，更新 `pubspec.yaml` | 根本解决，但需等待插件维护者适配 |
-
-> **注意**：选择方案一后，如需恢复 SPM，运行 `flutter config --enable-swift-package-manager`。
+- 已删除 `ios/Podfile` / `Podfile.lock` / `ios/Pods/`，插件改由 `FlutterGeneratedPluginSwiftPackage` 以 Swift Package 形式链接
+- `ios/Flutter/Debug.xcconfig` / `Release.xcconfig` 已移除 Pods include
+- 如遇个别插件不支持 SPM 的场景，可临时回退：`flutter config --no-enable-swift-package-manager` 并恢复 `ios/Podfile`（历史路径，现已不存在，可从 git 历史找回）
