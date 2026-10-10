@@ -1,5 +1,7 @@
 # 日志系统使用指南
 
+> 📚 **相关文档**: [Talker 集成步骤](./TALKER_INTEGRATION.md) ｜ [性能监控指南](./PERFORMANCE_MONITORING_GUIDE.md)
+
 ## 📋 概述
 
 本项目采用基于 **Talker** 的统一日志系统，提供完整的日志记录、过滤、格式化和可视化功能。
@@ -332,7 +334,6 @@ AppLogger.info('用户手机号: ${phone.substring(0, 3)}****${phone.substring(7
 ## 🔗 相关文档
 
 - [Talker 集成文档](./TALKER_INTEGRATION.md)
-- [Talker Review 报告](./TALKER_REVIEW_REPORT.md)
 - [性能监控使用指南](./PERFORMANCE_MONITORING_GUIDE.md)
 
 ## 📝 常见问题

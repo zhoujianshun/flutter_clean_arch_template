@@ -314,7 +314,7 @@ final posts = ref.watch(userPostsProvider('user123'));
 
 - [Riverpod 官方迁移指南](https://riverpod.dev/docs/migration)
 - [代码生成文档](https://riverpod.dev/docs/concepts/about_code_generation)
-- [最佳实践文档](./FLUTTER_RIVERPOD_BEST_PRACTICES.md)
+- [Riverpod 完整指南](./RIVERPOD_COMPLETE_GUIDE.md)
 
 ## 🤝 获得帮助
 

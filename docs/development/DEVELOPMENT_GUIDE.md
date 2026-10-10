@@ -197,7 +197,7 @@ class MyWidget extends ConsumerWidget {
 
 项目使用 `auto_route ^10.2.0` 实现类型安全的路由导航系统，提供编译期类型检查和自动代码生成。
 
-> 📚 **完整文档**: 请参阅 [路由系统完整指南](../tools-config/ROUTING_SYSTEM_GUIDE.md)
+> 📚 **完整文档**: 请参阅 [路由系统完整指南](../architecture/route/ROUTING_SYSTEM_GUIDE.md)
 
 ### 1. 路由架构
 
@@ -215,7 +215,7 @@ class MyWidget extends ConsumerWidget {
 
 ### 2. 完整路由清单
 
-本项目定义了以下路由，详细信息请参阅 [路由系统完整指南](../tools-config/ROUTING_SYSTEM_GUIDE.md)。
+本项目定义了以下路由，详细信息请参阅 [路由系统完整指南](../architecture/route/ROUTING_SYSTEM_GUIDE.md)。
 
 **路由分类**：
 

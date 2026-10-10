@@ -859,8 +859,7 @@ DialogUtils.navigatorKey = GlobalKey<NavigatorState>();
 
 ### 相关文档
 
-- [DebouncerGuard 防抖守卫指南](../debouncer-guard.md)
-- [路由系统重构记录](../ROUTING_SYSTEM_REFACTORING.md)
+- [DebouncerGuard 防抖守卫指南](./DEBOUNCER_GUARD.md)
 
 ---
 

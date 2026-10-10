@@ -2,6 +2,8 @@
 
 本教程以虚构的 **`product`（商品）** 功能为例：从 API 获取商品列表并展示详情页。如果你已运行 `tool/setup.dart`，请将 `flutter_clean_arch_template` 替换为你的包名。
 
+> 📎 **完整真实示例**：代码库内置了 `lib/features/_example/` 示例模块（含 DataSource / DTO / Entity / Repository / Provider / Page 全链路，可编译运行）。本教程各步骤均可与其对照阅读；示例页面路由入口见 `lib/features/_example/presentation/pages/`。
+
 ---
 
 ## 第一步：创建目录结构

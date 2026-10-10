@@ -246,18 +246,15 @@ ref.listen(authProvider, ...); // 监听状态，不监听错误
 ## 📚 相关文档
 
 - [完整架构文档](./NETWORK_ERROR_NOTIFICATION_SYSTEM.md)
-- [认证系统架构 V2](./AUTHENTICATION_SYSTEM_V2.md)
-- [重构总结](./AUTHENTICATION_REFACTORING.md)
-- [使用指南](../../lib/core/network/errors/README.md)
+- [认证系统架构](./AUTHENTICATION_SYSTEM.md)
 
 ## 🎓 学习资源
 
 ### 推荐阅读顺序
 
 1. **快速参考**（本文档）- 5分钟快速上手
-2. [使用指南](../../lib/core/network/errors/README.md) - 15分钟详细学习
-3. [架构设计](./NETWORK_ERROR_NOTIFICATION_SYSTEM.md) - 30分钟深入理解
-4. [重构总结](./AUTHENTICATION_REFACTORING.md) - 了解演进历程
+2. [架构设计](./NETWORK_ERROR_NOTIFICATION_SYSTEM.md) - 30分钟深入理解
+3. [认证系统架构](./AUTHENTICATION_SYSTEM.md) - 了解演进历程
 
 ### 代码示例
 

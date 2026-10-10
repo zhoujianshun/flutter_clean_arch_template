@@ -1,5 +1,7 @@
 # Dartz + Riverpod 集成指南
 
+> 📚 **系列导航**: [Dartz 使用指南（入门）](./DARTZ_GUIDE.md) → [Dartz 最佳实践](./DARTZ_BEST_PRACTICES.md) → 本文（集成实战）
+
 ## 📖 概述
 
 本指南展示如何在使用 Riverpod 状态管理的 Flutter 应用中有效集成 dartz 进行错误处理。我们将探讨各种集成模式、最佳实践和实际应用场景。

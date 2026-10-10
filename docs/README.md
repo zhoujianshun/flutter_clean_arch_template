@@ -22,7 +22,7 @@
 - **首次接手项目**：先读 `getting_started` → `architecture` → `core_modules` → `create_new_feature`
 - **日常开发查阅**：按目录（网络/状态管理/路由/UI）按需跳转
 - **排障定位**：优先看 `monitoring/`、`logging/`、`architecture/NETWORK_ERROR_*`
-- **手机/平板适配**：优先看 `ui-design/SCREENUTIL_GUIDE.md`，再结合 `architecture.md` 的分层约束落地
+- **手机/平板适配**：优先看 `responsive/SCREENUTIL_GUIDE.md`，再结合 `architecture.md` 的分层约束落地
 
 ---
 
@@ -46,7 +46,7 @@
 
 1. `architecture/DEPENDENCY_INJECTION_COMPLETE_GUIDE.md`
 2. `architecture/CLEAN_ARCH_TWO_MODES.md`
-3. `architecture/AUTHENTICATION_SYSTEM_V2.md`
+3. `architecture/AUTHENTICATION_SYSTEM.md`
 4. `core_modules.md` + `core_modules.zh-CN.md`
 
 ### 发布与运维（提测/上线）
@@ -64,7 +64,7 @@
 
 | 文档 | 主题 |
 |------|------|
-| [AUTHENTICATION_SYSTEM_V2.md](architecture/AUTHENTICATION_SYSTEM_V2.md) | 认证系统架构设计（Token 管理、网络错误联动） |
+| [AUTHENTICATION_SYSTEM.md](architecture/AUTHENTICATION_SYSTEM.md) | 认证系统架构设计（Token 管理、网络错误联动） |
 | [DARTZ_GUIDE.md](architecture/DARTZ_GUIDE.md) | Dartz Either 概念与用法入门 |
 | [DARTZ_BEST_PRACTICES.md](architecture/DARTZ_BEST_PRACTICES.md) | Either/Failure 最佳实践 |
 | [DARTZ_RIVERPOD_INTEGRATION.md](architecture/DARTZ_RIVERPOD_INTEGRATION.md) | Dartz + Riverpod 集成模式 |
@@ -81,7 +81,7 @@
 | 文档 | 主题 |
 |------|------|
 | [ROUTING_SYSTEM_GUIDE.md](architecture/route/ROUTING_SYSTEM_GUIDE.md) | AutoRoute 路由系统使用指南 |
-| [debouncer-guard.md](architecture/route/debouncer-guard.md) | 路由防抖守卫设计与实现 |
+| [DEBOUNCER_GUARD.md](architecture/route/DEBOUNCER_GUARD.md) | 路由防抖守卫设计与实现 |
 
 ### 状态管理 (`state-management/`)
 
@@ -120,7 +120,7 @@
 
 | 文档 | 主题 |
 |------|------|
-| [SCREENUTIL_GUIDE.md](ui-design/SCREENUTIL_GUIDE.md) | ScreenUtil 响应式指南（含主题 token 集成实践） |
+| [THEME_TOKEN_INTEGRATION.md](ui-design/THEME_TOKEN_INTEGRATION.md) | ScreenUtil × 主题 token（AppTheme/AppSpacing）集成实践 |
 | [CUSTOM_THEME_GUIDE.md](ui-design/CUSTOM_THEME_GUIDE.md) | 主题 token 体系指南（`AppColors` / `AppDarkColors` / `AppAdaptiveColors`） |
 | [THEME_SWITCHING_GUIDE.md](ui-design/THEME_SWITCHING_GUIDE.md) | 主题切换实现指南（`ThemeSwitcher` + 持久化恢复策略） |
 
@@ -152,7 +152,7 @@
 | 文档 | 主题 |
 |------|------|
 | [UNIFIED_API_RESPONSE_GUIDE.md](features/UNIFIED_API_RESPONSE_GUIDE.md) | 统一 API 响应处理模式 |
-| [pagination_list_usage.md](features/pagination_list_usage.md) | 分页列表组件使用指南 |
+| [PAGINATION_LIST_USAGE.md](features/PAGINATION_LIST_USAGE.md) | 分页列表组件使用指南 |
 
 ### AI 辅助开发
 

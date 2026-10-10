@@ -1,4 +1,4 @@
-# 认证系统架构文档 V2
+# 认证系统架构文档
 
 > Your App - 基于 Clean Architecture 的认证系统设计
 
@@ -824,10 +824,9 @@ testWidgets('should navigate to login on auth failure', (tester) async {
 ## 📚 相关文档
 
 - [网络错误通知系统](./NETWORK_ERROR_NOTIFICATION_SYSTEM.md)
-- [Network 层文档](../../lib/core/network/README.md)
-- [网络错误通知系统使用指南](../../lib/core/network/errors/README.md)
+- [网络错误快速参考](./NETWORK_ERROR_QUICK_REFERENCE.md)
 - [Riverpod 完整指南](../state-management/RIVERPOD_COMPLETE_GUIDE.md)
-- [Clean Architecture 指南](./CLEAN_ARCHITECTURE_GUIDE.md)
+- [Clean Architecture 两种模式](./CLEAN_ARCH_TWO_MODES.md)
 
 ## 🔄 更新日志
 

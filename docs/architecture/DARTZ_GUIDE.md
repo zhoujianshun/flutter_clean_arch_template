@@ -1,5 +1,7 @@
 # Dartz 使用指南
 
+> 📚 **系列导航**: 本文是入门篇 → [Dartz 最佳实践](./DARTZ_BEST_PRACTICES.md) → [Dartz + Riverpod 集成](./DARTZ_RIVERPOD_INTEGRATION.md)
+
 ## 📖 简介
 
 dartz 是一个为 Dart 语言提供函数式编程概念的包，它将 Haskell 和 Scala 等函数式语言的核心概念引入到 Dart 中。在我们的 Flutter 项目中，dartz 主要用于优雅地处理错误和实现类型安全的异步操作。
@@ -425,9 +427,9 @@ test('should return Left when network fails', () async {
 
 ## 🔗 相关文档
 
-- [错误处理最佳实践](./ERROR_HANDLING_GUIDE.md)
-- [Riverpod 使用指南](./RIVERPOD_GUIDE.md)
-- [API 设计规范](./API_DESIGN_GUIDE.md)
+- [Dartz 最佳实践](./DARTZ_BEST_PRACTICES.md)
+- [Riverpod 完整指南](../state-management/RIVERPOD_COMPLETE_GUIDE.md)
+- [统一 API 响应处理](../features/UNIFIED_API_RESPONSE_GUIDE.md)
 
 ---
 

@@ -415,8 +415,7 @@ MonitoringStrategy.firebaseOnly
 
 - [Firebase Crashlytics 官方文档](https://firebase.google.com/docs/crashlytics)
 - [Sentry Flutter 官方文档](https://docs.sentry.io/platforms/flutter/)
-- [项目监控系统指南](./MONITORING_SYSTEM_GUIDE.md)
-- [监控配置示例页面](../lib/examples/monitoring_config_page.dart)
+- [全局错误处理指南](./GLOBAL_ERROR_HANDLING_GUIDE.md)
 
 ---
 

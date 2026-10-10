@@ -1,4 +1,4 @@
-# Flutter ScreenUtil 响应式设计指南
+# ScreenUtil × 主题 Token 集成指南
 
 本指南用于说明项目里 `flutter_screenutil` 的实际用法，以及它与主题系统（`AppTheme` / `AppTextStyles` / `AppSpacing` / `AppBorderRadius`）的配合方式。
 
@@ -59,21 +59,20 @@ final bottomSafe = ScreenUtil().bottomBarHeight;
 2. `AppBorderRadius` 返回的是 `BorderRadius`，可直接赋给 `BoxDecoration.borderRadius`。
 3. 避免写成 `BorderRadius.circular(AppBorderRadius.md)`（类型不匹配）。
 
-## 4. ResponsiveUtils 工具类
+## 4. 响应式工具
 
-路径：`lib/shared/utils/responsive_utils.dart`
+> ⚠️ 历史版本此处介绍的 `lib/shared/utils/responsive_utils.dart` 已被移除。
 
-```dart
-import 'package:flutter_clean_arch_template/shared/utils/responsive_utils.dart';
-```
+当前项目的响应式能力由 `lib/shared/responsive/` 下的新体系提供：
 
-常用能力：
+| 能力 | 入口 | 说明 |
+|------|------|------|
+| 布局结构切换 | `AdaptiveBuilder` | compact / medium / expanded 三档布局，见 `adaptive_builder.dart` |
+| 尺寸 token | `ResponsiveTokens` | `.aw()` / `.tw()` 等，带大屏缩放上限，见 `responsive_tokens.dart` |
+| 语义化判断 | `ResponsiveContextX` | `context.isCompactWindow` 等扩展，见 `responsive_context.dart` |
+| 断点常量 | `ResponsiveBreakpoints` | 见 `breakpoints.dart` |
 
-- 设备判断：`isMobile/isTablet/isDesktop`
-- 自适应值：`responsiveValue<T>()`
-- 布局辅助：`getColumns()`、`getGridColumns()`、`getHorizontalPadding()`
-- 适老化：`getElderlyFontScale()`、`getElderlyButtonHeight()`、`getElderlyTouchTarget()`
-- 组件：`ResponsiveBuilder`、`ResponsiveLayoutBuilder`、`ElderlyResponsiveWidget`
+完整用法参见 [responsive/SCREENUTIL_GUIDE.md](../responsive/SCREENUTIL_GUIDE.md) 与 [RESPONSIVE_COMPONENTS_API.md](../responsive/RESPONSIVE_COMPONENTS_API.md)。
 
 ## 5. 使用示例
 

@@ -1,5 +1,7 @@
 # Talker 日志系统集成文档
 
+> 📚 **相关文档**: [日志系统完整指南（体系总览）](./LOGGING_SYSTEM_GUIDE.md) ｜ [性能监控指南](./PERFORMANCE_MONITORING_GUIDE.md)
+
 ## 概述
 
 本项目已成功集成 Talker 日志系统，包括：
@@ -222,7 +224,7 @@ routerConfig: appRouter.config(
 
 ### 6. ProviderLogger (已删除)
 
-位置：`lib/core/di/provider_logger.dart`
+位置：`lib/core/di/provider_logger.dart`（历史路径，该文件在当前代码库中已不存在）
 
 **操作：** 删除此文件
 

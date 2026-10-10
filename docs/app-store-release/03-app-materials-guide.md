@@ -159,7 +159,7 @@ convert assets/app/1024.png -background white -alpha remove -alpha off app_icon_
    - 最重要的页面
    - 展示核心功能入口
    - 展示数据统计
-   - 文件路径：`lib/features/service_order/presentation/workbench_page/`
+   - 文件路径：`lib/features/{你的功能}/presentation/{你的工作台页}/`
 
 3. **订单列表页**
    - 展示订单管理功能
@@ -170,7 +170,7 @@ convert assets/app/1024.png -background white -alpha remove -alpha off app_icon_
    - 展示详细信息
    - 展示操作按钮
    - 展示服务记录
-   - 文件路径：`lib/features/service_order/presentation/service_order_detail_page/`
+   - 文件路径：`lib/features/{你的功能}/presentation/{你的订单详情页}/`
 
 5. **个人中心页**
    - 展示个人信息

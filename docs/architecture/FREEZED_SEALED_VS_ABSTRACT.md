@@ -880,34 +880,31 @@ sealed class AsyncState<T> with _$AsyncState<T> {
    }
    ```
 
-2. **事件系统** (`lib/features/auth/domain/entities/auth_event.dart`)
-
-   ```dart
-   sealed class AuthEvent {
-     // ✅ 正确使用 sealed
-   }
-   ```
-
-3. **图片数据** (`lib/shared/widgets/image_preview/my_image_page/models/image_data.dart`)
-
-   ```dart
-   sealed class ImageData {
-     // ✅ 正确使用 sealed（非 Freezed）
-   }
-   ```
-
-### 当前项目中的 abstract class 示例
-
-1. **用户实体** (`lib/features/auth/domain/entities/user_entity.dart`)
+2. **认证状态** (`lib/features/auth/presentation/providers/models/auth_state.dart`)
 
    ```dart
    @freezed
-   abstract class UserEntity with _$UserEntity {
+   sealed class AuthState with _$AuthState {
+     // ✅ 正确使用 sealed，支持 switch 穷举检查
+   }
+   ```
+
+3. **示例模块的分页筛选状态** (`lib/features/_example/presentation/providers/`)
+
+   > 完整可运行的 sealed/abstract 用法可参考 `lib/features/_example/` 示例模块。
+
+### 当前项目中的 abstract class 示例
+
+1. **认证信息实体** (`lib/features/auth/domain/entities/auth_info.dart`)
+
+   ```dart
+   @freezed
+   abstract class AuthInfo with _$AuthInfo {
      // ✅ 正确使用 abstract
    }
    ```
 
-2. **API 响应** (`lib/shared/models/api/api_response.dart`)
+2. **API 响应** (`lib/core/network/models/api_response.dart`)
 
    ```dart
    @freezed
@@ -916,12 +913,12 @@ sealed class AsyncState<T> with _$AsyncState<T> {
    }
    ```
 
-3. **配置对象** (`lib/shared/widgets/image_editor/models/editor_config.dart`)
+3. **示例领域实体** (`lib/features/_example/domain/entities/example_item.dart`)
 
    ```dart
    @freezed
-   abstract class EditorConfig with _$EditorConfig {
-     // ✅ 正确使用 abstract
+   abstract class ExampleItem with _$ExampleItem {
+     // ✅ 正确使用 abstract（单一数据类）
    }
    ```
 

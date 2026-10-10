@@ -228,7 +228,7 @@ class Auth extends _$Auth {
 
 ### 阶段 1: AuthEventBus (已废弃)
 
-**时间**: - **位置**: `lib/features/auth/infrastructure/events/auth_event/`
+**时间**: - **位置**: `lib/features/auth/infrastructure/events/auth_event/`（历史路径，现已不存在）
 
 **设计**:
 
@@ -257,7 +257,7 @@ class AuthEventBus {
 
 ### 阶段 2: NetworkAuthErrorNotifier (过渡)
 
-**时间**: - **位置**: `lib/core/network/auth/`
+**时间**: - **位置**: `lib/core/network/auth/`（历史路径，现已不存在）
 
 **改进**:
 
@@ -601,9 +601,8 @@ testWidgets('should navigate to login on auth failure', (tester) async {
 
 ## 📖 相关文档
 
-- [网络错误通知系统使用指南](../../lib/core/network/errors/README.md)
-- [Network 层文档](../../lib/core/network/README.md)
-- [认证系统架构 V2](./AUTHENTICATION_SYSTEM_V2.md)
+- [网络错误快速参考](./NETWORK_ERROR_QUICK_REFERENCE.md)
+- [认证系统架构](./AUTHENTICATION_SYSTEM.md)
 - [Riverpod 完整指南](../state-management/RIVERPOD_COMPLETE_GUIDE.md)
 
 ## 🔄 更新日志

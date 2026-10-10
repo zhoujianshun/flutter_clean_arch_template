@@ -2,6 +2,8 @@
 
 This tutorial adds a fictional **`product`** feature: list products from an API and show a detail page. Replace `flutter_clean_arch_template` with your package name if you ran `tool/setup.dart`.
 
+> 📎 **Working reference**: the codebase ships a complete, compilable example module at `lib/features/_example/` (DataSource / DTO / Entity / Repository / Provider / Page). Cross-reference each step of this tutorial with it; see `lib/features/_example/presentation/pages/` for the routed pages.
+
 ---
 
 ## Step 1: Create Directory Structure

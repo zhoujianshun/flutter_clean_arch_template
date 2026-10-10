@@ -123,3 +123,6 @@ melos_packages.yaml
 .tools/
 # Apifox MCP API 文档缓存（30 分钟过期，可随时重新生成）
 .apifox-cache/
+
+# docs 治理审计报告（本地滚动文件，不入库；方法见 tool/audit_docs.py）
+docs/_audit_report.md

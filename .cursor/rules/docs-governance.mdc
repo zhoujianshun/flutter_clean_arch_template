@@ -1,0 +1,54 @@
+---
+globs:
+  - docs/**/*.md
+  - docs/*.md
+alwaysApply: false
+---
+# docs/ 文档治理规则
+
+> 适用范围：`docs/` 目录下所有 Markdown 文档的创建与修改。
+
+## 命名与结构
+
+- 文档文件名使用 **大写蛇形命名**（SCREAMING_SNAKE_CASE，如 `RIVERPOD_COMPLETE_GUIDE.md`）
+- 中英双语文档成对时，英文版 `foo.md`，中文版 `foo.zh-CN.md`，内容结构保持一致
+- 系列文档保持既有目录归属：`architecture/`、`state-management/`、`ui-design/` 等；路由文档归 `architecture/route/`
+- **同主题最多一个主文档**，其他文档定位为「参考/迁移/对比」，避免两篇同名文档
+
+### 命名分区（大小写规则）
+
+| 位置 | 风格 | 说明 |
+|------|------|------|
+| 根目录核心入口文档 | 小写 snake_case（`getting_started.md`） | 封闭集合，不新增 |
+| 子目录专题文档 | SCREAMING_SNAKE_CASE（`DARTZ_GUIDE.md`） | 默认规则 |
+| `app-store-release/` | `NN-kebab-case`（`01-preparation-overview.md`） | 序号编码阅读顺序，专属例外 |
+| 内部滚动文档 | `_` 前缀（如 `docs/_audit_report.md`，已 gitignore） | 本地维护，不入 README 索引 |
+
+### 语义后缀词表（新文档适用，存量不强改）
+
+- **默认不加后缀**：单文档主题无需后缀（如 `CLEAN_ARCH_TWO_MODES.md`）
+- **同主题多篇时才用类型后缀区分**：
+  - `_GUIDE`：教程型指南（阅读型）
+  - `_REFERENCE`：速查表（查询型）
+  - `_MIGRATION`：版本迁移（不带 GUIDE）
+  - `_COMPARISON`：选型对比
+  - `_TROUBLESHOOTING`：排错手册
+  - `_INTEGRATION` / `_SETUP`：集成 / 配置（不带 GUIDE）
+- **版本号不入文件名**：版本演进记录写在文档内 changelog，文件名保持稳定（如 `AUTHENTICATION_SYSTEM.md` 而非 `..._V2.md`）
+
+## 链接规范
+
+- 相对链接以文档所在目录为基准，新增链接后必须验证目标文件存在
+- 引用 `lib/` 代码路径前，先确认该路径在当前代码库中存在；描述已删除代码时，注明「历史路径，现已不存在」
+- 系列文档（如 DARTZ 三部曲）在顶部维护「系列导航」块
+
+## 文档与代码同步
+
+- 代码结构变更（重命名/移动/删除）的**同一提交**内，同步更新引用该结构的文档
+- 文档中的示例代码优先使用当前 DI 入口（`getIt<T>()`）；教程类文档在显著位置指向真实可编译的参照（如 `lib/features/_example/`）
+- 新增文档必须同步登记到 `docs/README.md` 对应分类的索引表
+
+## 审计与维护
+
+- 每月执行一次文档审计：`python3 tool/audit_docs.py`（断链 / 孤儿 / 过时路径三项扫描，可接 CI）；审计结果为一次性快照，保存在本地 `docs/_audit_report.md`（已 gitignore），不入库
+- 发现指向已删除文档的链接时：优先替换为现存的等价文档；确实无等价文档则删除链接，不保留死链

@@ -1,5 +1,7 @@
 # Dartz 最佳实践指南
 
+> 📚 **系列导航**: [Dartz 使用指南（入门）](./DARTZ_GUIDE.md) → 本文（进阶） → [Dartz + Riverpod 集成](./DARTZ_RIVERPOD_INTEGRATION.md)
+
 ## 📋 目录
 
 - [设计原则](#设计原则)
