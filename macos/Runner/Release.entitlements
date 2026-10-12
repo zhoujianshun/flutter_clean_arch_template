@@ -4,5 +4,11 @@
 <dict>
 	<key>com.apple.security.app-sandbox</key>
 	<true/>
+	<!-- flutter_secure_storage：macOS 沙箱下访问钥匙串必需，缺失会报
+	     PlatformException(-34018, A required entitlement is not present) -->
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)com.example.flutterCleanArchTemplate</string>
+	</array>
 </dict>
 </plist>
