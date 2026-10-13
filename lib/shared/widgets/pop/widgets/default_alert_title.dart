@@ -19,7 +19,6 @@ class DefaultAlertTitle extends StatelessWidget {
       child: Text(
         title,
         style: AppTextStyles.h4.copyWith(
-          fontFamily: AppTextStyles.fontFamilyMedium,
           fontWeight: FontWeight.w500,
           color: AppAdaptiveColors.neutral800(context),
         ),

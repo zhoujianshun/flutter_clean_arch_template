@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -19,12 +21,13 @@ class MyPopLoading {
     EasyLoadingMaskType? maskType,
     bool? dismissOnTap,
   }) {
-    EasyLoading.show(
+    // fire-and-forget：仅展示加载弹窗，无需等待动画完成
+    unawaited(EasyLoading.show(
       status: status,
       indicator: indicator,
       maskType: maskType ?? EasyLoadingMaskType.clear,
       dismissOnTap: dismissOnTap ?? false,
-    );
+    ));
   }
 
   /// 显示全屏加载弹窗
@@ -41,19 +44,20 @@ class MyPopLoading {
     EasyLoadingMaskType? maskType,
     bool? dismissOnTap,
   }) {
-    EasyLoading.show(
+    // fire-and-forget：仅展示加载弹窗，无需等待动画完成
+    unawaited(EasyLoading.show(
       status: status,
       indicator: indicator,
       maskType: maskType ?? EasyLoadingMaskType.clear,
       dismissOnTap: dismissOnTap ?? false,
-    );
+    ));
   }
 
   /// 关闭加载弹窗
   ///
   /// [animation] 是否使用动画关闭，默认为 true
   static void dismiss({bool animation = true}) {
-    EasyLoading.dismiss();
+    unawaited(EasyLoading.dismiss());
   }
 
   /// 检查是否正在显示加载弹窗

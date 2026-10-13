@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/pop/my_cupertino_alert_dialog.dart';
 import 'package:permission_handler/permission_handler.dart';
+
 // 状态	含义	处理方式
 // granted	已授权	✅ 直接使用
 // denied	拒绝/首次	🔄 尝试请求
@@ -56,33 +58,21 @@ class PermissionUtil {
           if (result.isGranted || result == PermissionStatus.limited || result == PermissionStatus.provisional) {
             return true;
           } else if (result.isPermanentlyDenied && context.mounted) {
-            await _showPermissionDeniedDialog(
-              context,
-              title: '$permissionName 权限被拒绝',
-              message: deniedMessage,
-            );
+            await _showPermissionDeniedDialog(context, title: '$permissionName 权限被拒绝', message: deniedMessage);
           }
           return false;
 
         case PermissionStatus.permanentlyDenied:
           debugPrint('$permissionName 权限被永久拒绝');
           if (context.mounted) {
-            await _showPermissionDeniedDialog(
-              context,
-              title: '$permissionName 权限被拒绝',
-              message: deniedMessage,
-            );
+            await _showPermissionDeniedDialog(context, title: '$permissionName 权限被拒绝', message: deniedMessage);
           }
           return false;
 
         case PermissionStatus.restricted:
           debugPrint('$permissionName 权限被设备限制');
           if (context.mounted) {
-            await _showPermissionDeniedDialog(
-              context,
-              title: '$permissionName 权限受限',
-              message: restrictedMessage,
-            );
+            await _showPermissionDeniedDialog(context, title: '$permissionName 权限受限', message: restrictedMessage);
           }
           return false;
       }
@@ -95,7 +85,7 @@ class PermissionUtil {
   /// 检查并请求相机权限
   ///
   /// 用于拍照功能
-  static Future<bool> requestCameraPermission(BuildContext context) async {
+  static Future<bool> requestCameraPermission(BuildContext context) {
     return _requestPermission(
       context,
       permission: Permission.camera,
@@ -130,7 +120,7 @@ class PermissionUtil {
     if (!context.mounted) {
       return false;
     }
-    return _requestPermission(
+    return await _requestPermission(
       context,
       permission: permission,
       permissionName: permissionName,
@@ -142,7 +132,7 @@ class PermissionUtil {
   /// 检查并请求麦克风权限
   ///
   /// 用于录制视频音频
-  static Future<bool> requestMicrophonePermission(BuildContext context) async {
+  static Future<bool> requestMicrophonePermission(BuildContext context) {
     return _requestPermission(
       context,
       permission: Permission.microphone,
@@ -156,9 +146,12 @@ class PermissionUtil {
   ///
   /// 用于 wechat_assets_picker 等媒体选择器
   static Future<bool> requestMediaPermissions(BuildContext context) async {
+    // 前置 mounted 检查：后续多次 await 后仍需使用 context，防止页面已销毁
+    if (!context.mounted) return false;
     try {
       // 逐个请求权限，避免 iOS 批量请求的问题
       final cameraGranted = await requestCameraPermission(context);
+      if (!context.mounted) return false;
       final photosGranted = await requestPhotosPermission(context);
 
       // 麦克风权限是可选的，只在需要录制视频时才必需
@@ -247,15 +240,12 @@ class PermissionUtil {
         title: title,
         content: message,
         actionTitles: [
-          MyTextAction(
-            isDestructiveAction: true,
-            onPressed: () => Navigator.of(ctx).pop(),
-            title: '取消',
-          ),
+          MyTextAction(isDestructiveAction: true, onPressed: () => Navigator.of(ctx).pop(), title: '取消'),
           MyTextAction(
             onPressed: () {
               Navigator.of(ctx).pop();
-              openAppSettings();
+              // fire-and-forget：跳转系统设置页无需等待结果
+              unawaited(openAppSettings());
             },
             title: '去设置',
           ),

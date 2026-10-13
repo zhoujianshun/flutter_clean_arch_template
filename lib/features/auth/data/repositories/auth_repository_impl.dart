@@ -23,11 +23,12 @@ class AuthRepositoryImpl implements AuthRepository {
     PhoneLoginRequest request,
   ) async {
     if (AppConfig.mockAuth) {
-      return _mockLogin();
+      return await _mockLogin();
     }
 
     final result = await _remoteDataSource.phoneLogin(request);
-    return result.fold(
+    // fold 右分支为 async 闭包，显式 await 展开（与 FutureEitherExtensions 同型）
+    return await result.fold(
       Left.new,
       (authInfo) async {
         await _tokenManager.saveToken(
@@ -86,11 +87,10 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, CurrentUserInfoModel>> getCurrentUser() async {
     if (AppConfig.mockAuth) {
-      return _mockGetCurrentUser();
+      return await _mockGetCurrentUser();
     }
-    return _remoteDataSource.getCurrentUser();
+    return await _remoteDataSource.getCurrentUser();
   }
-
   Future<Either<Failure, CurrentUserInfoModel>> _mockGetCurrentUser() async {
     await Future<void>.delayed(const Duration(milliseconds: 300));
     const mockUser = CurrentUserInfoModel(

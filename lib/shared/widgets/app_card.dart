@@ -1,4 +1,3 @@
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/core/theme/app_theme.dart';
@@ -97,15 +96,15 @@ class _AppCardState extends State<AppCard> with SingleTickerProviderStateMixin {
   }
 
   void _onTapDown(TapDownDetails _) {
-    if (_shouldAnimate) unawaited(_controller.forward());
+    if (_shouldAnimate) _controller.forward();
   }
 
   void _onTapUp(TapUpDetails _) {
-    if (_shouldAnimate) unawaited(_controller.reverse());
+    if (_shouldAnimate) _controller.reverse();
   }
 
   void _onTapCancel() {
-    if (_shouldAnimate) unawaited(_controller.reverse());
+    if (_shouldAnimate) _controller.reverse();
   }
 
   @override

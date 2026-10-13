@@ -19,7 +19,7 @@ class MyModalBottomSheetSelectorHelper {
     String? title,
     bool isDismissible = false,
     bool useRootNavigator = false,
-  }) async {
+  }) {
     if (actions.isEmpty) {
       throw ArgumentError('选择器选项列表不能为空');
     }
@@ -80,7 +80,6 @@ class BottomSheetSelector extends StatelessWidget {
                   ? AppAdaptiveColors.error500(context)
                   : AppAdaptiveColors.neutral750(context),
               fontWeight: FontWeight.w500,
-              fontFamily: AppTextStyles.fontFamilyMedium,
             ),
           ),
         )

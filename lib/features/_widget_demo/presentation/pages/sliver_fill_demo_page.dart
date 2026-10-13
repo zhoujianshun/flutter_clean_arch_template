@@ -122,11 +122,11 @@ class _SliverFillDemoPageState extends State<SliverFillDemoPage>
             padding: EdgeInsets.symmetric(horizontal: 16.w),
             child: Column(
               children: [
-                TextField(decoration: const InputDecoration(labelText: '用户名')),
+                const TextField(decoration: InputDecoration(labelText: '用户名')),
                 SizedBox(height: 12.h),
-                TextField(decoration: const InputDecoration(labelText: '邮箱')),
+                const TextField(decoration: InputDecoration(labelText: '邮箱')),
                 SizedBox(height: 12.h),
-                TextField(decoration: const InputDecoration(labelText: '手机号')),
+                const TextField(decoration: InputDecoration(labelText: '手机号')),
               ],
             ),
           ),
@@ -163,7 +163,7 @@ class _SliverFillDemoPageState extends State<SliverFillDemoPage>
       slivers: [
         SliverFillViewport(
           delegate: SliverChildBuilderDelegate(
-            (context, index) => Container(
+            (context, index) => ColoredBox(
               color: colors[index % colors.length],
               child: Center(
                 child: Column(

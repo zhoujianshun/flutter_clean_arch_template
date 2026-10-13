@@ -1,0 +1,13 @@
+# Widget 演示模块：豁免与"演示教学代码"风格相关的规则
+# 此处代码以可读性优先，不完全遵循生产代码的严格 lint
+analyzer:
+  exclude:
+    - '**/*.g.dart'
+    - '**/*.freezed.dart'
+
+linter:
+  rules:
+    # 演示文案为拼接的长字符串，视觉上分开更易读
+    missing_whitespace_between_adjacent_strings: false
+    # 文档注释中的 <Widget> 等泛型写法属于教学演示
+    unintended_html_in_doc_comment: false

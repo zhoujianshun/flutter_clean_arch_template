@@ -163,7 +163,7 @@ class TokenManager {
     // 如果已经有 Completer（进行中或刚完成的窗口期内），直接复用
     final existing = _refreshCompleter;
     if (existing != null) {
-      return existing.future;
+      return await existing.future;
     }
 
     final completer = Completer<String?>();
@@ -296,7 +296,7 @@ class TokenManager {
   }
 
   /// 检查 token 是否过期
-  Future<bool> isTokenExpired() async {
+  Future<bool> isTokenExpired() {
     return _strategy.isTokenExpired();
   }
 
@@ -312,13 +312,13 @@ class TokenManager {
   Future<String?> forceRefresh() async {
     if (!_strategy.supportsRefresh) {
       AppLogger.warning('[TokenManager] 当前策略不支持刷新');
-      return _strategy.getAccessToken();
+      return await _strategy.getAccessToken();
     }
     if (_isInCooldown()) {
       AppLogger.warning('[TokenManager] 冷却期内跳过强制刷新');
       return null;
     }
     AppLogger.info('[TokenManager] 强制刷新 token');
-    return _refreshToken();
+    return await _refreshToken();
   }
 }

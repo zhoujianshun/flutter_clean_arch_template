@@ -151,7 +151,8 @@ extension ValidatorsCheck on Validators {
     }
 
     if (msg != null && msg.isNotEmpty && context != null && context.mounted) {
-      MyEasyPopMessage.showError(msg);
+      // fire-and-forget：仅展示提示，无需等待结果
+      unawaited(MyEasyPopMessage.showError(msg));
     }
     return msg;
   }

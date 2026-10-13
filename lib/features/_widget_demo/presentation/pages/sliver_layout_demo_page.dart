@@ -21,7 +21,7 @@ class SliverLayoutDemoPage extends StatelessWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar.medium(title: const Text('SliverLayoutBuilder')),
+          const SliverAppBar.medium(title: Text('SliverLayoutBuilder')),
 
           SliverToBoxAdapter(
             child: Card(

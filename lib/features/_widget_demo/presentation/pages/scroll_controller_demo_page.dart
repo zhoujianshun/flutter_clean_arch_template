@@ -1,4 +1,3 @@
-import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -57,19 +56,19 @@ class _ScrollControllerDemoPageState extends State<ScrollControllerDemoPage> {
   }
 
   void _scrollToTop() {
-    unawaited(_scrollController.animateTo(
+    _scrollController.animateTo(
       0,
       duration: const Duration(milliseconds: 500),
       curve: Curves.easeOutCubic,
-    ));
+    );
   }
 
   void _scrollToPosition(double offset) {
-    unawaited(_scrollController.animateTo(
+    _scrollController.animateTo(
       offset,
       duration: const Duration(milliseconds: 600),
       curve: Curves.easeInOut,
-    ));
+    );
   }
 
   void _jumpToEnd() {

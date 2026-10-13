@@ -74,7 +74,7 @@ class _ToastErrorDemoPageState extends ConsumerState<ToastErrorDemoPage> {
                   : ListView.separated(
                       padding: EdgeInsets.symmetric(horizontal: 16.w),
                       itemCount: items.length,
-                      separatorBuilder: (_, __) => SizedBox(height: 8.h),
+                      separatorBuilder: (_, _) => SizedBox(height: 8.h),
                       itemBuilder: (_, index) => Card(
                         child: ListTile(
                           leading: CircleAvatar(child: Text('${index + 1}')),

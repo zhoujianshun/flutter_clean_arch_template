@@ -21,7 +21,7 @@ class SliverListDemoPage extends StatelessWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar.medium(title: const Text('SliverList 全家桶')),
+          const SliverAppBar.medium(title: Text('SliverList 全家桶')),
 
           // 说明
           SliverToBoxAdapter(

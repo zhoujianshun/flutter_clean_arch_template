@@ -18,7 +18,7 @@ class ExampleRemoteDataSource extends BaseAPI {
 
   Future<Either<Failure, PaginatedData<ExampleItemDto>>> getList(
     GetExampleListRequest request,
-  ) async {
+  ) {
     return handlePaginatedApiCall(
       apiClient.get(
         _basePath,
@@ -29,7 +29,7 @@ class ExampleRemoteDataSource extends BaseAPI {
     );
   }
 
-  Future<Either<Failure, ExampleItemDto>> getDetail(String id) async {
+  Future<Either<Failure, ExampleItemDto>> getDetail(String id) {
     return handleApiCall(
       apiClient.get('$_basePath/$id'),
       ExampleItemDto.fromJson,

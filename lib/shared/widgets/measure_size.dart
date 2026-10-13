@@ -28,7 +28,12 @@ class MeasureSize extends SingleChildRenderObjectWidget {
   }
 
   @override
-  void updateRenderObject(BuildContext context, covariant _MeasureSizeRenderObject renderObject) {
+  void updateRenderObject(
+    BuildContext context,
+    // 私有 RenderObject 是惯用封装，Flutter 框架同类写法均带此诊断，属可接受例外
+    // ignore: library_private_types_in_public_api
+    covariant _MeasureSizeRenderObject renderObject,
+  ) {
     renderObject.onChange = onChange;
   }
 }

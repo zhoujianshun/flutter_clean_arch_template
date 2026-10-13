@@ -153,7 +153,7 @@ class RetryDemoPage extends ConsumerWidget {
                 '}\n'
                 '\n'
                 '@Riverpod(keepAlive: true, retry: _customRetry)\n'
-                'class MyProvider extends _\$MyProvider { ... }',
+                r'class MyProvider extends _$MyProvider { ... }',
                 style: TextStyle(fontFamily: 'monospace', fontSize: 12),
               ),
             ),
@@ -207,9 +207,7 @@ class _RetrySection extends StatelessWidget {
                       SizedBox(height: 2.h),
                       Text(
                         subtitle,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
+                        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                       ),
                     ],
                   ),
@@ -238,10 +236,7 @@ class _RetrySection extends StatelessWidget {
                     SizedBox(height: 8.h),
                     Text(
                       '已重试 $retryCount 次',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.orange,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: theme.textTheme.bodySmall?.copyWith(color: Colors.orange, fontWeight: FontWeight.w600),
                     ),
                   ],
                 ],
@@ -271,18 +266,9 @@ class _RetrySection extends StatelessWidget {
       loading: () => Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(
-            width: 16,
-            height: 16,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
+          const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
           SizedBox(width: 8.w),
-          Text(
-            'Loading...（重试中）',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.primary,
-            ),
-          ),
+          Text('Loading...（重试中）', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.primary)),
         ],
       ),
       error: (error, _) => Row(
@@ -309,11 +295,7 @@ class _RetrySection extends StatelessWidget {
 // ─────────────────────────────────────────
 
 class _FailToggle extends StatelessWidget {
-  const _FailToggle({
-    required this.shouldFail,
-    required this.onToggle,
-    required this.onReset,
-  });
+  const _FailToggle({required this.shouldFail, required this.onToggle, required this.onReset});
 
   final bool shouldFail;
   final ValueChanged<bool> onToggle;
@@ -332,10 +314,7 @@ class _FailToggle extends StatelessWidget {
             onChanged: onToggle,
           ),
         ),
-        FilledButton.tonal(
-          onPressed: onReset,
-          child: const Text('加载成功'),
-        ),
+        FilledButton.tonal(onPressed: onReset, child: const Text('加载成功')),
       ],
     );
   }
@@ -346,10 +325,7 @@ class _FailToggle extends StatelessWidget {
 // ─────────────────────────────────────────
 
 class _CustomRetryControls extends StatelessWidget {
-  const _CustomRetryControls({
-    required this.errorType,
-    required this.onChanged,
-  });
+  const _CustomRetryControls({required this.errorType, required this.onChanged});
 
   final DemoErrorType errorType;
   final ValueChanged<DemoErrorType> onChanged;
@@ -388,9 +364,7 @@ class _CustomRetryControls extends StatelessWidget {
             DemoErrorType.auth => '→ 非 TimeoutException，不匹配规则，直接进入 error 态',
             DemoErrorType.generic => '→ 无错误，正常返回数据',
           },
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
         ),
       ],
     );

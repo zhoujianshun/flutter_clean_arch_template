@@ -18,7 +18,7 @@ class UserApiEndpoints {
 class UserRemoteDataSource extends BaseAPI {
   UserRemoteDataSource(super.apiClient);
 
-  Future<Either<Failure, CurrentUserInfoModel>> getCurrentUser() async {
+  Future<Either<Failure, CurrentUserInfoModel>> getCurrentUser() {
     return handleApiCall(
       apiClient.get(UserApiEndpoints.userInfo),
       CurrentUserInfoModel.fromJson,
@@ -26,14 +26,14 @@ class UserRemoteDataSource extends BaseAPI {
     );
   }
 
-  Future<Either<Failure, void>> logout() async {
+  Future<Either<Failure, void>> logout() {
     return handleApiVoidCall(
       apiClient.post(UserApiEndpoints.logout),
       logTag: 'UserRemoteDataSource.logout',
     );
   }
 
-  Future<Either<Failure, AuthInfoModel>> phoneLogin(PhoneLoginRequest request) async {
+  Future<Either<Failure, AuthInfoModel>> phoneLogin(PhoneLoginRequest request) {
     return handleApiCall(
       apiClient.post(UserApiEndpoints.login, data: request.toJson()),
       AuthInfoModel.fromJson,
@@ -41,7 +41,7 @@ class UserRemoteDataSource extends BaseAPI {
     );
   }
 
-  Future<Either<Failure, void>> sendVerificationCode(SendVerificationCodeRequest request) async {
+  Future<Either<Failure, void>> sendVerificationCode(SendVerificationCodeRequest request) {
     final data = request.toJson();
     addTimestampToQueryParameters(data);
     return handleApiVoidCall(

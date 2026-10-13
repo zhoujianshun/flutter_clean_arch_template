@@ -81,7 +81,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ),
                 SizedBox(height: 16.h),
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Expanded(
                       child: TextField(
@@ -100,7 +99,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         return VerificationCodeButton(
                           phone: phoneValue.text,
                           minimumSize: const Size(110, 44),
-                          onSend: (phone) async {
+                          onSend: (phone) {
                             return ref
                                 .read(authProvider.notifier)
                                 .sendVerificationCode(phonenumber: phone);

@@ -23,7 +23,7 @@ class SharedPrefsService {
 
     // 如果正在初始化，等待完成
     if (_initCompleter != null) {
-      return _initCompleter!.future;
+      return await _initCompleter!.future;
     }
 
     // 创建 Completer 并开始初始化
@@ -131,7 +131,7 @@ class SharedPrefsService {
   }
 
   /// Write boolean value
-  Future<void> setBool(String key, bool value) async {
+  Future<void> setBool(String key, {required bool value}) async {
     try {
       await prefs.setBool(key, value);
       AppLogger.d('SharedPrefs setBool successful: $key = $value');

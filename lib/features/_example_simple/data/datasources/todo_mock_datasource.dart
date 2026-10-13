@@ -3,7 +3,7 @@ import 'package:flutter_clean_arch_template/core/errors/failures.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
 import 'package:flutter_clean_arch_template/features/_example_simple/data/models/todo_model.dart';
 
-/// Todo 功能的 Mock 数据源
+/// 待办事项（Todo）功能的 Mock 数据源
 ///
 /// 提供本地模拟数据，支持 CRUD 操作。
 /// 通过 `AppConfig.mockData` 控制是否启用。
@@ -66,10 +66,7 @@ class TodoMockDataSource {
   Future<Either<Failure, TodoModel>> create(TodoModel todo) async {
     await Future<void>.delayed(const Duration(milliseconds: 200));
 
-    final newTodo = todo.copyWith(
-      id: '${_nextId++}',
-      createdAt: DateTime.now(),
-    );
+    final newTodo = todo.copyWith(id: '${_nextId++}', createdAt: DateTime.now());
     _mockTodos.add(newTodo);
 
     AppLogger.debug('[MOCK] TodoMockDataSource.create: ${newTodo.title}');

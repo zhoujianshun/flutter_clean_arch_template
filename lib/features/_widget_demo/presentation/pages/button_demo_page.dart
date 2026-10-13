@@ -38,7 +38,7 @@ class _ButtonDemoPageState extends State<ButtonDemoPage> {
             SizedBox(height: 16.h),
 
             // MyButton
-            _SectionTitle('MyButton', '无背景色，类 iOS 按钮'),
+            const _SectionTitle('MyButton', '无背景色，类 iOS 按钮'),
             Card(
               child: Padding(
                 padding: EdgeInsets.all(16.w),
@@ -60,9 +60,8 @@ class _ButtonDemoPageState extends State<ButtonDemoPage> {
                       isLoading: _isLoading,
                       onPressed: () {},
                     ),
-                    MyButton(
-                      onPressed: null,
-                      child: const Text('Disabled'),
+                    const MyButton(
+                      child: Text('Disabled'),
                     ),
                   ],
                 ),
@@ -71,7 +70,7 @@ class _ButtonDemoPageState extends State<ButtonDemoPage> {
             SizedBox(height: 16.h),
 
             // MyFilledButton
-            _SectionTitle('MyFilledButton', '主题色填充，类 iOS 按钮'),
+            const _SectionTitle('MyFilledButton', '主题色填充，类 iOS 按钮'),
             Card(
               child: Padding(
                 padding: EdgeInsets.all(16.w),
@@ -99,9 +98,8 @@ class _ButtonDemoPageState extends State<ButtonDemoPage> {
                       isLoading: _isLoading,
                       onPressed: () {},
                     ),
-                    MyFilledButton(
-                      onPressed: null,
-                      child: const Text('Disabled'),
+                    const MyFilledButton(
+                      child: Text('Disabled'),
                     ),
                   ],
                 ),
@@ -110,7 +108,7 @@ class _ButtonDemoPageState extends State<ButtonDemoPage> {
             SizedBox(height: 16.h),
 
             // MyOutlinedButton
-            _SectionTitle('MyOutlinedButton', '边框按钮，支持 primary / plain'),
+            const _SectionTitle('MyOutlinedButton', '边框按钮，支持 primary / plain'),
             Card(
               child: Padding(
                 padding: EdgeInsets.all(16.w),
@@ -140,9 +138,8 @@ class _ButtonDemoPageState extends State<ButtonDemoPage> {
                       isLoading: _isLoading,
                       onPressed: () {},
                     ),
-                    MyOutlinedButton(
-                      onPressed: null,
-                      child: const Text('Disabled'),
+                    const MyOutlinedButton(
+                      child: Text('Disabled'),
                     ),
                   ],
                 ),
@@ -151,7 +148,7 @@ class _ButtonDemoPageState extends State<ButtonDemoPage> {
             SizedBox(height: 16.h),
 
             // PrimaryButton
-            _SectionTitle('PrimaryButton', 'Material ElevatedButton 风格'),
+            const _SectionTitle('PrimaryButton', 'Material ElevatedButton 风格'),
             Card(
               child: Padding(
                 padding: EdgeInsets.all(16.w),
@@ -180,9 +177,9 @@ class _ButtonDemoPageState extends State<ButtonDemoPage> {
                       onPressed: () {},
                     ),
                     SizedBox(height: 12.h),
-                    PrimaryButton(
+                    const PrimaryButton(
                       onPressed: null,
-                      child: const Text('Disabled'),
+                      child: Text('Disabled'),
                     ),
                   ],
                 ),
@@ -191,7 +188,7 @@ class _ButtonDemoPageState extends State<ButtonDemoPage> {
             SizedBox(height: 16.h),
 
             // 高度差异分析
-            _SectionTitle('高度差异分析', '各按钮 minimumSize 默认值不同'),
+            const _SectionTitle('高度差异分析', '各按钮 minimumSize 默认值不同'),
             Card(
               color: Theme.of(context).colorScheme.surfaceContainerLow,
               child: Padding(
@@ -222,7 +219,7 @@ class _ButtonDemoPageState extends State<ButtonDemoPage> {
             SizedBox(height: 16.h),
 
             // 超小 padding 按钮
-            _SectionTitle(
+            const _SectionTitle(
               '紧凑按钮（超小 padding）',
               '通过 minimumSize: Size.zero + padding 实现',
             ),
@@ -277,7 +274,7 @@ class _ButtonDemoPageState extends State<ButtonDemoPage> {
             SizedBox(height: 16.h),
 
             // 全宽按钮示例
-            _SectionTitle('全宽按钮', '常见的表单提交场景'),
+            const _SectionTitle('全宽按钮', '常见的表单提交场景'),
             Card(
               child: Padding(
                 padding: EdgeInsets.all(16.w),

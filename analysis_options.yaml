@@ -1,12 +1,22 @@
+# 项目统一分析配置
+# 基于 very_good_analysis 严格规则集，按项目实际情况做最小化豁免
 include: package:very_good_analysis/analysis_options.yaml
 
 linter:
   rules:
+    # 统一使用 package: 导入（禁相对导入），便于跨模块引用
     prefer_relative_imports: false
+    # 统一使用 AppLogger，但允许调试期临时 print
     avoid_print: false
+    # 不强制公开成员文档注释
     public_member_api_docs: false
+    # 不限制单行 80 字符（长中文注释与链式调用常见超长）
     lines_longer_than_80_chars: false
+    # 网络层等需要捕获宽泛异常统一转 Failure
     avoid_catches_without_on_clauses: false
+    # pubspec 按功能分组（# State Management / # Network...），
+    # 分组注释的教学价值高于机械字母序，故关闭排序检查
+    sort_pub_dependencies: false
 
 analyzer:
   plugins:
@@ -23,6 +33,7 @@ analyzer:
     - macos/**
     - linux/**
   errors:
+    # Freezed 生成代码与 json_serializable 的已知误报
     invalid_annotation_target: ignore
 
   language:

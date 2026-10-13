@@ -136,7 +136,6 @@ class _CountdownState extends State<Countdown> {
             style: AppTextStyles.bodyMedium.copyWith(
               color: _getCountdownColor(),
               fontWeight: FontWeight.w500,
-              fontFamily: AppTextStyles.fontFamilyMedium,
               // fontFeatures: const [FontFeature.tabularFigures()],
               // height: 1.2,
             ),

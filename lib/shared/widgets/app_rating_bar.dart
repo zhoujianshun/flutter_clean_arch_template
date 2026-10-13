@@ -204,7 +204,6 @@ class SkyRatingDisplay extends StatelessWidget {
           AppTextStyles.bodySmall.copyWith(
             color: AppAdaptiveColors.neutral700(context),
             fontWeight: FontWeight.w500,
-            fontFamily: AppTextStyles.fontFamilyMedium,
           ),
     );
 
@@ -301,7 +300,6 @@ class SkyElderlyRatingBar extends StatelessWidget {
           style: AppTextStyles.elderlyBodyLarge.copyWith(
             color: AppAdaptiveColors.neutral800(context),
             fontWeight: FontWeight.w500,
-            fontFamily: AppTextStyles.fontFamilyMedium,
           ),
         ),
       ],

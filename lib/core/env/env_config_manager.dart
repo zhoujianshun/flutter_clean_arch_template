@@ -189,7 +189,7 @@ class EnvConfigManager {
   }
 
   /// 设置布尔配置值
-  static Future<void> setBool(String key, bool value) async {
+  static Future<void> setBool(String key, {required bool value}) async {
     await setValue(key, '$value');
   }
 

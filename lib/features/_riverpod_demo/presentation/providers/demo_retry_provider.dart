@@ -4,7 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'demo_retry_provider.g.dart';
 
-Duration? _noRetry(int _, Object __) => null;
+Duration? _noRetry(int _, Object _) => null;
 
 /// 自定义 retry 策略：最多 3 次，每次间隔 1 秒，仅重试 TimeoutException
 ///

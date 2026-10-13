@@ -1,0 +1,13 @@
+# Riverpod 演示模块：豁免与"演示教学代码"风格相关的规则
+# 此处代码以可读性优先，不完全遵循生产代码的严格 lint
+analyzer:
+  exclude:
+    - '**/*.g.dart'
+    - '**/*.freezed.dart'
+
+linter:
+  rules:
+    # 演示分页加载等场景，直接 return Future 属正常写法
+    async_return_with_no_await: false
+    # 演示 notifier 内部状态变更方法（如 setState/increment）
+    use_setters_to_change_properties: false

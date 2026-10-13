@@ -156,7 +156,8 @@ extension RoundedTabIndicatorExtension on RoundedRectangleTabIndicator {
 /// 用于lerp函数的辅助方法
 double? lerpDouble(double? a, double? b, double t) {
   if (a == null && b == null) return null;
-  a ??= 0.0;
-  b ??= 0.0;
-  return a + (b - a) * t;
+  // 使用局部变量避免对参数重新赋值
+  final start = a ?? 0.0;
+  final end = b ?? 0.0;
+  return start + (end - start) * t;
 }

@@ -4,7 +4,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/core/router/app_router.dart';
 import 'package:flutter_clean_arch_template/shared/responsive/content_constraint.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/responsive_tokens.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// 组件库 Demo 入口页面
@@ -85,11 +84,10 @@ class WidgetDemoHubPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('组件库 Demo')),
       body: ContentConstraint(
-        maxWidth: ResponsiveTokens.maxWidthList,
         child: ListView.separated(
           padding: EdgeInsets.all(16.w),
           itemCount: demos.length,
-          separatorBuilder: (_, __) => SizedBox(height: 8.h),
+          separatorBuilder: (_, _) => SizedBox(height: 8.h),
           itemBuilder: (context, index) {
             final demo = demos[index];
             return Card(

@@ -6,7 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'demo_async_provider.g.dart';
 
 /// 禁用自动重试：返回 null 表示不重试
-Duration? _noRetry(int _, Object __) => null;
+Duration? _noRetry(int _, Object _) => null;
 
 /// 演示 AsyncValue.when 三态切换的 Provider
 ///

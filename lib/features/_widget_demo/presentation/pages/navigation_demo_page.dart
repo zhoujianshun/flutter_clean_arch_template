@@ -41,7 +41,7 @@ class _NavigationDemoPageState extends State<NavigationDemoPage>
           padding: EdgeInsets.all(16.w),
           children: [
             // AppBar 变体
-            _SectionTitle('AppBarExtension', 'AppBar 工厂方法（静态预览）'),
+            const _SectionTitle('AppBarExtension', 'AppBar 工厂方法（静态预览）'),
 
             // Primary AppBar
             Card(
@@ -114,7 +114,7 @@ class _NavigationDemoPageState extends State<NavigationDemoPage>
             SizedBox(height: 16.h),
 
             // RoundedRectangleTabIndicator
-            _SectionTitle(
+            const _SectionTitle(
               'RoundedRectangleTabIndicator',
               '圆角 TabBar 指示器（可交互）',
             ),
@@ -153,7 +153,7 @@ class _NavigationDemoPageState extends State<NavigationDemoPage>
             SizedBox(height: 16.h),
 
             // AppImageIndicatorTabBar
-            _SectionTitle(
+            const _SectionTitle(
               'AppImageIndicatorTabBar',
               '图片指示器 TabBar（需提供 indicatorAsset 图片资源）',
             ),
@@ -178,7 +178,7 @@ class _NavigationDemoPageState extends State<NavigationDemoPage>
             SizedBox(height: 16.h),
 
             // BottomNavigationBar 预览
-            _SectionTitle(
+            const _SectionTitle(
               'NavigationBar',
               '底部导航栏预览（静态展示）',
             ),

@@ -46,7 +46,7 @@ class _OptimisticUpdateDemoPageState
               child: ListView.separated(
                 padding: EdgeInsets.symmetric(horizontal: 16.w),
                 itemCount: items.length,
-                separatorBuilder: (_, __) => SizedBox(height: 4.h),
+                separatorBuilder: (_, _) => SizedBox(height: 4.h),
                 itemBuilder: (_, index) {
                   final item = items[index];
                   return Card(

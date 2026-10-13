@@ -19,7 +19,7 @@ class SliverGridDemoPage extends StatelessWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar.medium(title: const Text('SliverGrid 多种布局')),
+          const SliverAppBar.medium(title: Text('SliverGrid 多种布局')),
 
           _buildSection(context, 'FixedCrossAxisCount（固定 2 列）',
               '无论屏幕宽度如何，始终 2 列'),

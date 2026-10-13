@@ -58,7 +58,7 @@ class _FormInputDemoPageState extends State<FormInputDemoPage> {
           padding: EdgeInsets.all(16.w),
           children: [
             // FormTitle
-            _SectionTitle('FormTitle', '表单标签（支持必填标记）'),
+            const _SectionTitle('FormTitle', '表单标签（支持必填标记）'),
             Card(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.w),
@@ -90,7 +90,7 @@ class _FormInputDemoPageState extends State<FormInputDemoPage> {
             SizedBox(height: 16.h),
 
             // RoundCheckBox
-            _SectionTitle('RoundCheckBox', '圆角复选框（带动画）'),
+            const _SectionTitle('RoundCheckBox', '圆角复选框（带动画）'),
             Card(
               child: Padding(
                 padding: EdgeInsets.all(16.w),
@@ -155,7 +155,7 @@ class _FormInputDemoPageState extends State<FormInputDemoPage> {
             SizedBox(height: 16.h),
 
             // VerificationCodeButton 模拟
-            _SectionTitle(
+            const _SectionTitle(
               'VerificationCodeButton',
               '验证码按钮（此处为状态模拟演示）',
             ),

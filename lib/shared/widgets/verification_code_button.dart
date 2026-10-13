@@ -13,11 +13,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 class VerificationCodeController {
   _VerificationCodeButtonState? _state;
 
-  /// 绑定到按钮状态
-  void _bindState(_VerificationCodeButtonState state) {
-    _state = state;
-  }
-
   /// 解绑状态
   void _unbindState() {
     _state = null;
@@ -31,7 +26,7 @@ class VerificationCodeController {
 
   /// 直接发送验证码
   /// 这是推荐的发送方式，会自动处理状态同步
-  Future<void> sendVerificationCode() async {
+  Future<void> sendVerificationCode() {
     return _state!.sendVerificationCode();
   }
 
@@ -110,8 +105,8 @@ class _VerificationCodeButtonState extends ConsumerState<VerificationCodeButton>
   @override
   void initState() {
     super.initState();
-    // 绑定控制器
-    widget.controller?._bindState(this);
+    // 绑定控制器（直接赋值私有字段，同类库内可见）
+    widget.controller?._state = this;
   }
 
   @override
@@ -172,7 +167,7 @@ class _VerificationCodeButtonState extends ConsumerState<VerificationCodeButton>
       if (success) {
         widget.onSuccess?.call();
         _startCountdown();
-        MyEasyPopMessage.showSuccess('验证码已发送至 ${widget.phone}');
+        unawaited(MyEasyPopMessage.showSuccess('验证码已发送至 ${widget.phone}'));
       } else {
         const errorMessage = '验证码发送失败，请稍后重试';
         widget.onError?.call(errorMessage);

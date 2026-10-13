@@ -25,11 +25,12 @@ class HiveService {
 
     // 如果正在初始化，等待完成
     if (_initCompleter != null) {
-      return _initCompleter!.future;
+      return await _initCompleter!.future;
     }
 
     // 创建 Completer 并开始初始化
     _initCompleter = Completer<void>();
+
 
     try {
       await Hive.initFlutter();
@@ -203,7 +204,7 @@ class HiveService {
         return _cacheBox!;
       default:
         AppLogger.w('Opening non-standard box: $boxName');
-        return Hive.openBox(boxName);
+        return await Hive.openBox(boxName);
     }
   }
 

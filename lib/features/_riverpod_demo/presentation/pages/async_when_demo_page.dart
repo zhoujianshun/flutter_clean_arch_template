@@ -23,12 +23,7 @@ class AsyncWhenDemoPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('AsyncValue.when'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.invalidate(demoAsyncProvider),
-          ),
-        ],
+        actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: () => ref.invalidate(demoAsyncProvider))],
       ),
       body: ContentConstraint(
         child: Column(
@@ -52,10 +47,8 @@ class AsyncWhenDemoPage extends ConsumerWidget {
               child: asyncData.when(
                 data: (items) => _buildContent(context, items),
                 loading: () => const AppLoadingIndicator(),
-                error: (error, _) => AppErrorWidget(
-                  error: error.toString(),
-                  onRetry: () => ref.invalidate(demoAsyncProvider),
-                ),
+                error: (error, _) =>
+                    AppErrorWidget(error: error.toString(), onRetry: () => ref.invalidate(demoAsyncProvider)),
               ),
             ),
           ],
@@ -71,7 +64,7 @@ class AsyncWhenDemoPage extends ConsumerWidget {
     return ListView.separated(
       padding: EdgeInsets.symmetric(horizontal: 16.w),
       itemCount: items.length,
-      separatorBuilder: (_, __) => SizedBox(height: 8.h),
+      separatorBuilder: (_, _) => SizedBox(height: 8.h),
       itemBuilder: (_, index) => Card(
         child: ListTile(
           leading: CircleAvatar(child: Text('${index + 1}')),

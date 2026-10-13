@@ -22,7 +22,7 @@ class StateDemoPage extends StatelessWidget {
           padding: EdgeInsets.all(16.w),
           children: [
             // AppLoadingIndicator
-            _SectionTitle('AppLoadingIndicator', '加载指示器（3种尺寸）'),
+            const _SectionTitle('AppLoadingIndicator', '加载指示器（3种尺寸）'),
             Card(
               child: Padding(
                 padding: EdgeInsets.all(16.w),
@@ -73,7 +73,7 @@ class StateDemoPage extends StatelessWidget {
             SizedBox(height: 16.h),
 
             // AppImagePlaceholder
-            _SectionTitle('AppImagePlaceholder', '图片占位符'),
+            const _SectionTitle('AppImagePlaceholder', '图片占位符'),
             Card(
               child: Padding(
                 padding: EdgeInsets.all(16.w),
@@ -107,7 +107,7 @@ class StateDemoPage extends StatelessWidget {
             SizedBox(height: 16.h),
 
             // AppSimpleErrorWidget
-            _SectionTitle('AppSimpleErrorWidget', '简化版错误提示'),
+            const _SectionTitle('AppSimpleErrorWidget', '简化版错误提示'),
             AppSimpleErrorWidget(
               message: '数据加载失败，请检查网络连接',
               onRetry: () =>
@@ -116,7 +116,7 @@ class StateDemoPage extends StatelessWidget {
             SizedBox(height: 16.h),
 
             // AppErrorWidget
-            _SectionTitle('AppErrorWidget', '完整错误页面'),
+            const _SectionTitle('AppErrorWidget', '完整错误页面'),
             Card(
               child: SizedBox(
                 height: 300.h,
@@ -132,7 +132,7 @@ class StateDemoPage extends StatelessWidget {
             SizedBox(height: 16.h),
 
             // AppNetworkErrorWidget
-            _SectionTitle('AppNetworkErrorWidget', '网络错误专用组件'),
+            const _SectionTitle('AppNetworkErrorWidget', '网络错误专用组件'),
             Card(
               child: SizedBox(
                 height: 300.h,
@@ -145,11 +145,11 @@ class StateDemoPage extends StatelessWidget {
             SizedBox(height: 16.h),
 
             // AppEmptyWidget
-            _SectionTitle('AppEmptyWidget', '空状态（多种类型）'),
+            const _SectionTitle('AppEmptyWidget', '空状态（多种类型）'),
             Card(
               child: SizedBox(
                 height: 240.h,
-                child: const AppEmptyWidget(type: AppEmptyWidgetType.normal),
+                child: const AppEmptyWidget(),
               ),
             ),
             SizedBox(height: 8.h),

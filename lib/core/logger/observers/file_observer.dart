@@ -39,24 +39,25 @@ class FileObserver extends TalkerObserver {
   }
 
   @override
-  void onLog(TalkerData data) {
+  void onLog(TalkerData log) {
     if (!_isInitialized) return;
 
-    _writeToFile(data);
+    // Talker 回调为同步签名，日志写入采用 fire-and-forget 模式
+    unawaited(_writeToFile(log));
   }
 
   @override
-  void onError(TalkerError error) {
+  void onError(TalkerError err) {
     if (!_isInitialized) return;
 
-    _writeToFile(error);
+    unawaited(_writeToFile(err));
   }
 
   @override
-  void onException(TalkerException exception) {
+  void onException(TalkerException err) {
     if (!_isInitialized) return;
 
-    _writeToFile(exception);
+    unawaited(_writeToFile(err));
   }
 
   /// 写入日志到文件
@@ -88,8 +89,9 @@ class FileObserver extends TalkerObserver {
     final appDir = await getApplicationCacheDirectory();
     final logDir = Directory('${appDir.path}/logs');
 
-    if (!await logDir.exists()) {
-      await logDir.create(recursive: true);
+    // 初始化路径使用同步 IO：仅一次目录 stat，无性能顾虑
+    if (!logDir.existsSync()) {
+      logDir.createSync(recursive: true);
     }
 
     return logDir;

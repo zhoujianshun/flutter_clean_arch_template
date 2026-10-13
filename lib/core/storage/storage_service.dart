@@ -170,7 +170,7 @@ class StorageService {
   }
 
   /// 获取用户令牌
-  Future<String?> getUserToken() async {
+  Future<String?> getUserToken() {
     return _secureStorageService.read(StorageKeys.userTokenKey);
   }
 
@@ -185,7 +185,7 @@ class StorageService {
   }
 
   /// 获取刷新令牌
-  Future<String?> getRefreshToken() async {
+  Future<String?> getRefreshToken() {
     return _secureStorageService.read(StorageKeys.refreshTokenKey);
   }
 

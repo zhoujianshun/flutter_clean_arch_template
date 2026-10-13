@@ -26,7 +26,7 @@ import 'package:injectable/injectable.dart';
 final GetIt getIt = GetIt.instance;
 
 @InjectableInit()
-Future<void> configureDependencies() async => getIt.init();
+Future<void> configureDependencies() => getIt.init();
 
 /// Manual dependency registration for classes not using injectable annotations.
 @module

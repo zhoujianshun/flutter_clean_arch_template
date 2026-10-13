@@ -10,16 +10,12 @@ class LogFormatter {
   static String format(TalkerData data, LogContext context) {
     final buffer = StringBuffer();
 
-    // 时间戳
+    // 时间戳 + 日志级别 + 消息（级联单次链式写入）
     final timestamp = DateFormat('yyyy-MM-dd HH:mm:ss.SSS').format(data.time);
-    buffer.write('[$timestamp] ');
-
-    // 日志级别
-    final level = _getLogLevel(data);
-    buffer.write('[$level] ');
-
-    // 日志消息
-    buffer.write(data.message);
+    buffer
+      ..write('[$timestamp] ')
+      ..write('[${_getLogLevel(data)}] ')
+      ..write(data.message);
 
     // 添加上下文信息（仅在开发模式或错误日志时）
     if (data is TalkerError || data is TalkerException) {

@@ -9,7 +9,7 @@ import 'package:injectable/injectable.dart';
 
 /// 务实型 Repository 实现
 ///
-/// DataSource 已返回 Either<Failure, T>，Repository 直接透传。
+/// DataSource 已返回 `Either<Failure, T>`，Repository 直接透传。
 /// 无 DTO → Entity 转换步骤 — Model 直接就是业务模型。
 ///
 /// 当 `AppConfig.mockData` 为 true 时，使用 [TodoMockDataSource] 返回本地模拟数据。

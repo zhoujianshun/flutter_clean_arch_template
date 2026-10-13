@@ -11,7 +11,7 @@ class TodoRemoteDataSource extends BaseAPI {
 
   static const _basePath = '/todos';
 
-  Future<Either<Failure, List<TodoModel>>> getList() async {
+  Future<Either<Failure, List<TodoModel>>> getList() {
     return handleApiListCall(
       apiClient.get(_basePath),
       TodoModel.fromJson,
@@ -19,7 +19,7 @@ class TodoRemoteDataSource extends BaseAPI {
     );
   }
 
-  Future<Either<Failure, TodoModel>> getDetail(String id) async {
+  Future<Either<Failure, TodoModel>> getDetail(String id) {
     return handleApiCall(
       apiClient.get('$_basePath/$id'),
       TodoModel.fromJson,
@@ -27,7 +27,7 @@ class TodoRemoteDataSource extends BaseAPI {
     );
   }
 
-  Future<Either<Failure, TodoModel>> create(TodoModel todo) async {
+  Future<Either<Failure, TodoModel>> create(TodoModel todo) {
     return handleApiCall(
       apiClient.post(_basePath, data: todo.toJson()),
       TodoModel.fromJson,
@@ -35,7 +35,7 @@ class TodoRemoteDataSource extends BaseAPI {
     );
   }
 
-  Future<Either<Failure, void>> delete(String id) async {
+  Future<Either<Failure, void>> delete(String id) {
     return handleApiVoidCall(
       apiClient.delete('$_basePath/$id'),
       logTag: 'TodoRemoteDataSource.delete',

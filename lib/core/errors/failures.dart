@@ -3,8 +3,9 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'failures.freezed.dart';
 
 /// 失败类型的联合类型
+/// 实现 [Exception] 使其可被安全抛出（Provider 层 throw → AsyncValue.error）
 @freezed
-sealed class Failure with _$Failure {
+sealed class Failure with _$Failure implements Exception {
   /// 服务器错误
   const factory Failure.server({
     required String message,

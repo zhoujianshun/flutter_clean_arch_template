@@ -32,7 +32,7 @@ class NetworkInfo {
   }
 
   /// 获取连接类型
-  Future<List<ConnectivityResult>> getConnectionType() async {
+  Future<List<ConnectivityResult>> getConnectionType() {
     return _connectivity.checkConnectivity();
   }
 

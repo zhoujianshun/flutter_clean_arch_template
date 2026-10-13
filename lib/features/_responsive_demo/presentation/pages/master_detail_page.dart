@@ -83,7 +83,7 @@ class _MasterDetailPageState extends State<MasterDetailPage> {
       appBar: AppBar(title: const Text('Master-Detail 示例')),
       body: AdaptiveLayoutBuilder(
         compact: (_) => _buildCompactLayout(),
-        medium: (constraints) => _buildSplitLayout(constraints),
+        medium: _buildSplitLayout,
       ),
     );
   }

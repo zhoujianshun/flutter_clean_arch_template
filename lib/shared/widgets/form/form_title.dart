@@ -11,7 +11,6 @@ class FormTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     final style = AppTextStyles.bodySmall.copyWith(
       fontWeight: FontWeight.w500,
-      fontFamily: AppTextStyles.fontFamilyMedium,
     );
     return Container(
       height: 52.w,

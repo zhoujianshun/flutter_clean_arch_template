@@ -61,7 +61,8 @@ class DialogUtils {
 
       AppLogger.info('显示对话框');
 
-      return MyDialogHelper.showMyDialog(
+      // await 确保弹窗 Future 的异步错误被下方 catch 捕获，而非绕过
+      return await MyDialogHelper.showMyDialog(
         context: _context!,
         builder: builder,
         barrierDismissible: barrierDismissible,
@@ -154,7 +155,8 @@ class DialogUtils {
 
       AppLogger.info('显示简单对话框: $title');
 
-      return MyDialogHelper.showSimpleDialog(
+      // await 确保弹窗 Future 的异步错误被下方 catch 捕获，而非绕过
+      return await MyDialogHelper.showSimpleDialog(
         context: _context!,
         contentWidget: contentWidget,
         title: title,
@@ -229,7 +231,8 @@ class DialogUtils {
 
       AppLogger.info('显示底部表单');
 
-      return MyModalBottomSheetHelper.showMyModalBottomSheet(
+      // await 确保底部表单 Future 的异步错误被下方 catch 捕获，而非绕过
+      return await MyModalBottomSheetHelper.showMyModalBottomSheet(
         context: _context!,
         builder: builder,
         isScrollControlled: isScrollControlled,

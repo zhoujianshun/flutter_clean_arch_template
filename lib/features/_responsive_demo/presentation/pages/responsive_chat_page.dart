@@ -1,7 +1,7 @@
-import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/master_detail_page.dart' show MasterDetailPage;
 import 'package:flutter_clean_arch_template/shared/responsive/adaptive_builder.dart';
 import 'package:flutter_clean_arch_template/shared/responsive/breakpoints.dart';
 
@@ -293,30 +293,28 @@ class _ResponsiveChatPageState extends State<ResponsiveChatPage> {
   /// 如果业务中需要支持 deep link 或路由守卫，应参考 [MasterDetailPage]
   /// 将详情页提取为独立的 @RoutePage 并通过 context.router.push() 导航。
   void _pushChatPage(BuildContext context, _Contact contact) {
-    unawaited(
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => Scaffold(
-            appBar: AppBar(
-              title: Row(
-                children: [
-                  Text(contact.name),
-                  if (contact.online) ...[
-                    const SizedBox(width: 8),
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: Colors.green,
-                        shape: BoxShape.circle,
-                      ),
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => Scaffold(
+          appBar: AppBar(
+            title: Row(
+              children: [
+                Text(contact.name),
+                if (contact.online) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Colors.green,
+                      shape: BoxShape.circle,
                     ),
-                  ],
+                  ),
                 ],
-              ),
+              ],
             ),
-            body: _ChatPanel(contact: contact),
           ),
+          body: _ChatPanel(contact: contact),
         ),
       ),
     );

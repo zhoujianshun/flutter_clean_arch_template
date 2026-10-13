@@ -32,7 +32,7 @@ class SliverHeaderDemoPage extends StatelessWidget {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar.medium(title: const Text('PersistentHeader 进阶')),
+          const SliverAppBar.medium(title: Text('PersistentHeader 进阶')),
 
           // 说明
           SliverToBoxAdapter(

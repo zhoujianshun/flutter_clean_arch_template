@@ -124,10 +124,10 @@ class _RealTimeClockState extends State<RealTimeClock> {
 
     // 调用时间变化回调
     if (widget.onTimeChanged != null) {
-      // 使用 Future.microtask 避免在 build 期间调用回调
-      Future.microtask(() {
+      // 使用 Future.microtask 避免在 build 期间调用回调（fire-and-forget）
+      unawaited(Future<void>.microtask(() {
         widget.onTimeChanged?.call(now);
-      });
+      }));
     }
 
     // 如果使用内部控制器，需要手动触发UI更新

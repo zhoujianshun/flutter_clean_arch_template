@@ -235,7 +235,8 @@ class ApiClient {
   }) => _request(() async {
     final file = await MultipartFile.fromFile(filePath, filename: fileName);
     final formData = FormData.fromMap({'file': file, ...?data});
-    return _dio.post<T>(
+    // await 确保上传 Future 的 DioException 由 _request 统一转换
+    return await _dio.post<T>(
       path,
       data: formData,
       onSendProgress: onSendProgress,

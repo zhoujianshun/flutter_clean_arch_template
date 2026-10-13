@@ -19,7 +19,7 @@ class AppInfoService {
   /// 【懒加载初始化】自动初始化，无需外部手动调用
   Future<void> _init() async {
     if (_packageInfo != null) return;
-    if (_initCompleter != null) return _initCompleter!.future;
+    if (_initCompleter != null) return await _initCompleter!.future;
 
     _initCompleter = Completer<void>();
     try {

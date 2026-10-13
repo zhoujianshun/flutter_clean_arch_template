@@ -14,7 +14,8 @@ class TodoList extends _$TodoList {
   @override
   FutureOr<List<TodoModel>> build() async {
     final result = await _repository.getList();
-    return result.fold((failure) => throw failure, (items) => items);
+    // 显式 await：确保 throw 的 Failure 作为 Future 错误传播，被 Riverpod 捕获进 AsyncValue.error
+    return await result.fold((failure) => throw failure, (items) => items);
   }
 
   Future<void> add(TodoModel todo) async {

@@ -38,7 +38,6 @@ class _SliverAnimatedListDemoPageState
     _listKey.currentState?.removeItem(
       index,
       (context, animation) => _buildItem(removed, animation, removing: true),
-      duration: const Duration(milliseconds: 300),
     );
   }
 

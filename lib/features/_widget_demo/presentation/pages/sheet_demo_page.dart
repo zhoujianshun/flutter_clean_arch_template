@@ -57,7 +57,6 @@ class SheetDemoPage extends StatelessWidget {
                     MyModalBottomSheetHelper.showModalBottomSheetWithHeader(
                       context: context,
                       title: '选择地址',
-                      isDismissible: true,
                       builder: (ctx) => Padding(
                         padding: EdgeInsets.all(16.w),
                         child: Column(

@@ -139,7 +139,7 @@ class CacheService {
   }
 
   /// 获取缓存的头像文件信息
-  Future<FileInfo?> getAvatarFileInfo(String url) async {
+  Future<FileInfo?> getAvatarFileInfo(String url) {
     return AppCacheManagers.avatar.getFileFromCache(url);
   }
 

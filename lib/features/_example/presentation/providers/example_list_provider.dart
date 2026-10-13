@@ -20,13 +20,14 @@ class ExampleList extends _$ExampleList {
     _currentPage = 1;
     _items.clear();
     _hasMore = true;
-    return _loadPage(1);
+    return await _loadPage(1);
   }
 
   Future<List<ExampleItem>> _loadPage(int page) async {
     final result = await _repository.getList(pageNum: page);
 
-    return result.fold(
+    // 显式 await：确保 throw 的 Failure 作为 Future 错误传播
+    return await result.fold(
       (failure) => throw failure,
       (data) {
         _hasMore = data.hasNext;

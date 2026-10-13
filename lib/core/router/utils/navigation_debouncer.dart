@@ -1,4 +1,5 @@
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
+import 'package:flutter_clean_arch_template/core/router/guards/debouncer_guard.dart' show DebouncerGuard;
 
 /// 导航防抖动器
 ///

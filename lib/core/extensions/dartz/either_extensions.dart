@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_clean_arch_template/core/errors/failures.dart';
+import 'package:flutter_clean_arch_template/core/extensions/dartz/future_either_extensions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Either 常用取值与副作用扩展
@@ -15,24 +16,18 @@ extension EitherExtensions<L, R> on Either<L, R> {
 
   /// 当是右侧值时执行操作（tap 语义：不改变原值）
   Either<L, R> onRight(void Function(R) action) {
-    return fold(
-      Left.new,
-      (r) {
-        action(r);
-        return Right(r);
-      },
-    );
+    return fold(Left.new, (r) {
+      action(r);
+      return Right(r);
+    });
   }
 
   /// 当是左侧值时执行操作（tap 语义：不改变原值）
   Either<L, R> onLeft(void Function(L) action) {
-    return fold(
-      (l) {
-        action(l);
-        return Left(l);
-      },
-      Right.new,
-    );
+    return fold((l) {
+      action(l);
+      return Left(l);
+    }, Right.new);
   }
 }
 
@@ -43,10 +38,7 @@ AsyncValue<R> failureToAsyncError<L, R>(L failure) {
   if (failure is Object) {
     return AsyncValue.error(failure, StackTrace.current);
   }
-  return AsyncValue.error(
-    UnknownFailure(message: 'Unknown error: $failure'),
-    StackTrace.current,
-  );
+  return AsyncValue.error(UnknownFailure(message: 'Unknown error: $failure'), StackTrace.current);
 }
 
 /// Either → Riverpod AsyncValue 转换

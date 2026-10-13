@@ -23,7 +23,7 @@ class UtilityDemoPage extends StatelessWidget {
           padding: EdgeInsets.all(16.w),
           children: [
             // RealTimeClock
-            _SectionTitle('RealTimeClock', '实时时钟（每秒更新）'),
+            const _SectionTitle('RealTimeClock', '实时时钟（每秒更新）'),
             Card(
               child: Padding(
                 padding: EdgeInsets.all(16.w),
@@ -45,7 +45,7 @@ class UtilityDemoPage extends StatelessWidget {
             SizedBox(height: 16.h),
 
             // Countdown
-            _SectionTitle('Countdown', '倒计时组件'),
+            const _SectionTitle('Countdown', '倒计时组件'),
             Card(
               clipBehavior: Clip.antiAlias,
               child: Column(
@@ -71,7 +71,7 @@ class UtilityDemoPage extends StatelessWidget {
             SizedBox(height: 16.h),
 
             // MyCachedNetworkImage
-            _SectionTitle('MyCachedNetworkImage', '网络缓存图片'),
+            const _SectionTitle('MyCachedNetworkImage', '网络缓存图片'),
             Card(
               child: Padding(
                 padding: EdgeInsets.all(16.w),
@@ -109,7 +109,7 @@ class UtilityDemoPage extends StatelessWidget {
             SizedBox(height: 16.h),
 
             // LanguageSwitcher
-            _SectionTitle('LanguageSwitcher', '语言切换器'),
+            const _SectionTitle('LanguageSwitcher', '语言切换器'),
             Card(
               child: Padding(
                 padding: EdgeInsets.all(16.w),
@@ -131,7 +131,7 @@ class UtilityDemoPage extends StatelessWidget {
             SizedBox(height: 16.h),
 
             // ThemeSwitcher
-            _SectionTitle('ThemeSwitcher', '主题切换器（4种样式）'),
+            const _SectionTitle('ThemeSwitcher', '主题切换器（4种样式）'),
             Card(
               child: Padding(
                 padding: EdgeInsets.all(16.w),
@@ -139,7 +139,7 @@ class UtilityDemoPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('ListTile 样式', style: theme.textTheme.labelMedium),
-                    const ThemeSwitcher(style: ThemeSwitcherStyle.listTile),
+                    const ThemeSwitcher(),
                     Divider(height: 24.h),
                     Text('SegmentedButton 样式',
                         style: theme.textTheme.labelMedium),
@@ -167,7 +167,7 @@ class UtilityDemoPage extends StatelessWidget {
             SizedBox(height: 16.h),
 
             // PaginationList 说明
-            _SectionTitle('PaginationList', '分页列表组件'),
+            const _SectionTitle('PaginationList', '分页列表组件'),
             Card(
               child: Padding(
                 padding: EdgeInsets.all(16.w),
