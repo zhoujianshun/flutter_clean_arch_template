@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/widgets.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/adaptive_builder.dart';
+import 'package:flutter_clean_arch_template/core/responsive/breakpoints.dart';
 
 /// 折叠屏姿态信息（来自 [MediaQuery.displayFeaturesOf]）。
 ///
@@ -38,6 +38,7 @@ class FoldInfo {
         case DisplayFeatureType.fold:
           foldCrease = feature.bounds;
           isHalfOpened = feature.state == DisplayFeatureState.postureHalfOpened;
+        // cutout（摄像头开孔）和 unknown 不携带折叠语义，跳过。
         case DisplayFeatureType.cutout:
         case DisplayFeatureType.unknown:
           break;
@@ -76,8 +77,11 @@ class FoldInfo {
 
 /// 组合约束 + 折叠姿态的自适应布局构建器。
 ///
-/// 在 [AdaptiveLayoutBuilder] 语义之上额外暴露 [FoldInfo]，
+/// 基于 [LayoutBuilder] 约束宽度选择断点布局，同时暴露 [FoldInfo]，
 /// 供两栏布局将分栏线对齐折痕（对齐后内容不会压在铰链上）。
+///
+/// [FoldInfo] 和 [BoxConstraints] 在同一个 [LayoutBuilder] 回调内读取，
+/// 保证两者在同一帧同步更新，避免折叠↔展开过渡帧中状态不一致。
 ///
 /// ```dart
 /// FoldAwareBuilder(
@@ -106,18 +110,18 @@ class FoldAwareBuilder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Builder(
-      builder: (context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
         final fold = FoldInfo.fromContext(context);
-        return AdaptiveLayoutBuilder(
-          compact: (constraints) => compact(constraints, fold),
-          medium: medium == null
-              ? null
-              : (constraints) => medium!(constraints, fold),
-          expanded: expanded == null
-              ? null
-              : (constraints) => expanded!(constraints, fold),
-        );
+        final windowClass = ResponsiveBreakpoints.fromConstraints(constraints);
+        final builder = switch (windowClass) {
+          WindowSizeClass.expanded =>
+            expanded ?? medium ?? compact,
+          WindowSizeClass.medium =>
+            medium ?? compact,
+          WindowSizeClass.compact => compact,
+        };
+        return builder(constraints, fold);
       },
     );
   }

@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/core/theme/app_theme.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/responsive_tokens.dart';
+import 'package:flutter_clean_arch_template/core/responsive/responsive_tokens.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/my_circular_progress_indicator.dart';
 
 enum MyOutlinedButtonType {

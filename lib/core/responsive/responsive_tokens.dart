@@ -1,4 +1,4 @@
-import 'package:flutter_clean_arch_template/shared/responsive/breakpoints.dart';
+import 'package:flutter_clean_arch_template/core/responsive/breakpoints.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// 响应式设计 token（间距、字体、内容宽度等）。

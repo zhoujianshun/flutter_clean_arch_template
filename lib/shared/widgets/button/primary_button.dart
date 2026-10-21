@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/responsive_tokens.dart';
+import 'package:flutter_clean_arch_template/core/responsive/responsive_tokens.dart';
 
 /// 带加载状态的按钮组件
 class PrimaryButton extends StatelessWidget {

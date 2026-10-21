@@ -6,7 +6,7 @@ import 'package:flutter_clean_arch_template/core/router/app_router.dart';
 import 'package:flutter_clean_arch_template/shared/responsive/adaptive_builder.dart';
 import 'package:flutter_clean_arch_template/shared/responsive/content_constraint.dart';
 import 'package:flutter_clean_arch_template/shared/responsive/layout_semantics.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/responsive_tokens.dart';
+import 'package:flutter_clean_arch_template/core/responsive/responsive_tokens.dart';
 
 /// Master-Detail 分栏示例
 ///

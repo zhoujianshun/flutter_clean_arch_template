@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/breakpoints.dart';
+import 'package:flutter_clean_arch_template/core/responsive/breakpoints.dart';
 
 /// BuildContext 的响应式扩展。
 ///

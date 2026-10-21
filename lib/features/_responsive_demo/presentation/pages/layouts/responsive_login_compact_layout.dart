@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/responsive_tokens.dart';
+import 'package:flutter_clean_arch_template/core/responsive/responsive_tokens.dart';
 
 class ResponsiveLoginCompactLayout extends StatelessWidget {
   const ResponsiveLoginCompactLayout({required this.loginForm, super.key});

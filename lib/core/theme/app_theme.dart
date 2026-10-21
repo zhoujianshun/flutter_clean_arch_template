@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/responsive_tokens.dart';
+import 'package:flutter_clean_arch_template/core/responsive/responsive_tokens.dart';
 
 /// Application color palette
 ///

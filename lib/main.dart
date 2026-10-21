@@ -7,13 +7,13 @@ import 'package:flutter_clean_arch_template/core/di/service_locator.dart';
 import 'package:flutter_clean_arch_template/core/initializers/app_initializer.dart';
 import 'package:flutter_clean_arch_template/core/l10n/language_provider.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
+import 'package:flutter_clean_arch_template/core/responsive/breakpoints.dart';
+import 'package:flutter_clean_arch_template/core/responsive/responsive_tokens.dart';
 import 'package:flutter_clean_arch_template/core/router/router_provider.dart';
 import 'package:flutter_clean_arch_template/core/theme/app_theme.dart';
 import 'package:flutter_clean_arch_template/core/theme/theme_mode_provider.dart';
 import 'package:flutter_clean_arch_template/features/auth/presentation/widgets/auth_navigation_listener.dart';
 import 'package:flutter_clean_arch_template/generated/l10n/app_localizations.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/breakpoints.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/responsive_tokens.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -58,9 +58,7 @@ Future<void> _bootstrap(WidgetsBinding widgetsBinding) async {
 
   runApp(
     ProviderScope(
-      observers: [
-        if (AppLogger.riverpodObserver != null) AppLogger.riverpodObserver!,
-      ],
+      observers: [if (AppLogger.riverpodObserver != null) AppLogger.riverpodObserver!],
       child: const MyApp(),
     ),
   );
@@ -71,11 +69,7 @@ void _setupErrorHandlers() {
   // Flutter 框架错误（build/layout/绘制异常等）
   FlutterError.onError = (details) {
     FlutterError.presentError(details);
-    AppLogger.fatal(
-      'Flutter 框架错误',
-      error: details.exception,
-      stackTrace: details.stack,
-    );
+    AppLogger.fatal('Flutter 框架错误', error: details.exception, stackTrace: details.stack);
   };
 
   // Zone 未捕获异步错误（runZonedGuarded 捕不到的平台线程回调等）
@@ -92,10 +86,7 @@ void _setupErrorHandlers() {
         child: ColoredBox(
           color: Color(0xFF1E1E1E),
           child: Center(
-            child: Text(
-              '页面出现异常',
-              style: TextStyle(color: Colors.white, fontSize: 14),
-            ),
+            child: Text('页面出现异常', style: TextStyle(color: Colors.white, fontSize: 14)),
           ),
         ),
       );
@@ -133,11 +124,7 @@ class _BootstrapErrorAppState extends State<_BootstrapErrorApp> {
     try {
       await widget.onRetry();
     } catch (error, stackTrace) {
-      AppLogger.error(
-        '应用初始化重试失败（$_retryCount/$_maxRetries）',
-        error: error,
-        stackTrace: stackTrace,
-      );
+      AppLogger.error('应用初始化重试失败（$_retryCount/$_maxRetries）', error: error, stackTrace: stackTrace);
     } finally {
       if (mounted) {
         setState(() => _isRetrying = false);
@@ -158,37 +145,24 @@ class _BootstrapErrorAppState extends State<_BootstrapErrorApp> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
-                    Icons.error_outline,
-                    size: 56,
-                    color: Color(0xFFB00020),
-                  ),
+                  const Icon(Icons.error_outline, size: 56, color: Color(0xFFB00020)),
                   const SizedBox(height: 16),
                   Text(
                     _exhausted ? '初始化失败，请重新安装应用' : '应用初始化失败',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   if (kDebugMode)
                     Text(
                       widget.error.toString(),
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF757575),
-                      ),
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF757575)),
                     ),
                   const SizedBox(height: 24),
                   FilledButton(
                     onPressed: (_isRetrying || _exhausted) ? null : _retry,
                     child: _isRetrying
-                        ? const SizedBox.square(
-                            dimension: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
+                        ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
                         : Text(_exhausted ? '已达最大重试次数' : '重试'),
                   ),
                 ],
@@ -211,13 +185,9 @@ class MyApp extends ConsumerWidget {
     final locale = ref.watch(appLocaleProvider);
 
     return ScreenUtilInit(
-      designSize: const Size(
-        ResponsiveTokens.phoneDesignWidth,
-        ResponsiveTokens.phoneDesignHeight,
-      ),
+      designSize: const Size(ResponsiveTokens.phoneDesignWidth, ResponsiveTokens.phoneDesignHeight),
       minTextAdapt: true,
       splitScreenMode: true,
-      useInheritedMediaQuery: true,
       fontSizeResolver: (fontSize, instance) {
         // 平板/桌面端（>= 600dp）：不缩放字体，直接使用设计稿 dp 值
         if (instance.screenWidth >= ResponsiveBreakpoints.compact) {
@@ -225,8 +195,7 @@ class MyApp extends ConsumerWidget {
         }
         // 手机端：宽高混合缩放，避免极端屏幕比例下字体失真
         final scaleW = instance.screenWidth / ResponsiveTokens.phoneDesignWidth;
-        final scaleH =
-            instance.screenHeight / ResponsiveTokens.phoneDesignHeight;
+        final scaleH = instance.screenHeight / ResponsiveTokens.phoneDesignHeight;
         final scale = min(scaleW, scaleH) * 0.85 + max(scaleW, scaleH) * 0.15;
         return fontSize * scale;
       },
@@ -238,10 +207,7 @@ class MyApp extends ConsumerWidget {
               child: MaterialApp.router(
                 title: 'Flutter Clean Arch',
                 routerConfig: appRouter.config(
-                  navigatorObservers: () => [
-                    if (AppLogger.routeObserver != null)
-                      AppLogger.routeObserver!,
-                  ],
+                  navigatorObservers: () => [if (AppLogger.routeObserver != null) AppLogger.routeObserver!],
                 ),
                 theme: AppTheme.lightTheme,
                 darkTheme: AppTheme.darkTheme,
@@ -260,9 +226,7 @@ class MyApp extends ConsumerWidget {
   }
 }
 
-/// App 退出时清理初始化期间创建的全局资源
-///
-/// （如 OrientationPolicy 的折叠/展开 metrics 监听）。
+/// App 退出时清理初始化期间创建的全局资源。
 class _AppDisposeHook extends StatefulWidget {
   const _AppDisposeHook({required this.child});
 
@@ -272,8 +236,7 @@ class _AppDisposeHook extends StatefulWidget {
   State<_AppDisposeHook> createState() => _AppDisposeHookState();
 }
 
-class _AppDisposeHookState extends State<_AppDisposeHook>
-    with WidgetsBindingObserver {
+class _AppDisposeHookState extends State<_AppDisposeHook> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();

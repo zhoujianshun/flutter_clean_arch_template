@@ -2,10 +2,10 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/shared/responsive/adaptive_builder.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/breakpoints.dart';
+import 'package:flutter_clean_arch_template/core/responsive/breakpoints.dart';
 import 'package:flutter_clean_arch_template/shared/responsive/content_constraint.dart';
 import 'package:flutter_clean_arch_template/shared/responsive/fold_aware.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/responsive_tokens.dart';
+import 'package:flutter_clean_arch_template/core/responsive/responsive_tokens.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_test/flutter_test.dart';
 

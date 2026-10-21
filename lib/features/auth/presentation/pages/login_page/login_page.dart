@@ -7,7 +7,7 @@ import 'package:flutter_clean_arch_template/core/router/app_router.dart';
 import 'package:flutter_clean_arch_template/features/auth/presentation/providers/auth_provider.dart';
 import 'package:flutter_clean_arch_template/features/auth/presentation/providers/models/auth_state.dart';
 import 'package:flutter_clean_arch_template/shared/responsive/content_constraint.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/responsive_tokens.dart';
+import 'package:flutter_clean_arch_template/core/responsive/responsive_tokens.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/pop/my_easy_pop_message.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/verification_code_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

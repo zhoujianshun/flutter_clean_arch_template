@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/responsive_tokens.dart';
+import 'package:flutter_clean_arch_template/core/responsive/responsive_tokens.dart';
 
 /// 内容宽度约束——当父级可用宽度大于 [maxWidth] 时限制内容宽度并居中。
 ///

@@ -75,11 +75,6 @@ class AppConfig {
     return EnvConfigManager.getBool('MOCK_DATA', defaultValue: false);
   }
 
-  /// When true, phones keep portrait-only orientation.
-  static bool get lockPhonePortrait {
-    return EnvConfigManager.getBool('LOCK_PHONE_PORTRAIT', defaultValue: true);
-  }
-
   static bool get isProduction => environment == 'production';
   static bool get isDevelopment => environment == 'development';
   static bool get isStaging => environment == 'staging';
@@ -106,7 +101,6 @@ class AppConfig {
       'enableTalkerScreen': enableTalkerScreen,
       'authMode': authMode.name,
       'mockAuth': mockAuth,
-      'lockPhonePortrait': lockPhonePortrait,
       'networkConfig': {
         'baseUrl': baseUrl,
         'connectTimeout': connectTimeout,
