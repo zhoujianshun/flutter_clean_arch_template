@@ -19,6 +19,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// - 手机（< 600dp）：底部 [NavigationBar]
 /// - 平板竖屏（600-839dp）：左侧 [NavigationRail]（仅图标 + 选中标签）
 /// - 平板横屏/桌面（>= 840dp）：左侧 [NavigationRail]（图标 + 所有标签）
+///
+/// ### iPhone Duo 适配说明
+///
+/// iPhone Duo 内屏（~951×669dp）会触发 medium/expanded 布局，使用左侧
+/// [NavigationRail]。在横屏模式下，iOS 系统将状态栏、导航按钮、Tab 等控件
+/// 合并到**右侧 84dp 的垂直控件条带**中（Vertical Controls）。
+///
+/// Flutter 自绘的 Widget（[AppBar]、[NavigationBar]、[CupertinoTabBar]）
+/// 不会被系统整合到垂直条带中——这是 Flutter 框架级限制。系统只移动由
+/// `UINavigationController` / `UITabBarController` 管理的原生 bar。
+///
+/// **当前行为**：
+/// - 横屏：[NavigationRail] 在左侧，系统垂直条带在右侧（[SafeArea] 84dp），
+///   各页面的 [AppBar] 保持水平。状态栏项目（时间/WiFi）在右侧条带内垂直排列。
+/// - 竖屏：回到标准水平布局（[NavigationRail] + 顶部 [AppBar]）。
+///
+/// **与原生 App 的差异**：Safari 等使用 UIKit 导航容器的原生 App，
+/// 其导航栏会被系统自动整合到垂直条带中，视觉更统一。
+/// 如需一致体验，可使用 `nitro_fold_duo` 或 `iphone_duo_layout` 等插件
+/// 桥接原生 bar，但这些插件需要 iOS 27.1 SDK 且目前为预发布版本。
 @RoutePage()
 class AppShellPage extends ConsumerStatefulWidget {
   const AppShellPage({super.key});
