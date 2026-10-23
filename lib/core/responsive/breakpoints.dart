@@ -55,6 +55,25 @@ class ResponsiveBreakpoints {
   static bool isExpandedScreen(BuildContext context) =>
       fromContext(context) == WindowSizeClass.expanded;
 
+  /// 按窗口尺寸类解析值，渐进回退（expanded→medium→compact）。
+  ///
+  /// 回退链的唯一真值源：medium 缺失时回退到 compact（而非 expanded），
+  /// 避免 600dp 窗口使用为 840dp+ 设计的布局导致溢出。
+  /// [valueOf]/[screenValueOf]、AdaptiveBuilder 系列与 ResponsiveTokens
+  /// 系列均委托此方法，保证回退策略全局一致。
+  static T resolve<T>({
+    required WindowSizeClass windowClass,
+    required T compact,
+    T? medium,
+    T? expanded,
+  }) {
+    return switch (windowClass) {
+      WindowSizeClass.expanded => expanded ?? medium ?? compact,
+      WindowSizeClass.medium => medium ?? compact,
+      WindowSizeClass.compact => compact,
+    };
+  }
+
   /// 按断点返回对应值，渐进回退（expanded→medium→compact）。
   ///
   /// medium 缺失时回退到 compact（而非 expanded），
@@ -65,12 +84,12 @@ class ResponsiveBreakpoints {
     T? mediumValue,
     T? expandedValue,
   }) {
-    final windowClass = fromConstraints(constraints);
-    return switch (windowClass) {
-      WindowSizeClass.expanded => expandedValue ?? mediumValue ?? compactValue,
-      WindowSizeClass.medium => mediumValue ?? compactValue,
-      WindowSizeClass.compact => compactValue,
-    };
+    return resolve(
+      windowClass: fromConstraints(constraints),
+      compact: compactValue,
+      medium: mediumValue,
+      expanded: expandedValue,
+    );
   }
 
   /// 按窗口宽度返回对应值，渐进回退（expanded→medium→compact）。
@@ -80,11 +99,11 @@ class ResponsiveBreakpoints {
     T? mediumValue,
     T? expandedValue,
   }) {
-    final windowClass = fromContext(context);
-    return switch (windowClass) {
-      WindowSizeClass.expanded => expandedValue ?? mediumValue ?? compactValue,
-      WindowSizeClass.medium => mediumValue ?? compactValue,
-      WindowSizeClass.compact => compactValue,
-    };
+    return resolve(
+      windowClass: fromContext(context),
+      compact: compactValue,
+      medium: mediumValue,
+      expanded: expandedValue,
+    );
   }
 }

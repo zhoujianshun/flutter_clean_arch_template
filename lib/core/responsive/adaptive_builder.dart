@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/core/responsive/breakpoints.dart';
+import 'package:flutter_clean_arch_template/core/responsive/constraints_scope.dart';
 
 /// 自适应布局构建器
 ///
@@ -46,13 +47,17 @@ class AdaptiveBuilder extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final windowClass = ResponsiveBreakpoints.fromConstraints(constraints);
-        return switch (windowClass) {
-          WindowSizeClass.expanded =>
-            expanded ?? medium ?? compact,
-          WindowSizeClass.medium =>
-            medium ?? compact,
-          WindowSizeClass.compact => compact,
-        };
+        final child = ResponsiveBreakpoints.resolve<Widget>(
+          windowClass: windowClass,
+          compact: compact,
+          medium: medium,
+          expanded: expanded,
+        );
+        return ConstraintsScope(
+          constraints: constraints,
+          windowClass: windowClass,
+          child: child,
+        );
       },
     );
   }
@@ -106,14 +111,17 @@ class AdaptiveLayoutBuilder extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final windowClass = ResponsiveBreakpoints.fromConstraints(constraints);
-        final builder = switch (windowClass) {
-          WindowSizeClass.expanded =>
-            expanded ?? medium ?? compact,
-          WindowSizeClass.medium =>
-            medium ?? compact,
-          WindowSizeClass.compact => compact,
-        };
-        return builder(constraints);
+        final builder = ResponsiveBreakpoints.resolve(
+          windowClass: windowClass,
+          compact: compact,
+          medium: medium,
+          expanded: expanded,
+        );
+        return ConstraintsScope(
+          constraints: constraints,
+          windowClass: windowClass,
+          child: builder(constraints),
+        );
       },
     );
   }
@@ -161,19 +169,32 @@ class StatefulAdaptiveBuilder extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // 只构建实际存在的不同子组件，避免重复挂载同一实例
-        final children = <Widget>[compact];
+        // 只构建实际存在的不同子组件，避免重复挂载同一实例。
+        // 用显式下标映射（而非 children.length - 1）消除对插入顺序的隐式依赖。
+        final children = <Widget>[];
+        final compactIndex = children.length;
+        children.add(compact);
+        final mediumIndex = medium != null ? children.length : compactIndex;
         if (medium != null) children.add(medium!);
+        final expandedIndex = expanded != null
+            ? children.length
+            : (medium != null ? mediumIndex : compactIndex);
         if (expanded != null) children.add(expanded!);
 
-        // 断点 → children 下标（与 AdaptiveBuilder 渐进回退一致）
-        final index = switch (ResponsiveBreakpoints.fromConstraints(constraints)) {
-          WindowSizeClass.expanded => expanded != null ? children.length - 1 : (medium != null ? 1 : 0),
-          WindowSizeClass.medium => medium != null ? 1 : 0,
-          WindowSizeClass.compact => 0,
-        };
+        // 断点 → 显式下标（与 AdaptiveBuilder 渐进回退一致）
+        final windowClass = ResponsiveBreakpoints.fromConstraints(constraints);
+        final index = ResponsiveBreakpoints.valueOf<int>(
+          constraints,
+          compactValue: compactIndex,
+          mediumValue: mediumIndex,
+          expandedValue: expandedIndex,
+        );
 
-        return IndexedStack(index: index, children: children);
+        return ConstraintsScope(
+          constraints: constraints,
+          windowClass: windowClass,
+          child: IndexedStack(index: index, children: children),
+        );
       },
     );
   }

@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/content_constraint.dart';
+import 'package:flutter_clean_arch_template/core/responsive/content_constraint.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/my_circular_progress_indicator.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/pop/my_easy_pop_message.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/states/app_empty_widget.dart';

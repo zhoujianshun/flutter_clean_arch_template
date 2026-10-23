@@ -1,8 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_clean_arch_template/core/responsive/adaptive_builder.dart';
 import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/layouts/responsive_form_compact_layout.dart';
 import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/layouts/responsive_form_tablet_layout.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/adaptive_builder.dart';
 
 /// 响应式表单示例
 ///

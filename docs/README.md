@@ -115,6 +115,14 @@
 | [SCREENUTIL_GUIDE.md](responsive/SCREENUTIL_GUIDE.md) | ScreenUtil 屏幕适配指南 |
 | [TABLET_ADAPTATION_GUIDE.md](responsive/TABLET_ADAPTATION_GUIDE.md) | 平板适配架构决策记录（ADR） |
 | [RESPONSIVE_BEST_PRACTICES_COMPARISON.md](responsive/RESPONSIVE_BEST_PRACTICES_COMPARISON.md) | 企业级响应式方案对比（2026） |
+| [RESPONSIVE_CODE_REVIEW.md](responsive/RESPONSIVE_CODE_REVIEW.md) | 响应式模块代码审查报告（问题清单 + 待决策项） |
+
+### 待办清单 (`todo/`)
+
+| 文档 | 主题 |
+|------|------|
+| [IPHONE_DUO_TODO.md](todo/IPHONE_DUO_TODO.md) | iPhone Duo 适配待办清单 |
+| [LIQUID_GLASS_TODO.md](todo/LIQUID_GLASS_TODO.md) | iOS 26/27 液态玻璃（Liquid Glass）适配待办清单 |
 
 ### UI 设计 (`ui-design/`)
 

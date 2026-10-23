@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/layout_semantics.dart';
+import 'package:flutter_clean_arch_template/core/responsive/layout_semantics.dart';
 import 'package:flutter_clean_arch_template/core/responsive/responsive_tokens.dart';
 
 class ResponsiveLoginTabletLayout extends StatelessWidget {

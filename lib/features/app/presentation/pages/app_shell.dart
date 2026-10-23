@@ -1,22 +1,22 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_clean_arch_template/core/constants/app_constants.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
+import 'package:flutter_clean_arch_template/core/responsive/adaptive_builder.dart';
+import 'package:flutter_clean_arch_template/core/responsive/layout_semantics.dart';
 import 'package:flutter_clean_arch_template/core/router/app_router.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/adaptive_builder.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/layout_semantics.dart';
+import 'package:flutter_clean_arch_template/shared/widgets/navigation/my_bottom_navigation_bar.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/pop/my_easy_pop_message.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// 应用壳层页面（自适应导航）
 ///
 /// 根据屏幕宽度自动切换导航形式：
-/// - 手机（< 600dp）：底部 [NavigationBar]
+/// - 手机（< 600dp）：底部 [MyBottomNavigationBar]
 /// - 平板竖屏（600-839dp）：左侧 [NavigationRail]（仅图标 + 选中标签）
 /// - 平板横屏/桌面（>= 840dp）：左侧 [NavigationRail]（图标 + 所有标签）
 ///
@@ -26,7 +26,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// [NavigationRail]。在横屏模式下，iOS 系统将状态栏、导航按钮、Tab 等控件
 /// 合并到**右侧 84dp 的垂直控件条带**中（Vertical Controls）。
 ///
-/// Flutter 自绘的 Widget（[AppBar]、[NavigationBar]、[CupertinoTabBar]）
+/// Flutter 自绘的 Widget（`AppBar`、`NavigationBar`、`CupertinoTabBar`）
 /// 不会被系统整合到垂直条带中——这是 Flutter 框架级限制。系统只移动由
 /// `UINavigationController` / `UITabBarController` 管理的原生 bar。
 ///
@@ -50,11 +50,8 @@ class AppShellPage extends ConsumerStatefulWidget {
 class _AppShellPageState extends ConsumerState<AppShellPage> {
   DateTime? _lastPressedAt;
   static const int _exitTimeWindow = 2000;
-  // static const double _iosTabBarHeight = 56;
-  static const double _iosTabIconTopPadding = 6;
-  static const double _iosTabIconSize = 24;
 
-  /// 导航目的地配置（共享给 NavigationBar 和 NavigationRail）
+  /// 导航目的地配置（共享给 MyBottomNavigationBar 和 NavigationRail）
   static List<({IconData icon, IconData selectedIcon, String label})>
   get _destinations => AppConstants.includeDemos
       ? const [
@@ -99,59 +96,15 @@ class _AppShellPageState extends ConsumerState<AppShellPage> {
     );
   }
 
-  Widget _buildBottomNavigationBar(
-    BuildContext context,
-    TabsRouter tabsRouter,
-  ) {
-    if (Platform.isIOS) {
-      return CupertinoTabBar(
-        currentIndex: tabsRouter.activeIndex,
-        onTap: tabsRouter.setActiveIndex,
-        activeColor: Theme.of(context).colorScheme.primary,
-        // height: _iosTabBarHeight,
-        iconSize: _iosTabIconSize,
-        items: _destinations
-            .map(
-              (destination) => BottomNavigationBarItem(
-                icon: Padding(
-                  padding: const EdgeInsets.only(
-                    top: _iosTabIconTopPadding,
-                  ),
-                  child: Icon(destination.icon),
-                ),
-                activeIcon: Padding(
-                  padding: const EdgeInsets.only(
-                    top: _iosTabIconTopPadding,
-                  ),
-                  child: Icon(destination.selectedIcon),
-                ),
-                label: destination.label,
-              ),
-            )
-            .toList(growable: false),
-      );
-    }
-
-    return NavigationBar(
-      selectedIndex: tabsRouter.activeIndex,
-      onDestinationSelected: tabsRouter.setActiveIndex,
-      destinations: _destinations
-          .map(
-            (destination) => NavigationDestination(
-              icon: Icon(destination.icon),
-              selectedIcon: Icon(destination.selectedIcon),
-              label: destination.label,
-            ),
-          )
-          .toList(growable: false),
-    );
-  }
-
   /// 手机布局：底部导航栏
   Widget _buildCompactShell(TabsRouter tabsRouter, Widget child) {
     return Scaffold(
       body: child,
-      bottomNavigationBar: _buildBottomNavigationBar(context, tabsRouter),
+      bottomNavigationBar: MyBottomNavigationBar(
+        currentIndex: tabsRouter.activeIndex,
+        onTap: tabsRouter.setActiveIndex,
+        destinations: _destinations,
+      ),
     );
   }
 
@@ -190,7 +143,7 @@ class _AppShellPageState extends ConsumerState<AppShellPage> {
     if (_lastPressedAt != null &&
         now.difference(_lastPressedAt!).inMilliseconds < _exitTimeWindow) {
       AppLogger.info('AppShell: Double-tap exit');
-      if (Platform.isAndroid) {
+      if (defaultTargetPlatform == TargetPlatform.android) {
         unawaited(SystemNavigator.pop());
       }
       return;

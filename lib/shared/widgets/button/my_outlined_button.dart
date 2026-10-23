@@ -1,13 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_clean_arch_template/core/theme/app_theme.dart';
 import 'package:flutter_clean_arch_template/core/responsive/responsive_tokens.dart';
+import 'package:flutter_clean_arch_template/core/theme/app_theme.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/my_circular_progress_indicator.dart';
 
-enum MyOutlinedButtonType {
-  primary,
-  plain,
-}
+enum MyOutlinedButtonType { primary, plain }
 
 /// 有边框的按钮组件，类iOS风格
 /// 提供多种工厂构造函数以支持不同的使用场景
@@ -130,11 +127,9 @@ class MyOutlinedButton extends StatelessWidget {
 
           var mainTextStyle =
               textStyle ??
-              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontSize:
-                    fontSize ??
-                    ResponsiveTokens.font(14, medium: 14, expanded: 14),
-              );
+              Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontSize: fontSize ?? 14.f);
           mainTextStyle = mainTextStyle?.copyWith(
             decoration: TextDecoration.none,
             color: !isDisabled
@@ -156,9 +151,7 @@ class MyOutlinedButton extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 icon,
-                SizedBox(
-                  width: space ?? 4,
-                ),
+                SizedBox(width: space ?? 4),
                 child,
               ],
             );
@@ -263,10 +256,7 @@ class MyOutlinedButton extends StatelessWidget {
     final effectivePadding =
         padding ??
         (width == null || height == null
-            ? const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 4,
-              )
+            ? const EdgeInsets.symmetric(horizontal: 12, vertical: 4)
             : EdgeInsets.zero);
 
     // 构建按钮内容 - 使用 Align 配合 widthFactor 实现紧凑布局
@@ -297,9 +287,7 @@ class MyOutlinedButton extends StatelessWidget {
         widthFactor: expand ? null : 1, // 收缩到子元素宽度
         heightFactor: expand ? null : 1, // 收缩到子元素高度
         child: isLoading
-            ? MyCircularProgressIndicator(
-                color: effectiveDisabledBorderColor,
-              )
+            ? MyCircularProgressIndicator(color: effectiveDisabledBorderColor)
             : child,
       ),
     );
@@ -314,11 +302,7 @@ class MyOutlinedButton extends StatelessWidget {
 
     // 只在明确指定了宽度或高度时才用 SizedBox 约束
     if (width != null || height != null) {
-      return SizedBox(
-        width: width,
-        height: height,
-        child: button,
-      );
+      return SizedBox(width: width, height: height, child: button);
     }
 
     return button;

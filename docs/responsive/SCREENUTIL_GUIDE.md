@@ -28,8 +28,8 @@ dependencies:
 
 ```dart
 import 'dart:math';
-import 'package:flutter_clean_arch_template/shared/responsive/breakpoints.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/responsive_tokens.dart';
+import 'package:flutter_clean_arch_template/core/responsive/breakpoints.dart';
+import 'package:flutter_clean_arch_template/core/responsive/responsive_tokens.dart';
 
 return ScreenUtilInit(
   // 使用手机端设计稿尺寸（375 × 812）
@@ -39,7 +39,6 @@ return ScreenUtilInit(
   ),
   minTextAdapt: true,
   splitScreenMode: true,
-  useInheritedMediaQuery: true,
   fontSizeResolver: (fontSize, instance) {
     // 平板/桌面端（>= 600dp）：不缩放字体，直接用 dp 值
     if (instance.screenWidth >= ResponsiveBreakpoints.compact) {
@@ -357,8 +356,12 @@ A: 按场景选择：
 
 ### Q: 如何处理横屏适配？
 
-A: 方向策略由 `OrientationPolicy` 统一管理。默认是“手机锁竖屏、平板全方向”，可通过环境变量 `LOCK_PHONE_PORTRAIT` 切换。
+A: 项目不做运行时方向锁定，完全依赖响应式 UI 自适应。iOS 方向支持由 `Info.plist` 的 `UISupportedInterfaceOrientations` 声明（iPhone 支持 portrait + landscape，iPad 支持全方向）。布局切换使用 `AdaptiveBuilder` / `LayoutBuilder` 基于宽度断点自动处理。
 
 ### Q: 如何处理折叠屏？
 
-A: `ScreenUtilInit` 已配置 `splitScreenMode: true`。布局切换使用 `LayoutBuilder`（基于约束的方法），会自动响应折叠屏的分屏宽度变化。
+A: `ScreenUtilInit` 已配置 `splitScreenMode: true`。布局切换使用 `LayoutBuilder`（基于约束的方法），会自动响应折叠屏的分屏宽度变化。iPhone Duo 的折叠/展开本质上就是窗口宽度变化，断点体系天然覆盖。
+
+### Q: iPhone Duo 上状态栏和导航栏为什么与 Safari 不同？
+
+A: iPhone Duo 内屏横屏时，iOS 将系统管理的 bar（`UINavigationController` 等）合并到侧边**垂直控件条带**中。Flutter 自绘的 `AppBar`/`NavigationBar` 不受系统管理，无法整合到垂直条带——这是 Flutter 框架级限制。`SafeArea` 会正确避开垂直条带区域（~84dp）。

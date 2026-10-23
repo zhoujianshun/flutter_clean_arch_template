@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_clean_arch_template/core/responsive/breakpoints.dart';
+import 'package:flutter_clean_arch_template/core/responsive/constraints_scope.dart';
 
 /// 折叠屏姿态信息（来自 [MediaQuery.displayFeaturesOf]）。
 ///
@@ -14,8 +15,12 @@ import 'package:flutter_clean_arch_template/core/responsive/breakpoints.dart';
 /// - [DisplayFeatureState.postureFlat]：完全展开
 /// - [DisplayFeatureState.postureHalfOpened]：半开（帐篷/笔记本形态）
 ///
-/// iPhone Duo 为连续内屏且折痕极小，[obstruction] 通常为 null，
-/// 两栏布局的分栏线按逻辑折痕（[foldCrease]）对齐即可。
+/// iPhone Duo 为连续内屏且折痕极小，理论上 [obstruction] 为 null，
+/// 两栏布局可按逻辑折痕（[foldCrease]）对齐分栏线。
+///
+/// **平台限制**：iOS 上 [MediaQuery.displayFeaturesOf] 恒返回空列表
+///（flutter/flutter#192515），因此 [FoldInfo] 在 iOS 上恒为 [none]。
+/// 上述「按折痕对齐」的路径当前仅在 Android 折叠屏上生效。
 class FoldInfo {
   const FoldInfo({
     this.obstruction,
@@ -24,6 +29,11 @@ class FoldInfo {
   });
 
   /// 解析 [MediaQuery.displayFeaturesOf] 得到折叠姿态。
+  ///
+  /// 遍历所有 [DisplayFeature]，取首个 hinge 和首个 fold。
+  /// 实际设备不会同时出现 hinge + fold，故 [isHalfOpened] 取两者中首个
+  /// 非 flat 姿态即可。若同时存在，hinge 优先（[hingeBounds] 也优先返回
+  /// [obstruction]）。
   factory FoldInfo.fromContext(BuildContext context) {
     final features = MediaQuery.displayFeaturesOf(context);
     Rect? obstruction;
@@ -33,11 +43,16 @@ class FoldInfo {
     for (final feature in features) {
       switch (feature.type) {
         case DisplayFeatureType.hinge:
-          obstruction = feature.bounds;
-          isHalfOpened = feature.state == DisplayFeatureState.postureHalfOpened;
+          // 取首个 hinge，忽略后续（实际设备至多一个）
+          obstruction ??= feature.bounds;
+          if (feature.state == DisplayFeatureState.postureHalfOpened) {
+            isHalfOpened = true;
+          }
         case DisplayFeatureType.fold:
-          foldCrease = feature.bounds;
-          isHalfOpened = feature.state == DisplayFeatureState.postureHalfOpened;
+          foldCrease ??= feature.bounds;
+          if (feature.state == DisplayFeatureState.postureHalfOpened) {
+            isHalfOpened = true;
+          }
         // cutout（摄像头开孔）和 unknown 不携带折叠语义，跳过。
         case DisplayFeatureType.cutout:
         case DisplayFeatureType.unknown:
@@ -114,14 +129,17 @@ class FoldAwareBuilder extends StatelessWidget {
       builder: (context, constraints) {
         final fold = FoldInfo.fromContext(context);
         final windowClass = ResponsiveBreakpoints.fromConstraints(constraints);
-        final builder = switch (windowClass) {
-          WindowSizeClass.expanded =>
-            expanded ?? medium ?? compact,
-          WindowSizeClass.medium =>
-            medium ?? compact,
-          WindowSizeClass.compact => compact,
-        };
-        return builder(constraints, fold);
+        final builder = ResponsiveBreakpoints.resolve(
+          windowClass: windowClass,
+          compact: compact,
+          medium: medium,
+          expanded: expanded,
+        );
+        return ConstraintsScope(
+          constraints: constraints,
+          windowClass: windowClass,
+          child: builder(constraints, fold),
+        );
       },
     );
   }
@@ -129,8 +147,14 @@ class FoldAwareBuilder extends StatelessWidget {
 
 /// 将子组件拆分到铰链两侧的双面板布局。
 ///
-/// 适用于有物理铰链（[DisplayFeatureType.hinge]）的折叠屏设备。
-/// 铰链无遮挡（连续屏）或非折叠设备时，使用 [fallback] 布局。
+/// 适用于有物理铰链（[DisplayFeatureType.hinge]）的折叠屏设备，
+/// 且仅限**覆盖完整窗口宽度**的场景（如全屏 body）。
+///
+/// 使用 [fallback] 布局的场景：
+/// - 铰链无遮挡（连续屏）或非折叠设备
+/// - 嵌套在子面板中（本地宽度 < 窗口宽度）：铰链 bounds 为全局坐标，
+///   面板存在未知的水平偏移，无法可靠换算为局部坐标，保守回退
+/// - 约束宽度无界
 ///
 /// 对话框等浮层避铰链请直接使用官方 [DisplayFeatureSubScreen]。
 class HingeSplitLayout extends StatelessWidget {
@@ -161,10 +185,19 @@ class HingeSplitLayout extends StatelessWidget {
         final fold = FoldInfo.fromContext(context);
         final hinge = fold.obstruction;
 
-        // 无铰链或铰链不在本地可用宽度内（如嵌套在子面板）时回退
-        if (hinge == null ||
-            hinge.width <= 0 ||
-            hinge.right > constraints.maxWidth) {
+        // 无铰链或铰链宽度非法时回退
+        if (hinge == null || hinge.width <= 0) {
+          return fallback;
+        }
+
+        // 无界约束（如横向可滚动区域）无法定位面板，回退
+        if (!constraints.hasBoundedWidth) {
+          return fallback;
+        }
+
+        // 仅当面板覆盖完整窗口宽度时，铰链全局坐标才与本地坐标一致；
+        // 嵌套子面板存在未知水平偏移，无法可靠换算为局部坐标，保守回退。
+        if (constraints.maxWidth != MediaQuery.sizeOf(context).width) {
           return fallback;
         }
 

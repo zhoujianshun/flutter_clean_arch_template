@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/adaptive_builder.dart';
+import 'package:flutter_clean_arch_template/core/responsive/adaptive_builder.dart';
 import 'package:flutter_clean_arch_template/core/responsive/responsive_tokens.dart';
 
 /// 响应式 Dashboard 示例

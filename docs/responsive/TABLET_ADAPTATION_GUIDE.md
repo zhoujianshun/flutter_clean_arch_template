@@ -92,19 +92,21 @@
 
 **最终结构**:
 
-| 文件 | 职责 | 说明 |
-|------|------|------|
-| `breakpoints.dart` | 断点判定 | 单一真值源，定义常量 + 提供 `isCompact`/`valueOf` 等方法 |
-| `responsive_tokens.dart` | 设计 Token | 设计稿尺寸、内容宽度常量、`aw()`/`tw()`/`size()`/`font()` 缩放 |
-| `adaptive_builder.dart` | 声明式组件 | `AdaptiveBuilder` / `AdaptiveLayoutBuilder` / `StatefulAdaptiveBuilder` |
-| `layout_semantics.dart` | 语义决策 | `railLabelType()`、`masterPaneRatio()` 等页面层布局语义 |
-| `content_constraint.dart` | 内容约束 | 大屏上限制内容最大宽度并居中 |
-| `responsive_context.dart` | BuildContext 扩展 | 便捷 getter（`isCompactWindow` 等） |
+| 文件 | 路径 | 职责 | 说明 |
+|------|------|------|------|
+| `breakpoints.dart` | `core/responsive/` | 断点判定 | 单一真值源，定义常量 + 提供 `isCompact`/`valueOf` 等方法 |
+| `responsive_tokens.dart` | `core/responsive/` | 设计 Token | 设计稿尺寸、内容宽度常量、`aw()`/`tw()`/`size()`/`font()` 缩放 |
+| `adaptive_builder.dart` | `core/responsive/` | 声明式组件 | `AdaptiveBuilder` / `AdaptiveLayoutBuilder` / `StatefulAdaptiveBuilder` |
+| `layout_semantics.dart` | `core/responsive/` | 语义决策 | `railLabelType()`、`masterPaneRatio()` 等页面层布局语义 |
+| `content_constraint.dart` | `core/responsive/` | 内容约束 | 大屏上限制内容最大宽度并居中 |
+| `responsive_context.dart` | `core/responsive/` | BuildContext 扩展 | 便捷 getter + iPhone Duo 辅助属性 |
 
 **选择理由**:
 - 单一职责：每个文件只做一件事
 - 按需导入：页面只引用需要的模块
 - 独立演进：修改断点值不影响缩放逻辑，反之亦然
+- 正确的依赖方向：整个响应式模块（常量、Token、组件）统一收敛到 `core/responsive/`，
+  避免 `core/` → `shared/` 的反向依赖；`shared/widgets` 组件按需引用 `core/responsive`
 
 ---
 
@@ -127,17 +129,18 @@
 
 **决策**: 在既有约束驱动架构上补齐三项折叠屏能力，不做设备特判
 
-**背景**: 2026 年 9 月 iPhone Duo 发布（折叠外屏 5.4"、展开内屏 7.6"），加上既有 Android 折叠屏，多形态设备成为必须覆盖的目标。Duo 展开态逻辑尺寸 **890 × 626**（14.2:10，宽大于高），恰好落入 expanded（≥ 840）；折叠外屏 466pt、展开竖持 626pt 分别对应 compact / medium——现有断点体系天然覆盖，无需调整。
+**背景**: 2026 年 9 月 iPhone Duo 发布（折叠外屏 5.4"、展开内屏 7.6"），加上既有 Android 折叠屏，多形态设备成为必须覆盖的目标。Duo 展开态逻辑尺寸 **951 × 669**（14.2:10，宽大于高），恰好落入 expanded（≥ 840）；折叠外屏 466pt、展开竖持 669pt 分别对应 compact / medium——现有断点体系天然覆盖，无需调整。
 
 **关键风险与对策**:
 
 | 风险 | 对策 |
 |------|------|
-| 折叠态启动锁竖屏 → 展开后方向锁过期，内容侧转 90° | `OrientationPolicy` 注册 `didChangeMetrics` 监听，判定翻转时自动重应用（防循环：结果不变则跳过） |
-| 折叠→展开是 compact→expanded **跨级跳变**（466→890，跳过 medium） | `AdaptiveBuilder` 回退链（expanded→medium→compact）已覆盖；测试矩阵新增跨级跳变用例 |
-| 展开态 `.w` 缩放 2.37× 视觉爆炸 | shared 层组件强制使用 `.rw/.rf`（clamp 1.2）；demo 页面除外（可编译剔除） |
+| iPhone Duo 内屏忽略方向锁定，运行时 `setPreferredOrientations` 导致 Flutter 引擎旋转状态冲突 | 完全移除运行时方向锁定（`OrientationPolicyWidget` 已删除）。iOS 方向由 `Info.plist` 静态声明；Android 不做方向锁定。全部依赖响应式 UI 自适应。 |
+| 折叠→展开是 compact→expanded **跨级跳变**（466→951，跳过 medium） | `AdaptiveBuilder` 回退链（expanded→medium→compact）已覆盖；测试矩阵新增跨级跳变用例 |
+| 展开态 `.w` 缩放 2.37× 视觉爆炸 | 业务组件统一使用 `core/responsive` token（`.rw`/`.rs`/`.rf`，缩放上限 clamp）；demo 页面除外（可编译剔除） |
 | Android 铰链设备交互元素压铰链 | 新增 `fold_aware.dart`：`FoldInfo` / `FoldAwareBuilder` / `HingeSplitLayout` |
-| 展开态横持（890×626）纵向空间有限 | `ContentConstraint` 新增可选 `maxHeight` 参数 |
+| 展开态横持（951×669）纵向空间有限 | `ContentConstraint` 新增可选 `maxHeight` 参数 |
+| iPhone Duo 内屏横屏，系统将 bar 合并到侧边垂直控件条带，Flutter 自绘 bar 无法整合 | Flutter 框架级限制。`SafeArea` 正确避开垂直条带（~84dp）。添加 `hasAsymmetricHorizontalPadding` 辅助属性；布局根据宽度断点决策而非 `orientation`。`ConstraintsScope` 让子组件读取局部约束。未来可评估 `nitro_fold_duo` / `iphone_duo_layout` 插件。 |
 
 **组件选型决策**（详见 [`RESPONSIVE_COMPONENTS_API.md` 折叠屏章节](./RESPONSIVE_COMPONENTS_API.md#折叠屏适配foldinfo--foldawarebuilder--hingesplitlayout)）：
 
@@ -146,11 +149,16 @@
 - `HingeSplitLayout` 仅用于**交互元素必须物理避让铰链遮挡**的场景，`fallback` 必填且须完整可用
 - `displayFeatures` 只在 Android 填充；iPhone Duo 上 `FoldInfo` 恒为 `none`，完全依赖断点体系兜底
 
-**新增文件**: `shared/responsive/fold_aware.dart`（`FoldInfo.fromContext` 读 `MediaQuery.displayFeaturesOf`，解析出 `obstruction`（铰链遮挡）/ `foldCrease`（折痕）/ `isHalfOpened`（半开姿态）；`FoldAwareBuilder` 组合断点+姿态；`HingeSplitLayout` 按铰链拆分左右两栏并物理避让）。对话框避铰链直接用官方 `DisplayFeatureSubScreen`。
+**变更文件**:
+- 新增 `core/responsive/fold_aware.dart`（`FoldInfo.fromContext` 读 `MediaQuery.displayFeaturesOf`，解析出 `obstruction`（铰链遮挡）/ `foldCrease`（折痕）/ `isHalfOpened`（半开姿态）；`FoldAwareBuilder` 组合断点+姿态；`HingeSplitLayout` 按铰链拆分左右两栏并物理避让）。对话框避铰链直接用官方 `DisplayFeatureSubScreen`。
 
-**测试矩阵**: `test/shared/responsive/duo_layout_test.dart` 覆盖 Duo 三形态（466 / 626 / 890）断点判定、跨级回退、Token clamp、FoldInfo 解析。
+**测试矩阵**: `test/core/responsive/duo_layout_test.dart` 覆盖 Duo 三形态（466 / 669 / 951）断点判定、跨级回退、Token clamp、FoldInfo 解析。
 
-**iPhone Duo 特性说明**: 连续内屏 + 极小折痕，且 iOS 不向 Flutter 报告 `displayFeatures`——`FoldInfo.obstruction` 恒为 null，分栏线按比例兜底（`hingeBounds ?? maxWidth * 0.4`）即可；其 120Hz ProMotion 不影响布局层。
+**iPhone Duo 特性说明**:
+- 连续内屏 + 极小折痕，iOS 不向 Flutter 报告 `displayFeatures`——`FoldInfo.obstruction` 恒为 null，分栏线按比例兜底（`hingeBounds ?? maxWidth * 0.4`）
+- 内屏忽略 `supportedInterfaceOrientations`（Apple 平台行为），运行时调用 `setPreferredOrientations` 会导致 Flutter 引擎旋转状态冲突——已通过移除运行时方向锁定解决
+- 内屏横屏时系统将 status bar、navigation bar 等合并到侧边垂直控件条带（~84dp），Flutter 自绘的 `AppBar`/`NavigationBar` 不受系统管理，无法整合——这是 Flutter 框架级限制
+- `LaunchScreen.storyboard` 需使用 Safe Area Layout Guide + `useTraitCollections`/`useSafeAreas` 声明，否则 iOS 以兼容模式运行 App
 
 ---
 

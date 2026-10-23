@@ -168,8 +168,13 @@ expanded:    NavigationRail（图标+所有标签）
 
 ```dart
 fontSizeResolver: (fontSize, instance) {
-  final scaleW = instance.screenWidth / 375;
-  final scaleH = instance.screenHeight / 812;
+  // 平板/桌面端（>= 600dp）：不缩放字体，直接使用设计稿 dp 值
+  if (instance.screenWidth >= ResponsiveBreakpoints.compact) {
+    return fontSize.toDouble();
+  }
+  // 手机端：宽高混合缩放，避免极端屏幕比例下字体失真
+  final scaleW = instance.screenWidth / ResponsiveTokens.phoneDesignWidth;
+  final scaleH = instance.screenHeight / ResponsiveTokens.phoneDesignHeight;
   final scale = min(scaleW, scaleH) * 0.85 + max(scaleW, scaleH) * 0.15;
   return fontSize * scale;
 },
@@ -202,23 +207,22 @@ fontSizeResolver: (fontSize, instance) {
 
 ### 当前项目
 
-```dart
-if (shortestSide >= ResponsiveBreakpoints.compact) {
-  // 平板：允许所有方向
-} else {
-  // 手机：仅竖屏
-}
-```
+已移除运行时方向锁定（`OrientationPolicyWidget` 已删除），完全依赖响应式 UI 自适应。
+方向由平台配置静态声明：
+
+- **iOS**: `Info.plist` → iPhone 支持 portrait + landscape，iPad 支持全方向
+- **Android**: `AndroidManifest.xml` 不做方向限制
 
 ### 对比分析
 
-| 维度 | 行业最佳实践 | 当前项目 | 差距 |
+| 维度 | 行业最佳实践 | 当前项目 | 评价 |
 |------|------------|---------|------|
-| 手机方向 | 不锁定 | 锁定竖屏 | **与官方建议不一致** |
+| 手机方向 | 不锁定 | 不锁定（已移除运行时锁定） | **一致** |
 | 平板方向 | 不锁定 | 允许所有方向 | **一致** |
-| 判断依据 | 基于约束/空间 | 基于 `shortestSide`（设备物理尺寸） | 检测了设备类型 |
+| 判断依据 | 基于约束/空间 | 完全基于窗口宽度断点 | **一致** |
+| iPhone Duo 内屏 | 不可锁定（iOS 行为） | 响应式 UI 自适应 | **一致** |
 
-**评估**：手机锁屏是目前与官方最佳实践最大的偏差。Flutter 官方明确反对锁屏。不过在国内移动端应用中，锁定竖屏是常见做法（许多设计稿仅提供竖屏版本），作为**务实的渐进式选择**是可以理解的。
+**评估**：**优秀**，已对齐 Flutter 官方建议。移除了运行时方向锁定，所有设备均依赖响应式断点体系自适应。iPhone Duo 等忽略方向锁定的设备不会产生状态冲突。
 
 ---
 
@@ -329,11 +333,11 @@ ContentConstraint(
 | 布局切换 | 20% | ⭐⭐⭐⭐⭐ | AdaptiveBuilder/AdaptiveLayoutBuilder 分层设计优秀 |
 | 导航壳层 | 15% | ⭐⭐⭐⭐ | 3 级导航实现良好，缺 Drawer 层级不影响移动端 |
 | 尺寸缩放 | 15% | ⭐⭐⭐ | ScreenUtil 移动端可用，fontSizeResolver 缓解大屏问题 |
-| 屏幕方向 | 5% | ⭐⭐⭐ | 手机锁竖屏与官方建议不一致，但符合国内实践 |
+| 屏幕方向 | 5% | ⭐⭐⭐⭐⭐ | 已移除运行时方向锁定，对齐 Flutter 官方建议 |
 | 内容约束 | 10% | ⭐⭐⭐⭐⭐ | ContentConstraint + 语义化常量，超越多数实现 |
 | 状态保持 | 10% | ⭐⭐⭐ | Tab 状态好，断点切换未做状态保持 |
 | 输入适配 | 5% | ⭐⭐⭐ | 移动端可接受，桌面端需加强 |
-| 代码组织 | 5% | ⭐⭐⭐⭐⭐ | `lib/shared/responsive/` 集中管理，文档完善 |
+| 代码组织 | 5% | ⭐⭐⭐⭐⭐ | `lib/core/responsive/` 集中管理，文档完善 |
 
 **综合评分：⭐⭐⭐⭐（4/5）**
 
@@ -380,7 +384,7 @@ ContentConstraint(
 | 6 | 视觉密度适配 | 鼠标模式下收紧间距 |
 | 7 | 键盘快捷键 / 右键菜单 | 桌面交互 |
 | 8 | 考虑 ScaleX 替代 ScreenUtil | 桌面端不缩放 |
-| 9 | 解除手机屏幕方向锁定 | 对齐 Flutter 官方建议 |
+| ~~9~~ | ~~解除手机屏幕方向锁定~~ | ✅ 已完成——移除 OrientationPolicyWidget |
 
 ---
 

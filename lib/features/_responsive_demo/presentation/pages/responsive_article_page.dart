@@ -1,8 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/adaptive_builder.dart';
+import 'package:flutter_clean_arch_template/core/responsive/adaptive_builder.dart';
 import 'package:flutter_clean_arch_template/core/responsive/breakpoints.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/content_constraint.dart';
+import 'package:flutter_clean_arch_template/core/responsive/content_constraint.dart';
 import 'package:flutter_clean_arch_template/core/responsive/responsive_tokens.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 

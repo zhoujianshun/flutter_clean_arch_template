@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/fold_aware.dart';
+import 'package:flutter_clean_arch_template/core/responsive/fold_aware.dart';
 
 /// 折叠屏适配示例
 ///

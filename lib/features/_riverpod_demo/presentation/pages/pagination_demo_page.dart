@@ -1,7 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_clean_arch_template/core/responsive/content_constraint.dart';
 import 'package:flutter_clean_arch_template/features/_riverpod_demo/presentation/providers/demo_pagination_provider.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/content_constraint.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/pagination_list/pagination_list.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';

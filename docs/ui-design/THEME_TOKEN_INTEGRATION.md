@@ -11,7 +11,6 @@ ScreenUtilInit(
   designSize: const Size(375, 812),
   minTextAdapt: true,
   splitScreenMode: true,
-  useInheritedMediaQuery: true,
   builder: (context, child) {
     return MaterialApp.router(
       // ...
@@ -63,7 +62,7 @@ final bottomSafe = ScreenUtil().bottomBarHeight;
 
 > ⚠️ 历史版本此处介绍的 `lib/shared/utils/responsive_utils.dart` 已被移除。
 
-当前项目的响应式能力由 `lib/shared/responsive/` 下的新体系提供：
+当前项目的响应式能力由 `lib/core/responsive/` 下的新体系提供：
 
 | 能力 | 入口 | 说明 |
 |------|------|------|

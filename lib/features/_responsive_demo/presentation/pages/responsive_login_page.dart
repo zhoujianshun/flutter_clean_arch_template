@@ -1,9 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_clean_arch_template/core/responsive/adaptive_builder.dart';
+import 'package:flutter_clean_arch_template/core/responsive/responsive_tokens.dart';
 import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/layouts/responsive_login_compact_layout.dart';
 import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/layouts/responsive_login_tablet_layout.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/adaptive_builder.dart';
-import 'package:flutter_clean_arch_template/core/responsive/responsive_tokens.dart';
 
 /// 响应式登录页示例
 ///

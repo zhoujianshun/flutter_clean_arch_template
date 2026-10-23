@@ -1,6 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_clean_arch_template/shared/responsive/content_constraint.dart';
+import 'package:flutter_clean_arch_template/core/responsive/content_constraint.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/app_card.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/app_rating_bar.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/app_tag.dart';
