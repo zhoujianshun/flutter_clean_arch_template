@@ -3,7 +3,7 @@ import 'package:flutter_clean_arch_template/core/responsive/breakpoints.dart';
 
 /// 向子树注入当前 [LayoutBuilder] 约束和窗口尺寸类。
 ///
-/// 由 `AdaptiveBuilder` / `AdaptiveLayoutBuilder` / `StatefulAdaptiveBuilder`
+/// 由 `AdaptiveBuilder` / `AdaptiveLayoutBuilder`
 /// 在 [LayoutBuilder] 回调内自动注入，无需手动创建。
 ///
 /// 子树中的组件可通过 [ConstraintsScope.of] 读取**局部**约束宽度，
@@ -30,15 +30,34 @@ class ConstraintsScope extends InheritedWidget {
   final WindowSizeClass windowClass;
 
   /// 当前子树的可用宽度（`constraints.maxWidth`）。
+  ///
+  /// 无界宽度时返回 [double.infinity]，调用方应处理此情况。
   double get localWidth =>
-      constraints.hasBoundedWidth ? constraints.maxWidth : 0;
+      constraints.hasBoundedWidth ? constraints.maxWidth : double.infinity;
 
-  /// 从最近的祖先读取，不存在时抛异常。
+  /// 从最近的祖先读取，不存在时抛出 [FlutterError]。
+  ///
+  /// 如需安全访问，请使用 [maybeOf]。
   static ConstraintsScope of(BuildContext context) {
-    final scope = context
-        .dependOnInheritedWidgetOfExactType<ConstraintsScope>();
-    assert(scope != null, 'No ConstraintsScope found in context');
-    return scope!;
+    final scope =
+        context.dependOnInheritedWidgetOfExactType<ConstraintsScope>();
+    if (scope == null) {
+      throw FlutterError.fromParts([
+        ErrorSummary('ConstraintsScope.of() called without a ConstraintsScope ancestor.'),
+        ErrorDescription(
+          'No ConstraintsScope was found in the widget tree above this context. '
+          'ConstraintsScope is automatically injected by AdaptiveBuilder, '
+          'AdaptiveLayoutBuilder, or FoldAwareBuilder.',
+        ),
+        ErrorHint(
+          'Ensure the widget calling ConstraintsScope.of() is inside an '
+          'AdaptiveBuilder or AdaptiveLayoutBuilder subtree, '
+          'or use ConstraintsScope.maybeOf() for a nullable result.',
+        ),
+        context.describeElement('The context used was'),
+      ]);
+    }
+    return scope;
   }
 
   /// 从最近的 [ConstraintsScope] 祖先读取，不存在时返回 null。

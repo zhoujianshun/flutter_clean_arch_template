@@ -8,6 +8,9 @@ import 'package:flutter_clean_arch_template/core/responsive/responsive_tokens.da
 ///
 /// [maxHeight] 不会自动提供滚动能力，超出部分由内容自身的
 /// 滚动行为接管（如 [ListView] / [SingleChildScrollView]）。
+///
+/// [outerPadding] 位于 [ConstrainedBox] **外部**，因此总占用宽度
+/// 为 `min(parentWidth, maxWidth) + outerPadding.horizontal`。
 class ContentConstraint extends StatelessWidget {
   const ContentConstraint({
     required this.child,
@@ -15,8 +18,12 @@ class ContentConstraint extends StatelessWidget {
     this.maxWidth = ResponsiveTokens.maxWidthList,
     this.maxHeight,
     this.alignment = Alignment.topCenter,
-    this.padding,
-  });
+    this.outerPadding,
+  })  : assert(maxWidth > 0, 'maxWidth must be positive'),
+        assert(
+          maxHeight == null || maxHeight > 0,
+          'maxHeight must be positive or null',
+        );
 
   final Widget child;
 
@@ -31,7 +38,10 @@ class ContentConstraint extends StatelessWidget {
 
   final Alignment alignment;
 
-  final EdgeInsetsGeometry? padding;
+  /// 位于 [ConstrainedBox] **外部**的间距。
+  ///
+  /// 总占用宽度 = `min(parentWidth, maxWidth) + outerPadding.horizontal`。
+  final EdgeInsetsGeometry? outerPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -43,8 +53,8 @@ class ContentConstraint extends StatelessWidget {
       child: child,
     );
 
-    if (padding != null) {
-      current = Padding(padding: padding!, child: current);
+    if (outerPadding != null) {
+      current = Padding(padding: outerPadding!, child: current);
     }
 
     return Align(alignment: alignment, child: current);

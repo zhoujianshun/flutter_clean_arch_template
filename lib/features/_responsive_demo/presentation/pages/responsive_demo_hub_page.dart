@@ -4,7 +4,6 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/core/responsive/content_constraint.dart';
 import 'package:flutter_clean_arch_template/core/router/app_router.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// 响应式适配示例入口页面
 ///
@@ -76,9 +75,9 @@ class ResponsiveDemoHubPage extends StatelessWidget {
       appBar: AppBar(title: const Text('响应式适配示例')),
       body: ContentConstraint(
         child: ListView.separated(
-          padding: EdgeInsets.all(16.w),
+          padding: const EdgeInsets.all(16),
           itemCount: demos.length,
-          separatorBuilder: (_, _) => SizedBox(height: 8.h),
+          separatorBuilder: (_, _) => const SizedBox(height: 8),
           itemBuilder: (context, index) {
             final demo = demos[index];
             return Card(

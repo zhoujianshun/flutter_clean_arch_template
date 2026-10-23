@@ -12,7 +12,7 @@ class ResponsiveFormTabletLayout extends StatelessWidget {
       key: const PageStorageKey<String>('responsive_form_tablet_scroll'),
       child: ContentConstraint(
         maxWidth: ResponsiveTokens.maxWidthDetail,
-        padding: const EdgeInsets.all(24),
+        outerPadding: const EdgeInsets.all(24),
         child: Card(
           child: Padding(
             padding: const EdgeInsets.all(32),

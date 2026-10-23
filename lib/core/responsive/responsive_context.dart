@@ -3,14 +3,16 @@ import 'package:flutter_clean_arch_template/core/responsive/breakpoints.dart';
 
 /// BuildContext 的响应式扩展。
 ///
-/// 用于在页面中更语义化地读取窗口尺寸类。
+/// 读取的是**窗口级**宽度（`MediaQuery.sizeOf`），
+/// 适用于壳层和全局策略。页面/组件布局应使用
+/// `ConstraintsScope` 或 `AdaptiveBuilder` 的局部约束。
 ///
 /// 布局决策应基于**可用宽度**（通过断点判定），而非设备方向。
 /// Flutter 和 Apple 均明确建议：不要用 orientation 做布局分支。
 /// iPhone Duo 内屏不遵循 app 声明的方向，orientation 不是可靠信号。
 extension ResponsiveContextX on BuildContext {
   WindowSizeClass get windowSizeClass =>
-      ResponsiveBreakpoints.fromContext(this);
+      ResponsiveBreakpoints.fromWindowSize(this);
 
   bool get isCompactWindow => windowSizeClass == WindowSizeClass.compact;
 

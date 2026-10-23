@@ -11,7 +11,6 @@ import 'package:flutter_clean_arch_template/features/auth/presentation/providers
 import 'package:flutter_clean_arch_template/shared/widgets/pop/my_easy_pop_message.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/verification_code_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 @RoutePage()
 class LoginPage extends ConsumerStatefulWidget {
@@ -52,25 +51,25 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         maxWidth: ResponsiveTokens.maxWidthForm,
         child: SafeArea(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24.w),
+            padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 80.h),
+                const SizedBox(height: 80),
                 Text(
                   'Welcome Back',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 8.h),
+                const SizedBox(height: 8),
                 Text(
                   'Sign in to continue',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
-                SizedBox(height: 48.h),
+                const SizedBox(height: 48),
                 TextField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
@@ -79,7 +78,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     prefixIcon: Icon(Icons.phone_outlined),
                   ),
                 ),
-                SizedBox(height: 16.h),
+                const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
@@ -92,7 +91,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         ),
                       ),
                     ),
-                    SizedBox(width: 12.w),
+                    const SizedBox(width: 12),
                     ValueListenableBuilder<TextEditingValue>(
                       valueListenable: _phoneController,
                       builder: (context, phoneValue, _) {
@@ -109,10 +108,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
                   ],
                 ),
-                SizedBox(height: 32.h),
+                const SizedBox(height: 32),
                 SizedBox(
                   width: double.infinity,
-                  height: 48.h,
+                  height: 48,
                   child: FilledButton(
                     onPressed: _isLoading ? null : _handleLogin,
                     child: _isLoading
@@ -128,10 +127,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ),
                 ),
                 if (AppConfig.mockAuth) ...[
-                  SizedBox(height: 16.h),
+                  const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
-                    height: 48.h,
+                    height: 48,
                     child: OutlinedButton.icon(
                       onPressed: _isLoading ? null : _handleDemoLogin,
                       icon: const Icon(Icons.play_circle_outline),

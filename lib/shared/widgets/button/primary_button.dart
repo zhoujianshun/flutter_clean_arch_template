@@ -81,7 +81,7 @@ class PrimaryButton extends StatelessWidget {
               theme.textTheme.bodyMedium?.copyWith(
                 fontSize:
                     fontSize ??
-                    ResponsiveTokens.font(14, medium: 14, expanded: 14),
+                    ResponsiveTokens.size(14, medium: 14, expanded: 14),
               );
           mainTextStyle = mainTextStyle?.copyWith(
             decoration: TextDecoration.none,

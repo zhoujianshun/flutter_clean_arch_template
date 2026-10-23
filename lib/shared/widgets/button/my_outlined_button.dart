@@ -129,7 +129,7 @@ class MyOutlinedButton extends StatelessWidget {
               textStyle ??
               Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(fontSize: fontSize ?? 14.f);
+              ).textTheme.bodyMedium?.copyWith(fontSize: fontSize ?? 14.s);
           mainTextStyle = mainTextStyle?.copyWith(
             decoration: TextDecoration.none,
             color: !isDisabled

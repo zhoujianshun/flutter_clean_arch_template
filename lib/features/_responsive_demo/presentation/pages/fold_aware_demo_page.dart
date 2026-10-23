@@ -9,7 +9,7 @@ import 'package:flutter_clean_arch_template/core/responsive/fold_aware.dart';
 /// 演示 fold_aware.dart 提供的三项能力：
 /// 1. [FoldInfo] —— 读取折叠姿态（铰链/折痕/半开）
 /// 2. [FoldAwareBuilder] —— 断点布局 + 分栏线对齐折痕
-/// 3. [HingeSplitLayout] —— 交互元素物理避让铰链
+/// 3. [HingePaneLayout] —— 交互元素物理避让铰链
 ///
 /// 由于 displayFeatures 只在 Android 折叠屏上由系统填充，
 /// 普通设备/模拟器上 [FoldInfo] 恒为 none。因此本页提供
@@ -29,6 +29,9 @@ class _FoldAwareDemoPageState extends State<FoldAwareDemoPage> {
 
   /// 模拟半开姿态（帐篷/笔记本形态）
   bool _simulateHalfOpened = false;
+
+  /// 模拟水平铰链（上下分栏，笔记本形态）
+  bool _simulateHorizontal = false;
 
   @override
   Widget build(BuildContext context) {
@@ -50,15 +53,29 @@ class _FoldAwareDemoPageState extends State<FoldAwareDemoPage> {
     return Builder(
       builder: (context) {
         final size = MediaQuery.sizeOf(context);
-        // 铰链竖直横贯屏幕、位于水平中线附近（模拟 Galaxy Fold 形态）
-        final hingeLeft = size.width / 2 - 5;
-        final simulatedHinge = DisplayFeature(
-          bounds: Rect.fromLTRB(hingeLeft, 0, hingeLeft + 10, size.height),
-          type: DisplayFeatureType.hinge,
-          state: _simulateHalfOpened
-              ? DisplayFeatureState.postureHalfOpened
-              : DisplayFeatureState.postureFlat,
-        );
+
+        final DisplayFeature simulatedHinge;
+        if (_simulateHorizontal) {
+          // 水平铰链：横贯屏幕宽度，位于垂直中线附近（模拟笔记本形态）
+          final hingeTop = size.height / 2 - 5;
+          simulatedHinge = DisplayFeature(
+            bounds: Rect.fromLTRB(0, hingeTop, size.width, hingeTop + 10),
+            type: DisplayFeatureType.hinge,
+            state: _simulateHalfOpened
+                ? DisplayFeatureState.postureHalfOpened
+                : DisplayFeatureState.postureFlat,
+          );
+        } else {
+          // 垂直铰链：竖直横贯屏幕，位于水平中线附近（模拟 Galaxy Fold 形态）
+          final hingeLeft = size.width / 2 - 5;
+          simulatedHinge = DisplayFeature(
+            bounds: Rect.fromLTRB(hingeLeft, 0, hingeLeft + 10, size.height),
+            type: DisplayFeatureType.hinge,
+            state: _simulateHalfOpened
+                ? DisplayFeatureState.postureHalfOpened
+                : DisplayFeatureState.postureFlat,
+          );
+        }
 
         final existing = MediaQuery.displayFeaturesOf(context);
         return MediaQuery(
@@ -116,13 +133,21 @@ class _FoldAwareDemoPageState extends State<FoldAwareDemoPage> {
               value: _simulateHinge,
               onChanged: (v) => setState(() => _simulateHinge = v),
             ),
-            if (_simulateHinge)
+            if (_simulateHinge) ...[
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const Text('水平铰链（上下分栏）'),
+                subtitle: const Text('默认为垂直铰链（左右分栏）'),
+                value: _simulateHorizontal,
+                onChanged: (v) => setState(() => _simulateHorizontal = v),
+              ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('半开姿态（帐篷模式）'),
                 value: _simulateHalfOpened,
                 onChanged: (v) => setState(() => _simulateHalfOpened = v),
               ),
+            ],
           ],
         ),
       ),
@@ -154,24 +179,25 @@ class _FoldAwareDemoPageState extends State<FoldAwareDemoPage> {
               highlighted: fold.isFoldable,
             ),
             _InfoRow(
-              label: 'obstruction（物理铰链/遮挡）',
-              value: fold.obstruction?.toString() ?? 'null',
-              highlighted: fold.obstruction != null,
+              label: 'features（折叠特征数量）',
+              value: '${fold.features.length}',
+              highlighted: fold.features.isNotEmpty,
             ),
-            _InfoRow(
-              label: 'foldCrease（折痕/不遮挡）',
-              value: fold.foldCrease?.toString() ?? 'null',
-              highlighted: fold.foldCrease != null,
-            ),
+            for (final f in fold.features)
+              _InfoRow(
+                label: '  ${f.type.name}',
+                value: f.bounds.toString(),
+                highlighted: true,
+              ),
             _InfoRow(
               label: 'isHalfOpened（半开姿态）',
               value: fold.isHalfOpened ? 'true' : 'false',
               highlighted: fold.isHalfOpened,
             ),
             _InfoRow(
-              label: 'hingeBounds（分栏参考线）',
-              value: fold.hingeBounds?.toString() ?? 'null',
-              highlighted: fold.hingeBounds != null,
+              label: 'axis（铰链方向）',
+              value: fold.axis?.name ?? 'null',
+              highlighted: fold.axis != null,
             ),
             if (fold.isHalfOpened)
               Container(
@@ -244,50 +270,44 @@ class _FoldAwareDemoPageState extends State<FoldAwareDemoPage> {
     );
   }
 
-  /// 分栏线对齐 hingeBounds.left；铰链区域本身留空
+  /// 使用 HingePaneLayout 自动处理铰链方向和避让
   Widget _buildAlignedSplit(
     BoxConstraints constraints,
     FoldInfo fold,
     ColorScheme scheme,
   ) {
-    final hingeBounds = fold.hingeBounds;
-    final masterWidth = hingeBounds?.left ?? constraints.maxWidth * 0.4;
-    final hingeWidth = fold.obstruction?.width ?? 0;
-
-    return Row(
-      children: [
-        SizedBox(
-          width: masterWidth,
-          child: _PanePlaceholder(
-            label: 'Master\n宽度对齐折痕',
-            color: scheme.primaryContainer,
-          ),
-        ),
-        if (hingeWidth > 0)
-          SizedBox(
-            width: hingeWidth,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: scheme.outlineVariant.withValues(alpha: 0.5),
-              ),
-              child: Icon(
-                Icons.more_vert,
-                color: scheme.outline,
-                size: 16,
-              ),
+    return HingePaneLayout(
+      hingeMargin: 4,
+      first: _PanePlaceholder(
+        label: fold.axis == FoldAxis.horizontal ? 'Top\n上方面板' : 'Master\n宽度对齐折痕',
+        color: scheme.primaryContainer,
+      ),
+      second: _PanePlaceholder(
+        label: fold.axis == FoldAxis.horizontal ? 'Bottom\n下方面板' : 'Detail',
+        color: scheme.secondaryContainer,
+      ),
+      fallback: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: _PanePlaceholder(
+              label: 'Master\n比例分栏',
+              color: scheme.primaryContainer,
             ),
           ),
-        Expanded(
-          child: _PanePlaceholder(
-            label: 'Detail',
-            color: scheme.secondaryContainer,
+          Expanded(
+            flex: 3,
+            child: _PanePlaceholder(
+              label: 'Detail',
+              color: scheme.secondaryContainer,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  /// 能力 3：HingeSplitLayout 物理避让铰链
+  /// 能力 3：HingePaneLayout 物理避让铰链
   Widget _buildHingeSplitDemo(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
@@ -301,25 +321,25 @@ class _FoldAwareDemoPageState extends State<FoldAwareDemoPage> {
               children: [
                 Icon(Icons.call_split_outlined, color: scheme.primary),
                 const SizedBox(width: 8),
-                Text('HingeSplitLayout 避让铰链', style: Theme.of(context).textTheme.titleMedium),
+                Text('HingePaneLayout 避让铰链', style: Theme.of(context).textTheme.titleMedium),
               ],
             ),
             const SizedBox(height: 4),
             Text(
-              '交互按钮拆分到铰链两侧；无铰链设备自动回退单排布局',
+              '交互按钮拆分到铰链两侧（支持垂直/水平铰链）；无铰链设备自动回退',
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 12),
             SizedBox(
               height: 80,
-              child: HingeSplitLayout(
+              child: HingePaneLayout(
                 hingeMargin: 8,
-                left: _PanePlaceholder(
+                first: _PanePlaceholder(
                   label: '拍摄',
                   color: scheme.primaryContainer,
                   center: true,
                 ),
-                right: _PanePlaceholder(
+                second: _PanePlaceholder(
                   label: '相册',
                   color: scheme.secondaryContainer,
                   center: true,

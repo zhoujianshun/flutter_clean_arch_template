@@ -9,7 +9,6 @@ import 'package:flutter_clean_arch_template/features/auth/presentation/providers
 import 'package:flutter_clean_arch_template/generated/l10n/app_localizations.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/language_switcher.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 @RoutePage()
 class ProfilePage extends ConsumerWidget {
@@ -23,21 +22,21 @@ class ProfilePage extends ConsumerWidget {
       appBar: AppBar(title: const Text('Profile')),
       body: ContentConstraint(
         child: ListView(
-          padding: EdgeInsets.all(16.w),
+          padding: const EdgeInsets.all(16),
           children: [
             Card(
               child: Padding(
-                padding: EdgeInsets.all(20.w),
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
                     CircleAvatar(
-                      radius: 40.r,
+                      radius: 40,
                       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                      child: Icon(Icons.person, size: 40.r, color: Theme.of(context).colorScheme.onPrimaryContainer),
+                      child: Icon(Icons.person, size: 40, color: Theme.of(context).colorScheme.onPrimaryContainer),
                     ),
-                    SizedBox(height: 16.h),
+                    const SizedBox(height: 16),
                     Text('Template User', style: Theme.of(context).textTheme.titleLarge),
-                    SizedBox(height: 4.h),
+                    const SizedBox(height: 4),
                     Text(
                       'user@example.com',
                       style: Theme.of(
@@ -48,7 +47,7 @@ class ProfilePage extends ConsumerWidget {
                 ),
               ),
             ),
-            SizedBox(height: 16.h),
+            const SizedBox(height: 16),
             Card(
               child: Column(
                 children: [
@@ -107,13 +106,13 @@ class ProfilePage extends ConsumerWidget {
                 ],
               ),
             ),
-            SizedBox(height: 32.h),
+            const SizedBox(height: 32),
             FilledButton.tonal(
               onPressed: () async {
                 await ref.read(authProvider.notifier).logout();
               },
               style: FilledButton.styleFrom(
-                minimumSize: Size(double.infinity, 48.h),
+                minimumSize: const Size(double.infinity, 48),
               ),
               child: const Text('Sign Out'),
             ),

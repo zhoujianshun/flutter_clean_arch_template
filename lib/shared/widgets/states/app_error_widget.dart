@@ -60,7 +60,7 @@ class AppErrorWidget extends StatelessWidget {
           alignment: isCenter ? Alignment.center : Alignment.topCenter,
           padding: isCenter
               ? EdgeInsets.all(24.r)
-              : EdgeInsets.only(top: isCompactHeight ? 24.rw : 96.rw),
+              : EdgeInsets.only(top: isCompactHeight ? 24.rs : 96.rs),
           child: child,
         );
 
@@ -87,10 +87,10 @@ class AppErrorWidget extends StatelessWidget {
         // 错误图标
         Image.asset(
           _getErrorImage(),
-          width: 165.rw,
-          height: 144.rw,
+          width: 165.rs,
+          height: 144.rs,
         ),
-        SizedBox(height: 16.rw),
+        SizedBox(height: 16.rs),
         // 错误标题
         // Text(
         //   title ?? '出错了',
@@ -101,7 +101,7 @@ class AppErrorWidget extends StatelessWidget {
         //   textAlign: TextAlign.center,
         // ),
 
-        // SizedBox(height: 8.rw),
+        // SizedBox(height: 8.rs),
 
         // 错误描述
         Text(
@@ -114,7 +114,7 @@ class AppErrorWidget extends StatelessWidget {
 
         // 错误详情（仅在调试模式下显示）
         if (error.isNotEmpty && kDebugMode) ...[
-          SizedBox(height: 4.rw),
+          SizedBox(height: 4.rs),
           ExpansionTile(
             title: Text(
               '错误详情',
@@ -126,7 +126,7 @@ class AppErrorWidget extends StatelessWidget {
               Container(
                 width: double.infinity,
                 padding: EdgeInsets.all(12.r),
-                margin: EdgeInsets.symmetric(horizontal: 16.rw),
+                margin: EdgeInsets.symmetric(horizontal: 16.rs),
                 decoration: BoxDecoration(
                   color: AppAdaptiveColors.error50(context),
                   borderRadius: BorderRadius.circular(8.r),
@@ -146,7 +146,7 @@ class AppErrorWidget extends StatelessWidget {
           ),
         ],
 
-        SizedBox(height: 16.rw),
+        SizedBox(height: 16.rs),
 
         // 重试按钮
         if (onRetry != null)
@@ -211,7 +211,7 @@ class AppSimpleErrorWidget extends StatelessWidget {
                 size: 20.r,
                 color: AppAdaptiveColors.error500(context),
               ),
-              SizedBox(width: 8.rw),
+              SizedBox(width: 8.rs),
               Expanded(
                 child: Text(
                   message,
@@ -223,7 +223,7 @@ class AppSimpleErrorWidget extends StatelessWidget {
             ],
           ),
           if (onRetry != null) ...[
-            SizedBox(height: 12.rw),
+            SizedBox(height: 12.rs),
             SizedBox(
               width: double.infinity,
               child: TextButton(

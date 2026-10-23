@@ -4,7 +4,6 @@ import 'package:flutter_clean_arch_template/core/responsive/adaptive_builder.dar
 import 'package:flutter_clean_arch_template/core/responsive/breakpoints.dart';
 import 'package:flutter_clean_arch_template/core/responsive/content_constraint.dart';
 import 'package:flutter_clean_arch_template/core/responsive/responsive_tokens.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// 响应式图文详情示例
 ///
@@ -41,10 +40,10 @@ class _CompactArticle extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 顶部图片区域
-          _buildImagePlaceholder(context, height: 220.h),
+          _buildImagePlaceholder(context, height: 220),
           // 文字内容
           Padding(
-            padding: EdgeInsets.all(16.w),
+            padding: const EdgeInsets.all(16),
             child: _buildArticleContent(context),
           ),
         ],

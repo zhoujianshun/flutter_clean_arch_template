@@ -167,7 +167,7 @@ class AppTheme {
         foregroundColor: AppColors.textPrimary,
         titleTextStyle: TextStyle(
           color: AppColors.textPrimary,
-          fontSize: ResponsiveTokens.font(17, medium: 17, expanded: 17),
+          fontSize: ResponsiveTokens.size(17, medium: 17, expanded: 17),
           fontWeight: FontWeight.w600,
         ),
         systemOverlayStyle: SystemUiOverlayStyle.dark,
@@ -193,7 +193,7 @@ class AppTheme {
             ),
           ),
           textStyle: TextStyle(
-            fontSize: ResponsiveTokens.font(16, medium: 16, expanded: 16),
+            fontSize: ResponsiveTokens.size(16, medium: 16, expanded: 16),
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -225,7 +225,7 @@ class AppTheme {
         ),
         hintStyle: TextStyle(
           color: AppColors.textHint,
-          fontSize: ResponsiveTokens.font(14, medium: 14, expanded: 14),
+          fontSize: ResponsiveTokens.size(14, medium: 14, expanded: 14),
         ),
       ),
       dividerTheme: const DividerThemeData(
@@ -239,11 +239,11 @@ class AppTheme {
         selectedItemColor: _lightColorScheme.primary,
         unselectedItemColor: AppColors.neutral500,
         selectedLabelStyle: TextStyle(
-          fontSize: ResponsiveTokens.font(11, medium: 11, expanded: 11),
+          fontSize: ResponsiveTokens.size(11, medium: 11, expanded: 11),
           fontWeight: FontWeight.w600,
         ),
         unselectedLabelStyle: TextStyle(
-          fontSize: ResponsiveTokens.font(11, medium: 11, expanded: 11),
+          fontSize: ResponsiveTokens.size(11, medium: 11, expanded: 11),
         ),
         type: BottomNavigationBarType.fixed,
       ),
@@ -264,7 +264,7 @@ class AppTheme {
         foregroundColor: AppDarkColors.textPrimary,
         titleTextStyle: TextStyle(
           color: AppDarkColors.textPrimary,
-          fontSize: ResponsiveTokens.font(17, medium: 17, expanded: 17),
+          fontSize: ResponsiveTokens.size(17, medium: 17, expanded: 17),
           fontWeight: FontWeight.w600,
         ),
         systemOverlayStyle: SystemUiOverlayStyle.light,
@@ -290,7 +290,7 @@ class AppTheme {
             ),
           ),
           textStyle: TextStyle(
-            fontSize: ResponsiveTokens.font(16, medium: 16, expanded: 16),
+            fontSize: ResponsiveTokens.size(16, medium: 16, expanded: 16),
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -322,7 +322,7 @@ class AppTheme {
         ),
         hintStyle: TextStyle(
           color: AppDarkColors.textHint,
-          fontSize: ResponsiveTokens.font(14, medium: 14, expanded: 14),
+          fontSize: ResponsiveTokens.size(14, medium: 14, expanded: 14),
         ),
       ),
       dividerTheme: const DividerThemeData(
@@ -336,11 +336,11 @@ class AppTheme {
         selectedItemColor: _darkColorScheme.primary,
         unselectedItemColor: AppDarkColors.neutral500,
         selectedLabelStyle: TextStyle(
-          fontSize: ResponsiveTokens.font(11, medium: 11, expanded: 11),
+          fontSize: ResponsiveTokens.size(11, medium: 11, expanded: 11),
           fontWeight: FontWeight.w600,
         ),
         unselectedLabelStyle: TextStyle(
-          fontSize: ResponsiveTokens.font(11, medium: 11, expanded: 11),
+          fontSize: ResponsiveTokens.size(11, medium: 11, expanded: 11),
         ),
         type: BottomNavigationBarType.fixed,
       ),
@@ -488,103 +488,103 @@ class AppTextStyles {
   static const String? fontFamilyRegular = null;
 
   static TextStyle get h1 => TextStyle(
-    fontSize: ResponsiveTokens.font(32, medium: 32, expanded: 32),
+    fontSize: ResponsiveTokens.size(32, medium: 32, expanded: 32),
     fontWeight: FontWeight.w700,
     height: 1.2,
     letterSpacing: -0.5,
   );
 
   static TextStyle get h2 => TextStyle(
-    fontSize: ResponsiveTokens.font(28, medium: 28, expanded: 28),
+    fontSize: ResponsiveTokens.size(28, medium: 28, expanded: 28),
     fontWeight: FontWeight.w700,
     height: 1.25,
     letterSpacing: -0.25,
   );
 
   static TextStyle get h3 => TextStyle(
-    fontSize: ResponsiveTokens.font(24, medium: 24, expanded: 24),
+    fontSize: ResponsiveTokens.size(24, medium: 24, expanded: 24),
     fontWeight: FontWeight.w700,
     height: 1.5,
   );
 
   static TextStyle get h4 => TextStyle(
-    fontSize: ResponsiveTokens.font(20, medium: 20, expanded: 20),
+    fontSize: ResponsiveTokens.size(20, medium: 20, expanded: 20),
     fontWeight: FontWeight.w700,
     height: 1.5,
   );
 
   static TextStyle get h5 => TextStyle(
-    fontSize: ResponsiveTokens.font(18, medium: 18, expanded: 18),
+    fontSize: ResponsiveTokens.size(18, medium: 18, expanded: 18),
     fontWeight: FontWeight.w500,
     height: 1.5,
   );
 
   static TextStyle get h6 => TextStyle(
-    fontSize: ResponsiveTokens.font(16, medium: 16, expanded: 16),
+    fontSize: ResponsiveTokens.size(16, medium: 16, expanded: 16),
     fontWeight: FontWeight.w500,
     height: 1.5,
   );
 
   static TextStyle get bodyLarge => TextStyle(
-    fontSize: ResponsiveTokens.font(18, medium: 18, expanded: 18),
+    fontSize: ResponsiveTokens.size(18, medium: 18, expanded: 18),
     fontWeight: FontWeight.w400,
     height: 1.5,
   );
 
   static TextStyle get bodyMedium => TextStyle(
-    fontSize: ResponsiveTokens.font(16, medium: 16, expanded: 16),
+    fontSize: ResponsiveTokens.size(16, medium: 16, expanded: 16),
     fontWeight: FontWeight.w400,
     height: 1.5,
   );
 
   static TextStyle get bodySmall => TextStyle(
-    fontSize: ResponsiveTokens.font(14, medium: 14, expanded: 14),
+    fontSize: ResponsiveTokens.size(14, medium: 14, expanded: 14),
     fontWeight: FontWeight.w400,
     height: 1.5,
   );
 
   static TextStyle get bodyXSmall => TextStyle(
-    fontSize: ResponsiveTokens.font(12, medium: 12, expanded: 12),
+    fontSize: ResponsiveTokens.size(12, medium: 12, expanded: 12),
     fontWeight: FontWeight.w400,
     height: 1.5,
   );
 
   static TextStyle get caption => TextStyle(
-    fontSize: ResponsiveTokens.font(11, medium: 11, expanded: 11),
+    fontSize: ResponsiveTokens.size(11, medium: 11, expanded: 11),
     fontWeight: FontWeight.w400,
     height: 1.5,
   );
 
   static TextStyle get labelLarge => TextStyle(
-    fontSize: ResponsiveTokens.font(14, medium: 14, expanded: 14),
+    fontSize: ResponsiveTokens.size(14, medium: 14, expanded: 14),
     fontWeight: FontWeight.w500,
     height: 1.5,
     letterSpacing: 0.1,
   );
 
   static TextStyle get labelMedium => TextStyle(
-    fontSize: ResponsiveTokens.font(12, medium: 12, expanded: 12),
+    fontSize: ResponsiveTokens.size(12, medium: 12, expanded: 12),
     fontWeight: FontWeight.w500,
     height: 1.5,
     letterSpacing: 0.5,
   );
 
   static TextStyle get labelSmall => TextStyle(
-    fontSize: ResponsiveTokens.font(10, medium: 10, expanded: 10),
+    fontSize: ResponsiveTokens.size(10, medium: 10, expanded: 10),
     fontWeight: FontWeight.w500,
     height: 1.5,
     letterSpacing: 0.5,
   );
 
   static TextStyle get overline => TextStyle(
-    fontSize: ResponsiveTokens.font(10, medium: 10, expanded: 10),
+    fontSize: ResponsiveTokens.size(10, medium: 10, expanded: 10),
     fontWeight: FontWeight.w400,
     height: 1.5,
     letterSpacing: 1.5,
   );
 
   static TextStyle get elderlyBodyLarge => TextStyle(
-    fontSize: ResponsiveTokens.font(20, medium: 20, expanded: 20),
+    fontSize: ResponsiveTokens.size(20, medium: 20, expanded: 20),
     fontWeight: FontWeight.w400,
     height: 1.5,
   );

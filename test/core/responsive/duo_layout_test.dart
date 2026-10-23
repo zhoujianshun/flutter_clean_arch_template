@@ -177,36 +177,11 @@ void main() {
   });
 
   // ===================================================================
-  // StatefulAdaptiveBuilder：只构建实际不同的子树
-  // ===================================================================
-  group('StatefulAdaptiveBuilder', () {
-    testWidgets('仅 compact+medium 时不重复挂载 medium', (tester) async {
-      tester.view.physicalSize = const Size(890, 626);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.reset);
-
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: StatefulAdaptiveBuilder(
-              compact: Text('compact'),
-              medium: Text('medium'),
-            ),
-          ),
-        ),
-      );
-
-      // expanded 回退到 medium，应只找到一个 medium
-      expect(find.text('medium'), findsOneWidget);
-    });
-  });
-
-  // ===================================================================
   // Token clamp
   // ===================================================================
   group('Token clamp（防止大屏过度放大）', () {
-    testWidgets('rw 在展开态 890pt clamp 到 1.2 倍上限', (tester) async {
-      tester.view.physicalSize = const Size(890, 626);
+    testWidgets('rs 在 compact 窗口按设计稿缩放并 clamp', (tester) async {
+      tester.view.physicalSize = const Size(430, 932);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
 
@@ -219,9 +194,8 @@ void main() {
         ),
       );
 
-      // 890/375 = 2.37, clamp 1.2 → 16 * 1.2 = 19.2
-      expect(16.rw, closeTo(19.2, 0.01));
-      expect(100.rw, closeTo(120, 0.01));
+      // 430/375 = 1.147, clamp 1.15 → 16 * 1.147 ≈ 18.35
+      expect(16.rs, closeTo(16 * (430 / 375), 0.01));
     });
   });
 
@@ -358,12 +332,127 @@ void main() {
       );
     });
 
-    testWidgets('hingeBounds 优先返回 obstruction', (tester) async {
+  });
+
+  // HingeSplitLayout 测试已迁移到 HingePaneLayout 测试组
+
+  // ===================================================================
+  // FoldAxis 推导
+  // ===================================================================
+  group('FoldAxis 推导', () {
+    test('垂直铰链（height > width）→ vertical', () {
+      const fold = FoldInfo(
+        obstruction: Rect.fromLTRB(440, 0, 450, 890),
+      );
+      expect(fold.axis, FoldAxis.vertical);
+    });
+
+    test('水平铰链（width > height）→ horizontal', () {
+      const fold = FoldInfo(
+        obstruction: Rect.fromLTRB(0, 440, 890, 450),
+      );
+      expect(fold.axis, FoldAxis.horizontal);
+    });
+
+    test('无铰链/折痕 → null', () {
+      expect(FoldInfo.none.axis, isNull);
+    });
+
+    test('折痕也可推导轴向', () {
+      const fold = FoldInfo(
+        foldCrease: Rect.fromLTRB(312, 0, 314, 890),
+      );
+      expect(fold.axis, FoldAxis.vertical);
+    });
+
+    test('features 列表保留过滤后的 hinge/fold', () {
       const hinge = DisplayFeature(
         bounds: Rect.fromLTRB(440, 0, 450, 890),
         type: DisplayFeatureType.hinge,
         state: DisplayFeatureState.postureFlat,
       );
+      const cutout = DisplayFeature(
+        bounds: Rect.fromLTRB(100, 0, 130, 30),
+        type: DisplayFeatureType.cutout,
+        state: DisplayFeatureState.unknown,
+      );
+
+      final fold = FoldInfo(
+        obstruction: hinge.bounds,
+        features: [hinge],
+      );
+      // cutout 不在 features 中
+      expect(fold.features, hasLength(1));
+      expect(fold.features.first.type, DisplayFeatureType.hinge);
+    });
+  });
+
+  // ===================================================================
+  // HingePaneLayout
+  // ===================================================================
+  group('HingePaneLayout', () {
+    testWidgets('无铰链时使用 fallback', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: HingePaneLayout(
+              first: Text('first'),
+              second: Text('second'),
+              fallback: Text('fallback'),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('fallback'), findsOneWidget);
+      expect(find.text('first'), findsNothing);
+    });
+
+    testWidgets('垂直铰链时使用 Row 左右分栏', (tester) async {
+      const hinge = DisplayFeature(
+        bounds: Rect.fromLTRB(440, 0, 450, 890),
+        type: DisplayFeatureType.hinge,
+        state: DisplayFeatureState.postureFlat,
+      );
+
+      tester.view.physicalSize = const Size(890, 890);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: MediaQuery(
+            data: MediaQueryData(
+              size: Size(890, 890),
+              displayFeatures: [hinge],
+            ),
+            child: Scaffold(
+              body: HingePaneLayout(
+                first: Text('first'),
+                second: Text('second'),
+                fallback: Text('fallback'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('first'), findsOneWidget);
+      expect(find.text('second'), findsOneWidget);
+      expect(find.text('fallback'), findsNothing);
+      expect(find.byType(Row), findsOneWidget);
+    });
+
+    testWidgets('水平铰链时使用 Column 上下分栏', (tester) async {
+      const hinge = DisplayFeature(
+        bounds: Rect.fromLTRB(0, 440, 890, 450),
+        type: DisplayFeatureType.hinge,
+        state: DisplayFeatureState.postureFlat,
+      );
+
+      tester.view.physicalSize = const Size(890, 890);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -372,76 +461,28 @@ void main() {
               size: Size(890, 890),
               displayFeatures: [hinge],
             ),
-            child: Builder(
-              builder: (context) {
-                final fold = FoldInfo.fromContext(context);
-                expect(fold.hingeBounds, fold.obstruction);
-                return const SizedBox();
-              },
-            ),
-          ),
-        ),
-      );
-    });
-  });
-
-  // ===================================================================
-  // HingeSplitLayout
-  // ===================================================================
-  group('HingeSplitLayout', () {
-    testWidgets('无铰链时使用 fallback', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: HingeSplitLayout(
-              left: Text('left'),
-              right: Text('right'),
-              fallback: Text('fallback'),
-            ),
-          ),
-        ),
-      );
-
-      expect(find.text('fallback'), findsOneWidget);
-      expect(find.text('left'), findsNothing);
-      expect(find.text('right'), findsNothing);
-    });
-
-    testWidgets('有铰链时分成左右两侧', (tester) async {
-      const hinge = DisplayFeature(
-        bounds: Rect.fromLTRB(440, 0, 450, 890),
-        type: DisplayFeatureType.hinge,
-        state: DisplayFeatureState.postureFlat,
-      );
-
-      tester.view.physicalSize = const Size(890, 890);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.reset);
-
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: MediaQuery(
-            data: MediaQueryData(
-              size: Size(890, 890),
-              displayFeatures: [hinge],
-            ),
             child: Scaffold(
-              body: HingeSplitLayout(
-                left: Text('left'),
-                right: Text('right'),
-                fallback: Text('fallback'),
+              body: SizedBox(
+                width: 890,
+                height: 890,
+                child: HingePaneLayout(
+                  first: const Text('top'),
+                  second: const Text('bottom'),
+                  fallback: const Text('fallback'),
+                ),
               ),
             ),
           ),
         ),
       );
 
-      expect(find.text('left'), findsOneWidget);
-      expect(find.text('right'), findsOneWidget);
+      expect(find.text('top'), findsOneWidget);
+      expect(find.text('bottom'), findsOneWidget);
       expect(find.text('fallback'), findsNothing);
+      expect(find.byType(Column), findsOneWidget);
     });
 
-    testWidgets('铰链在本地约束之外（嵌套子面板）时回退 fallback', (tester) async {
+    testWidgets('嵌套子面板时回退 fallback', (tester) async {
       const hinge = DisplayFeature(
         bounds: Rect.fromLTRB(440, 0, 450, 890),
         type: DisplayFeatureType.hinge,
@@ -459,14 +500,13 @@ void main() {
               size: Size(890, 890),
               displayFeatures: [hinge],
             ),
-            // 模拟嵌套在 400pt 宽的子面板中：铰链(440-450)完全在面板外
             child: Scaffold(
               body: Center(
                 child: SizedBox(
                   width: 400,
-                  child: HingeSplitLayout(
-                    left: Text('left'),
-                    right: Text('right'),
+                  child: HingePaneLayout(
+                    first: Text('first'),
+                    second: Text('second'),
                     fallback: Text('fallback'),
                   ),
                 ),
@@ -477,11 +517,14 @@ void main() {
       );
 
       expect(find.text('fallback'), findsOneWidget);
-      expect(find.text('left'), findsNothing);
-      expect(find.text('right'), findsNothing);
     });
+  });
 
-    testWidgets('面板位于铰链右侧（嵌套右面板）时回退 fallback（M-1 回归）', (tester) async {
+  // ===================================================================
+  // FoldAwareBuilder 嵌套保护
+  // ===================================================================
+  group('FoldAwareBuilder 嵌套保护', () {
+    testWidgets('非全窗口时 fold 回退为 FoldInfo.none', (tester) async {
       const hinge = DisplayFeature(
         bounds: Rect.fromLTRB(440, 0, 450, 890),
         type: DisplayFeatureType.hinge,
@@ -492,24 +535,25 @@ void main() {
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
 
+      FoldInfo? capturedFold;
+
       await tester.pumpWidget(
-        const MaterialApp(
+        MaterialApp(
           home: MediaQuery(
-            data: MediaQueryData(
+            data: const MediaQueryData(
               size: Size(890, 890),
               displayFeatures: [hinge],
             ),
-            // 模拟嵌套在铰链右侧的面板：左侧占 500pt，本组件仅占 390pt。
-            // 铰链(440-450)在本面板之外（左侧），不应按铰链切分本面板内容。
             child: Scaffold(
               body: Row(
                 children: [
-                  SizedBox(width: 500),
+                  const SizedBox(width: 200),
                   Expanded(
-                    child: HingeSplitLayout(
-                      left: Text('left'),
-                      right: Text('right'),
-                      fallback: Text('fallback'),
+                    child: FoldAwareBuilder(
+                      compact: (_, fold) {
+                        capturedFold = fold;
+                        return const SizedBox();
+                      },
                     ),
                   ),
                 ],
@@ -519,9 +563,46 @@ void main() {
         ),
       );
 
-      expect(find.text('fallback'), findsOneWidget);
-      expect(find.text('left'), findsNothing);
-      expect(find.text('right'), findsNothing);
+      expect(capturedFold, isNotNull);
+      expect(capturedFold!.isFoldable, isFalse,
+          reason: '嵌套场景应收到 FoldInfo.none');
+    });
+
+    testWidgets('全窗口时正常传递 FoldInfo', (tester) async {
+      const hinge = DisplayFeature(
+        bounds: Rect.fromLTRB(440, 0, 450, 890),
+        type: DisplayFeatureType.hinge,
+        state: DisplayFeatureState.postureFlat,
+      );
+
+      tester.view.physicalSize = const Size(890, 890);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+
+      FoldInfo? capturedFold;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MediaQuery(
+            data: const MediaQueryData(
+              size: Size(890, 890),
+              displayFeatures: [hinge],
+            ),
+            child: Scaffold(
+              body: FoldAwareBuilder(
+                compact: (_, fold) {
+                  capturedFold = fold;
+                  return const SizedBox();
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(capturedFold, isNotNull);
+      expect(capturedFold!.isFoldable, isTrue,
+          reason: '全窗口场景应正常传递 FoldInfo');
     });
   });
 
@@ -781,7 +862,7 @@ void main() {
               builder: (_, __) => Builder(
                 builder: (context) {
                   sizeResult = ResponsiveTokens.size(16, expanded: 32);
-                  fontResult = ResponsiveTokens.font(14, expanded: 28);
+                  fontResult = ResponsiveTokens.size(14, expanded: 28);
                   rsizeResult = ResponsiveTokens.rsize(16, expanded: 32);
                   rfontResult = ResponsiveTokens.rfont(14, expanded: 28);
                   return const SizedBox();
@@ -1253,10 +1334,10 @@ void main() {
   });
 
   // ===================================================================
-  // 全局 Context 系列（screenValueOf / fromContext / isCompactScreen）
+  // 全局 Window 系列（windowValueOf / fromWindowSize / isCompactWindow）
   // ===================================================================
-  group('全局 Context 系列', () {
-    testWidgets('fromContext: 700dp → medium', (tester) async {
+  group('全局 Window 系列', () {
+    testWidgets('fromWindowSize: 700dp → medium', (tester) async {
       tester.view.physicalSize = const Size(700, 900);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
@@ -1267,7 +1348,7 @@ void main() {
         MaterialApp(
           home: Builder(
             builder: (context) {
-              result = ResponsiveBreakpoints.fromContext(context);
+              result = ResponsiveBreakpoints.fromWindowSize(context);
               return const SizedBox();
             },
           ),
@@ -1277,7 +1358,7 @@ void main() {
       expect(result, WindowSizeClass.medium);
     });
 
-    testWidgets('isCompactScreen: 400dp → true', (tester) async {
+    testWidgets('isCompactWindow: 400dp → true', (tester) async {
       tester.view.physicalSize = const Size(400, 800);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
@@ -1288,7 +1369,7 @@ void main() {
         MaterialApp(
           home: Builder(
             builder: (context) {
-              result = ResponsiveBreakpoints.isCompactScreen(context);
+              result = ResponsiveBreakpoints.isCompactWindow(context);
               return const SizedBox();
             },
           ),
@@ -1298,7 +1379,7 @@ void main() {
       expect(result, isTrue);
     });
 
-    testWidgets('screenValueOf: expanded 窗口回退行为', (tester) async {
+    testWidgets('windowValueOf: expanded 窗口回退行为', (tester) async {
       tester.view.physicalSize = const Size(900, 600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
@@ -1309,7 +1390,7 @@ void main() {
         MaterialApp(
           home: Builder(
             builder: (context) {
-              result = ResponsiveBreakpoints.screenValueOf<String>(
+              result = ResponsiveBreakpoints.windowValueOf<String>(
                 context,
                 compactValue: 'compact',
                 mediumValue: 'medium',
@@ -1322,6 +1403,22 @@ void main() {
 
       // expanded 窗口 + expanded=null → 渐进回退到 medium
       expect(result, 'medium');
+    });
+
+    test('tryFromConstraints: 有界约束返回正确尺寸类', () {
+      expect(
+        ResponsiveBreakpoints.tryFromConstraints(
+          const BoxConstraints(maxWidth: 700),
+        ),
+        WindowSizeClass.medium,
+      );
+    });
+
+    test('tryFromConstraints: 无界约束返回 null', () {
+      expect(
+        ResponsiveBreakpoints.tryFromConstraints(const BoxConstraints()),
+        isNull,
+      );
     });
   });
 
@@ -1452,7 +1549,7 @@ void main() {
         MaterialApp(
           home: Builder(
             builder: (context) {
-              result = ResponsiveBreakpoints.fromContext(context);
+              result = ResponsiveBreakpoints.fromWindowSize(context);
               return const SizedBox();
             },
           ),

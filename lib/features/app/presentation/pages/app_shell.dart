@@ -51,6 +51,16 @@ class _AppShellPageState extends ConsumerState<AppShellPage> {
   DateTime? _lastPressedAt;
   static const int _exitTimeWindow = 2000;
 
+  /// NavigationRail 的最小宽度（图标模式 ~72dp + 余量）。
+  static const double _railWidth = 80;
+
+  /// 分隔线宽度。
+  static const double _dividerWidth = 1;
+
+  /// 使用 NavigationRail 时内容区的最小可用宽度。
+  /// 低于此值时回退到底部导航，避免内容拥挤。
+  static const double _minContentWidth = 400;
+
   /// 导航目的地配置（共享给 MyBottomNavigationBar 和 NavigationRail）
   static List<({IconData icon, IconData selectedIcon, String label})>
   get _destinations => AppConstants.includeDemos
@@ -88,8 +98,16 @@ class _AppShellPageState extends ConsumerState<AppShellPage> {
           final tabsRouter = AutoTabsRouter.of(context);
           return AdaptiveLayoutBuilder(
             compact: (_) => _buildCompactShell(tabsRouter, child),
-            medium: (constraints) =>
-                _buildMediumShell(tabsRouter, child, constraints),
+            medium: (constraints) {
+              // 复合条件：断点达到 medium 但内容区不足时回退到 compact 布局，
+              // 避免 SafeArea/系统侧栏扣除后 Rail + 内容区过于拥挤。
+              final availableContent =
+                  constraints.maxWidth - _railWidth - _dividerWidth;
+              if (availableContent < _minContentWidth) {
+                return _buildCompactShell(tabsRouter, child);
+              }
+              return _buildMediumShell(tabsRouter, child, constraints);
+            },
           );
         },
       ),
