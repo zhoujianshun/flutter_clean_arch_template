@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_clean_arch_template/core/constants/app_constants.dart';
 import 'package:flutter_clean_arch_template/core/logger/app_logger.dart';
 import 'package:flutter_clean_arch_template/core/responsive/adaptive_builder.dart';
+import 'package:flutter_clean_arch_template/core/responsive/breakpoints.dart';
 import 'package:flutter_clean_arch_template/core/responsive/layout_semantics.dart';
 import 'package:flutter_clean_arch_template/core/router/app_router.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/navigation/my_bottom_navigation_bar.dart';
@@ -57,10 +58,6 @@ class _AppShellPageState extends ConsumerState<AppShellPage> {
   /// 分隔线宽度。
   static const double _dividerWidth = 1;
 
-  /// 使用 NavigationRail 时内容区的最小可用宽度。
-  /// 低于此值时回退到底部导航，避免内容拥挤。
-  static const double _minContentWidth = 400;
-
   /// 导航目的地配置（共享给 MyBottomNavigationBar 和 NavigationRail）
   static List<({IconData icon, IconData selectedIcon, String label})>
   get _destinations => AppConstants.includeDemos
@@ -101,9 +98,10 @@ class _AppShellPageState extends ConsumerState<AppShellPage> {
             medium: (constraints) {
               // 复合条件：断点达到 medium 但内容区不足时回退到 compact 布局，
               // 避免 SafeArea/系统侧栏扣除后 Rail + 内容区过于拥挤。
+              final config = BreakpointConfig.of(context);
               final availableContent =
                   constraints.maxWidth - _railWidth - _dividerWidth;
-              if (availableContent < _minContentWidth) {
+              if (availableContent < config.minPaneWidth) {
                 return _buildCompactShell(tabsRouter, child);
               }
               return _buildMediumShell(tabsRouter, child, constraints);
@@ -138,7 +136,7 @@ class _AppShellPageState extends ConsumerState<AppShellPage> {
           NavigationRail(
             selectedIndex: tabsRouter.activeIndex,
             onDestinationSelected: tabsRouter.setActiveIndex,
-            labelType: LayoutSemantics.railLabelType(constraints),
+            labelType: LayoutSemantics.railLabelType(context, constraints),
             destinations: _destinations
                 .map(
                   (d) => NavigationRailDestination(

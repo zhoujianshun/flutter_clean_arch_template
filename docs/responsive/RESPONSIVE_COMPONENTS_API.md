@@ -6,10 +6,10 @@
 
 - [断点定义](#断点定义)
 - [ResponsiveBreakpoints 断点工具](#responsivebreakpoints-断点工具)
-- [ResponsivePolicy 可注入策略](#responsivepolicy-可注入策略)
+- [BreakpointConfig 断点配置](#breakpointconfig-断点配置)
 - [ResponsiveTokens 设计 Token](#responsivetokens-设计-token)
-- [ResponsiveContextX 扩展](#responsivecontextx-扩展)
-- [ConstraintsScope 局部约束](#constraintsscope-局部约束)
+- [ResponsiveContextX 扩展](#responsivecontextx-扩展)（位于 breakpoints.dart）
+- [ConstraintsScope 局部约束](#constraintsscope-局部约束)（位于 adaptive_builder.dart）
 - [LayoutSemantics 语义决策](#layoutsemantics-语义决策)
 - [AdaptiveBuilder 自适应构建器](#adaptivebuilder-自适应构建器)
 - [AdaptiveLayoutBuilder 自适应布局构建器](#adaptivelayoutbuilder-自适应布局构建器)
@@ -31,7 +31,7 @@
 | Medium（中等） | 600-839dp | 平板竖屏、折叠屏 | — |
 | Expanded（扩展） | ≥ 840dp | 平板横屏、桌面 | `ResponsiveBreakpoints.expanded` |
 
-> desktop / 超宽屏暂统一归入 expanded，后续可通过 `ResponsivePolicy` 扩展。
+> desktop / 超宽屏暂统一归入 expanded，后续可通过 `BreakpointConfig` 扩展。
 
 ---
 
@@ -43,16 +43,18 @@
 
 ### 基于 BoxConstraints（推荐）
 
-配合 `LayoutBuilder` 使用，响应父约束（折叠屏/分屏友好），代表**实际可用宽度**：
+配合 `LayoutBuilder` 使用，响应父约束（折叠屏/分屏友好），代表**实际可用宽度**。
+所有方法均从 `BreakpointConfig` 读取自定义阈值（不存在时使用默认值 600/840）：
 
 ```dart
 LayoutBuilder(
   builder: (context, constraints) {
-    if (ResponsiveBreakpoints.isCompact(constraints)) { ... }
-    if (ResponsiveBreakpoints.isMedium(constraints)) { ... }
-    if (ResponsiveBreakpoints.isExpanded(constraints)) { ... }
+    if (ResponsiveBreakpoints.isCompact(context, constraints)) { ... }
+    if (ResponsiveBreakpoints.isMedium(context, constraints)) { ... }
+    if (ResponsiveBreakpoints.isExpanded(context, constraints)) { ... }
 
     final columns = ResponsiveBreakpoints.valueOf(
+      context,
       constraints,
       compactValue: 1,
       mediumValue: 2,
@@ -84,7 +86,7 @@ final padding = ResponsiveBreakpoints.windowValueOf(
 ### WindowSizeClass 枚举
 
 ```dart
-final sizeClass = ResponsiveBreakpoints.fromConstraints(constraints);
+final sizeClass = ResponsiveBreakpoints.fromConstraints(context, constraints);
 // 或窗口级
 final sizeClass = ResponsiveBreakpoints.fromWindowSize(context);
 
@@ -100,7 +102,7 @@ switch (sizeClass) {
 当约束可能无界时（横向可滚动等场景），使用 `tryFromConstraints` 区分"真正的 compact"和"无法判定"：
 
 ```dart
-final sizeClass = ResponsiveBreakpoints.tryFromConstraints(constraints);
+final sizeClass = ResponsiveBreakpoints.tryFromConstraints(context, constraints);
 if (sizeClass == null) {
   // 无界宽度，无法判定——使用默认布局
 }
@@ -110,19 +112,19 @@ if (sizeClass == null) {
 
 | 方法 | 参数 | 返回 | 说明 |
 |------|------|------|------|
-| `fromWidth` | `double` | `WindowSizeClass` | 根据宽度返回尺寸类 |
-| `fromConstraints` | `BoxConstraints` | `WindowSizeClass` | 根据约束返回尺寸类（无界警告后回退 compact） |
-| `tryFromConstraints` | `BoxConstraints` | `WindowSizeClass?` | 同上，但无界时返回 null |
-| `fromWindowSize` | `BuildContext` | `WindowSizeClass` | 根据窗口宽度返回尺寸类 |
-| `isCompact` | `BoxConstraints` | `bool` | 约束宽度 < 600dp |
-| `isMedium` | `BoxConstraints` | `bool` | 约束宽度 600-839dp |
-| `isExpanded` | `BoxConstraints` | `bool` | 约束宽度 >= 840dp |
-| `isCompactWindow` | `BuildContext` | `bool` | 窗口宽度 < 600dp |
-| `isMediumWindow` | `BuildContext` | `bool` | 窗口宽度 600-839dp |
-| `isExpandedWindow` | `BuildContext` | `bool` | 窗口宽度 >= 840dp |
-| `valueOf<T>` | `BoxConstraints`, `compactValue`, `mediumValue?`, `expandedValue?` | `T` | 按约束返回值 |
-| `windowValueOf<T>` | `BuildContext`, `compactValue`, `mediumValue?`, `expandedValue?` | `T` | 按窗口宽度返回值 |
-| `resolve<T>` | `windowClass`, `compact`, `medium?`, `expanded?` | `T` | 按 WindowSizeClass 解析值（回退核心） |
+| `fromWidth` | `double` | `WindowSizeClass` | 按默认阈值分类（无 context，仅底层场景） |
+| `fromConstraints` | `BuildContext`, `BoxConstraints` | `WindowSizeClass` | 按约束分类（读 BreakpointConfig，无界警告后回退 compact） |
+| `tryFromConstraints` | `BuildContext`, `BoxConstraints` | `WindowSizeClass?` | 同上，但无界时返回 null |
+| `fromWindowSize` | `BuildContext` | `WindowSizeClass` | 按窗口宽度分类（读 BreakpointConfig） |
+| `isCompact` | `BuildContext`, `BoxConstraints` | `bool` | 约束宽度 < compact 阈值 |
+| `isMedium` | `BuildContext`, `BoxConstraints` | `bool` | 约束宽度在 compact–expanded 之间 |
+| `isExpanded` | `BuildContext`, `BoxConstraints` | `bool` | 约束宽度 >= expanded 阈值 |
+| `isCompactWindow` | `BuildContext` | `bool` | 窗口宽度 < compact 阈值 |
+| `isMediumWindow` | `BuildContext` | `bool` | 窗口宽度在 compact–expanded 之间 |
+| `isExpandedWindow` | `BuildContext` | `bool` | 窗口宽度 >= expanded 阈值 |
+| `valueOf<T>` | `BuildContext`, `BoxConstraints`, `compactValue`, ... | `T` | 按约束返回值（读 BreakpointConfig） |
+| `windowValueOf<T>` | `BuildContext`, `compactValue`, ... | `T` | 按窗口宽度返回值 |
+| `resolve<T>` | `windowClass`, `compact`, `medium?`, `expanded?` | `T` | 按 WindowSizeClass 解析值（纯回退，无 context） |
 
 ### 渐进回退规则
 
@@ -137,22 +139,22 @@ if (sizeClass == null) {
 
 | 场景 | 推荐方法 | 原因 |
 |------|---------|------|
-| 页面布局切换（分栏/单列） | `isCompact(constraints)` | 响应父约束，折叠屏/分屏友好 |
-| 网格列数 / 间距 | `valueOf(constraints, ...)` | 同上 |
+| 页面布局切换（分栏/单列） | `isCompact(context, constraints)` | 响应父约束，折叠屏/分屏友好 |
+| 网格列数 / 间距 | `valueOf(context, constraints, ...)` | 同上 |
 | AppShell 导航形态 | `isCompactWindow(context)` | 壳层策略取决于完整窗口 |
 | 主题 / 全局配置 | `windowValueOf(context, ...)` | 无 LayoutBuilder 可用 |
 
 ---
 
-## ResponsivePolicy 可注入策略
+## BreakpointConfig 断点配置
 
 **路径**: `lib/core/responsive/breakpoints.dart`
 
-允许不同品牌/产品线自定义断点、最小 pane 宽度和导航阈值，替代全局 `static const` 硬编码：
+可注入的纯数据容器，持有断点阈值和布局参数。`ResponsiveBreakpoints` 的所有需要 `BuildContext` 的方法均从此处读取自定义阈值。不注入时使用默认值（600/840）。
 
 ```dart
-// 在 App 顶层注入自定义策略
-ResponsivePolicy(
+// 在 App 顶层注入自定义配置（可选）
+BreakpointConfig(
   compactBreakpoint: 640,
   expandedBreakpoint: 900,
   minPaneWidth: 320,
@@ -167,13 +169,15 @@ ResponsivePolicy(
 | `compactBreakpoint` | `double` | 600 | compact → medium 阈值 |
 | `expandedBreakpoint` | `double` | 840 | medium → expanded 阈值 |
 | `minPaneWidth` | `double` | 300 | 分栏布局中单个 pane 的最小宽度 |
-| `navigationThreshold` | `double` | 600 | 切换到 NavigationRail 的窗口最小宽度 |
 
-### 读取策略
+### 读取配置
 
 ```dart
-final policy = ResponsivePolicy.of(context);  // 不存在时返回默认值
-final policy = ResponsivePolicy.maybeOf(context);  // 不存在时返回 null
+final config = BreakpointConfig.of(context);      // 不存在时返回默认值
+final config = BreakpointConfig.maybeOf(context);  // 不存在时返回 null
+
+// 直接分类（纯函数，基于自身阈值）
+final sizeClass = config.classify(width);
 ```
 
 ---
@@ -184,14 +188,19 @@ final policy = ResponsivePolicy.maybeOf(context);  // 不存在时返回 null
 
 管理设计稿尺寸、内容宽度常量和缩放方法。
 
-### API 选择指南
+### 用法
 
-```text
-需要按屏幕适配？
-├─ 是 → 在 AdaptiveBuilder 子树中？
-│       ├─ 是 → localSize(context, 16) / localFont(context, 14)
-│       └─ 否 → 16.rs / 14.rf（或 rsize/rfont 指定多断点值）
-└─ 否（主题/全局定义）→ 16.s（或 size 指定多断点值）
+```dart
+final tokens = ResponsiveTokens.of(context);
+
+// 间距/尺寸：compact 真手机按设计稿缩放，大屏固定 dp
+final padding = tokens.space(16, medium: 24, expanded: 32);
+
+// 字体：compact 真手机 sp 缩放，大屏固定 dp
+final fontSize = tokens.font(14, medium: 16);
+
+// 固定 dp（所有断点不缩放，适用于主题/全局定义）
+final size = tokens.fixedSize(16, medium: 20);
 ```
 
 ### 设计稿尺寸
@@ -212,25 +221,26 @@ final policy = ResponsivePolicy.maybeOf(context);  // 不存在时返回 null
 | `maxWidthList` | 600dp | 列表/设置页 |
 | `maxWidthDetail` | 680dp | 详情/文章页 |
 
-### 缩放方法
+### 实例方法
 
-| 方法 | compact 端 | medium/expanded | 说明 |
-|------|-----------|-----------------|------|
-| `size(compact, medium?, expanded?)` | 不缩放（原值 dp） | 固定 dp | 主题/全局定义 |
-| `rsize(compact, medium?, expanded?)` | 缩放（clamp 0.85–1.15） | 固定 dp | 页面间距/尺寸 |
-| `rfont(compact, medium?, expanded?)` | sp 缩放（ScreenUtil） | 固定 dp | 页面字体 |
-| `localSize(context, compact, medium?, expanded?)` | 条件缩放 | 固定 dp | 局部约束感知尺寸 |
-| `localFont(context, compact, medium?, expanded?)` | 条件缩放 | 固定 dp | 局部约束感知字体 |
+| 方法 | compact（真手机） | compact（大屏窄面板） | medium/expanded | 说明 |
+|------|:---:|:---:|:---:|------|
+| `space(compact, medium?, expanded?)` | 缩放（clamp 0.85–1.15） | 固定 dp | 固定 dp | 间距/尺寸 |
+| `font(compact, medium?, expanded?)` | sp 缩放（ScreenUtil） | 固定 dp | 固定 dp | 字体 |
+| `fixedSize(compact, medium?, expanded?)` | 固定 dp | 固定 dp | 固定 dp | 主题/全局定义 |
 
 > 渐进回退：medium 缺失回退 compact 原值（未缩放），expanded 缺失回退 medium。
 
-### 全局 vs 局部
+### ScreenUtil 依赖契约
 
-**全局方法**（`size`/`rsize`/`rfont` 及扩展 `.s`/`.rs`/`.rf`）基于 ScreenUtil 全局窗口宽度做断点判定，适用于绝大多数手机页面。
+- `space` 的 compact 缩放基于窗口级 MediaQuery 宽度（与 `ScreenUtil().screenWidth` 同源等价），**不依赖** ScreenUtil。
+- `font` 的 compact 缩放委托 `ScreenUtil().setSp`（保留根部 `ScreenUtilInit` 注入的 `fontSizeResolver` 语义），**要求根部已接线 `ScreenUtilInit`**；未接线时回退固定 dp 并输出一次性 debug 警告，不抛异常。
 
-**局部方法**（`localSize`/`localFont`）基于 `ConstraintsScope`（由 `AdaptiveBuilder` 自动注入）的局部约束宽度做断点判定。适用于嵌套面板（NavigationRail 旁的内容区）或 Split View 场景，此时全局窗口宽度不等于组件实际可用宽度。若 context 中无 `ConstraintsScope`，自动回退到全局行为。
+### 局部约束感知
 
-**局部方法的缩放策略**：
+`ResponsiveTokens.of(context)` 优先使用 `ConstraintsScope`（由 `AdaptiveBuilder` 自动注入）的局部约束宽度做断点判定。不存在时使用 `BreakpointConfig` + 窗口宽度。
+
+**缩放策略**：
 
 | 全局窗口 | 局部约束 | 场景 | compact 端行为 |
 |---------|---------|------|---------------|
@@ -241,28 +251,16 @@ final policy = ResponsivePolicy.maybeOf(context);  // 不存在时返回 null
 
 ```dart
 // 在 AdaptiveBuilder 的子树中
-final padding = ResponsiveTokens.localSize(context, 16, medium: 24);
-final fontSize = ResponsiveTokens.localFont(context, 14, medium: 16);
-```
-
-### 快捷扩展（ResponsiveNumExtension）
-
-| 扩展 | 等价调用 | compact 端 | 说明 |
-|------|---------|-----------|------|
-| `16.rs` | `ResponsiveTokens.rsize(16)` | 缩放 | 页面间距/尺寸 |
-| `14.rf` | `ResponsiveTokens.rfont(14)` | sp 缩放 | 页面字体 |
-| `16.s` | `ResponsiveTokens.size(16)` | 不缩放 | 主题/全局尺寸 |
-
-需要为不同断点指定不同值时，使用静态方法：
-```dart
-ResponsiveTokens.rsize(16, medium: 24, expanded: 32)
+final tokens = ResponsiveTokens.of(context);
+final padding = tokens.space(16, medium: 24);
+final fontSize = tokens.font(14, medium: 16);
 ```
 
 ---
 
 ## ResponsiveContextX 扩展
 
-**路径**: `lib/core/responsive/responsive_context.dart`
+**路径**: `lib/core/responsive/breakpoints.dart`（与 `ResponsiveBreakpoints`、`BreakpointConfig` 同文件）
 
 `BuildContext` 的语义化扩展，简化**窗口级**断点读取：
 
@@ -294,7 +292,7 @@ if (context.hasAsymmetricHorizontalPadding) {
 
 ## ConstraintsScope 局部约束
 
-**路径**: `lib/core/responsive/constraints_scope.dart`
+**路径**: `lib/core/responsive/adaptive_builder.dart`（与 `AdaptiveBuilder`、`AdaptiveLayoutBuilder` 同文件）
 
 `AdaptiveBuilder` / `AdaptiveLayoutBuilder` / `FoldAwareBuilder` 在 `LayoutBuilder` 回调内自动注入，无需手动创建。子树中的组件可读取**局部**约束宽度：
 
@@ -304,7 +302,8 @@ final scope = ConstraintsScope.of(context);
 final isLocallyCompact = scope.windowClass == WindowSizeClass.compact;
 
 // 或使用 ResponsiveTokens 的 context-aware 方法
-final padding = ResponsiveTokens.localSize(context, 16, medium: 24);
+final tokens = ResponsiveTokens.of(context);
+final padding = tokens.space(16, medium: 24);
 ```
 
 ### API
@@ -328,13 +327,13 @@ final padding = ResponsiveTokens.localSize(context, 16, medium: 24);
 ```dart
 // NavigationRail 标签策略
 NavigationRail(
-  labelType: LayoutSemantics.railLabelType(constraints),
+  labelType: LayoutSemantics.railLabelType(context, constraints),
   // expanded: all, compact/medium: selected
 )
 
 // Master-Detail 左侧面板比例
 SizedBox(
-  width: constraints.maxWidth * LayoutSemantics.masterPaneRatio(constraints),
+  width: constraints.maxWidth * LayoutSemantics.masterPaneRatio(context, constraints),
   // expanded: 0.35, medium: 0.4
 )
 ```
@@ -742,7 +741,7 @@ AdaptiveLayoutBuilder(
 // ✅ 连续计算（列数/间距）：直接用 LayoutBuilder
 LayoutBuilder(
   builder: (context, c) {
-    final columns = ResponsiveBreakpoints.valueOf(c, compactValue: 2, mediumValue: 3, expandedValue: 4);
+    final columns = ResponsiveBreakpoints.valueOf(context, c, compactValue: 2, mediumValue: 3, expandedValue: 4);
     return GridView(crossAxisCount: columns);
   },
 )
@@ -758,26 +757,25 @@ if (MediaQuery.sizeOf(context).width < 600) { ... }
 if (Platform.isAndroid && isTabletDevice()) { ... }
 
 // ✅ 基于可用空间
-if (ResponsiveBreakpoints.isCompact(constraints)) { ... }
+if (ResponsiveBreakpoints.isCompact(context, constraints)) { ... }
 ```
 
 ### 3. Token 选择
 
 ```dart
+final tokens = ResponsiveTokens.of(context);
+
+// ✅ 间距/尺寸：compact 真手机缩放，大屏固定 dp
+padding: EdgeInsets.all(tokens.space(16, medium: 24, expanded: 32)),
+
+// ✅ 字体：compact 真手机 sp 缩放，大屏固定 dp
+fontSize: tokens.font(14, medium: 16),
+
 // ✅ 主题/全局定义：不缩放
-fontSize: 16.s,
+fontSize: tokens.fixedSize(16, medium: 20),
 
-// ✅ 页面间距/尺寸：compact 缩放
-padding: EdgeInsets.all(16.rs),
-
-// ✅ 页面字体：compact sp 缩放
-fontSize: 14.rf,
-
-// ✅ 嵌套面板：使用 context-aware 方法
-padding: EdgeInsets.all(ResponsiveTokens.localSize(context, 16, medium: 24)),
-
-// ✅ 多断点不同值：使用静态方法
-padding: EdgeInsets.all(ResponsiveTokens.rsize(16, medium: 24, expanded: 32)),
+// ✅ 主题中不需要响应式缩放时，直接使用字面值
+fontSize: 14,                        // 等价于 fixedSize(14) 但更简洁
 
 // ✅ 平板端固定 dp（在 AdaptiveBuilder 的 medium/expanded 回调中）
 padding: EdgeInsets.all(20),

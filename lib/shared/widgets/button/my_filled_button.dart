@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_clean_arch_template/core/responsive/responsive_tokens.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/my_circular_progress_indicator.dart';
 
 // 背景色是主题色，类ios按钮，默认圆角
@@ -140,7 +139,7 @@ class MyFilledButton extends StatelessWidget {
               theme.textTheme.bodyMedium?.copyWith(
                 fontSize:
                     fontSize ??
-                    ResponsiveTokens.size(14, medium: 14, expanded: 14),
+                    14,
               );
           mainTextStyle = mainTextStyle?.copyWith(
             decoration: TextDecoration.none,

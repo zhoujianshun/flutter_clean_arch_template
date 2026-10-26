@@ -8,7 +8,7 @@ import 'package:flutter_clean_arch_template/core/responsive/fold_aware.dart';
 ///
 /// 演示 fold_aware.dart 提供的三项能力：
 /// 1. [FoldInfo] —— 读取折叠姿态（铰链/折痕/半开）
-/// 2. [FoldAwareBuilder] —— 断点布局 + 分栏线对齐折痕
+/// 2. [FoldAwareBuilder] —— 断点布局 + 折叠感知
 /// 3. [HingePaneLayout] —— 交互元素物理避让铰链
 ///
 /// 由于 displayFeatures 只在 Android 折叠屏上由系统填充，
@@ -227,7 +227,7 @@ class _FoldAwareDemoPageState extends State<FoldAwareDemoPage> {
     );
   }
 
-  /// 能力 2：FoldAwareBuilder 分栏对齐折痕
+  /// 能力 2：FoldAwareBuilder 折叠感知分栏
   Widget _buildFoldAwareBuilderDemo(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
@@ -246,7 +246,8 @@ class _FoldAwareDemoPageState extends State<FoldAwareDemoPage> {
             ),
             const SizedBox(height: 4),
             Text(
-              '分栏线优先对齐铰链/折痕左侧；无铰链时按断点比例分栏',
+              '有物理铰链时按铰链分栏；无铰链时按断点比例分栏。'
+              '\n注：嵌套在 Card 等非全窗口容器中时，HingePaneLayout 会使用 fallback',
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 12),
@@ -270,7 +271,11 @@ class _FoldAwareDemoPageState extends State<FoldAwareDemoPage> {
     );
   }
 
-  /// 使用 HingePaneLayout 自动处理铰链方向和避让
+  /// 使用 HingePaneLayout 自动处理铰链方向和避让。
+  ///
+  /// 注意：此处 HingePaneLayout 嵌套在 Card > Padding 内，
+  /// 约束宽度 ≠ 窗口宽度，因此铰链分栏不会生效（走 fallback）。
+  /// 真实使用时应将 HingePaneLayout 放在覆盖完整窗口的位置。
   Widget _buildAlignedSplit(
     BoxConstraints constraints,
     FoldInfo fold,
@@ -279,7 +284,7 @@ class _FoldAwareDemoPageState extends State<FoldAwareDemoPage> {
     return HingePaneLayout(
       hingeMargin: 4,
       first: _PanePlaceholder(
-        label: fold.axis == FoldAxis.horizontal ? 'Top\n上方面板' : 'Master\n宽度对齐折痕',
+        label: fold.axis == FoldAxis.horizontal ? 'Top\n上方面板' : 'Master\n铰链分栏',
         color: scheme.primaryContainer,
       ),
       second: _PanePlaceholder(
@@ -326,7 +331,8 @@ class _FoldAwareDemoPageState extends State<FoldAwareDemoPage> {
             ),
             const SizedBox(height: 4),
             Text(
-              '交互按钮拆分到铰链两侧（支持垂直/水平铰链）；无铰链设备自动回退',
+              '交互按钮拆分到铰链两侧（支持垂直/水平铰链）；无铰链设备自动回退。'
+              '\n注：嵌套在 Card 内时铰链分栏不生效，仅展示 fallback 布局',
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 12),

@@ -172,7 +172,7 @@ class _ResponsiveSettingsPageState extends State<ResponsiveSettingsPage> {
   /// 平板布局：左分类 + 右设置项
   Widget _buildSplitLayout(BuildContext context, BoxConstraints constraints) {
     final category = _categories[_selectedCategory];
-    final masterWidth = ResponsiveBreakpoints.isExpanded(constraints) ? 280.0 : 240.0;
+    final masterWidth = ResponsiveBreakpoints.isExpanded(context, constraints) ? 280.0 : 240.0;
 
     return Row(
       children: [

@@ -59,7 +59,7 @@ class _MediumArticle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageWidth = ResponsiveBreakpoints.isExpanded(constraints)
+    final imageWidth = ResponsiveBreakpoints.isExpanded(context, constraints)
         ? 420.0
         : 340.0;
 

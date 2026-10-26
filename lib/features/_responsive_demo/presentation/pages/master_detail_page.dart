@@ -92,7 +92,7 @@ class _MasterDetailPageState extends State<MasterDetailPage> {
   Widget _buildCompactLayout() {
     return ListView.builder(
       key: const PageStorageKey<String>('master_detail_compact_list'),
-      padding: EdgeInsets.all(ResponsiveTokens.size(8, medium: 8, expanded: 8)),
+      padding: EdgeInsets.all(8),
       itemCount: _items.length,
       itemBuilder: (context, index) {
         final item = _items[index];
@@ -107,7 +107,7 @@ class _MasterDetailPageState extends State<MasterDetailPage> {
 
   /// 平板布局：左右分栏
   Widget _buildSplitLayout(BoxConstraints constraints) {
-    final masterRatio = LayoutSemantics.masterPaneRatio(constraints);
+    final masterRatio = LayoutSemantics.masterPaneRatio(context, constraints);
 
     return Row(
       children: [

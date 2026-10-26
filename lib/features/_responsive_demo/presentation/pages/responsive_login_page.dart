@@ -1,7 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/core/responsive/adaptive_builder.dart';
-import 'package:flutter_clean_arch_template/core/responsive/responsive_tokens.dart';
 import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/layouts/responsive_login_compact_layout.dart';
 import 'package:flutter_clean_arch_template/features/_responsive_demo/presentation/pages/layouts/responsive_login_tablet_layout.dart';
 
@@ -91,9 +90,9 @@ Widget _buildLoginForm(BuildContext context) {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           _buildSocialButton(Icons.apple, '苹果'),
-          SizedBox(width: ResponsiveTokens.size(24, medium: 24, expanded: 24)),
+          SizedBox(width: 24),
           _buildSocialButton(Icons.g_mobiledata, '谷歌'),
-          SizedBox(width: ResponsiveTokens.size(24, medium: 24, expanded: 24)),
+          SizedBox(width: 24),
           _buildSocialButton(Icons.wechat, '微信'),
         ],
       ),

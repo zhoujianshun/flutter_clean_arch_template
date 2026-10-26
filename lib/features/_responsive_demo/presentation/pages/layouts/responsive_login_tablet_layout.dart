@@ -14,7 +14,7 @@ class ResponsiveLoginTabletLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final masterRatio = LayoutSemantics.masterPaneRatio(constraints);
+    final masterRatio = LayoutSemantics.masterPaneRatio(context, constraints);
     final brandFlex = (masterRatio * 100).round();
 
     return Row(

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_clean_arch_template/core/responsive/responsive_tokens.dart';
 
 /// Application color palette
 ///
@@ -167,7 +166,7 @@ class AppTheme {
         foregroundColor: AppColors.textPrimary,
         titleTextStyle: TextStyle(
           color: AppColors.textPrimary,
-          fontSize: ResponsiveTokens.size(17, medium: 17, expanded: 17),
+          fontSize: 17,
           fontWeight: FontWeight.w600,
         ),
         systemOverlayStyle: SystemUiOverlayStyle.dark,
@@ -176,7 +175,7 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(
-            ResponsiveTokens.size(12, medium: 12, expanded: 12),
+            12,
           ),
         ),
         color: AppColors.backgroundPrimary,
@@ -185,15 +184,15 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           minimumSize: Size(
             0,
-            ResponsiveTokens.size(48, medium: 48, expanded: 48),
+            48,
           ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(
-              ResponsiveTokens.size(12, medium: 12, expanded: 12),
+              12,
             ),
           ),
           textStyle: TextStyle(
-            fontSize: ResponsiveTokens.size(16, medium: 16, expanded: 16),
+            fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -203,29 +202,29 @@ class AppTheme {
         fillColor: AppColors.neutral100,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(
-            ResponsiveTokens.size(12, medium: 12, expanded: 12),
+            12,
           ),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(
-            ResponsiveTokens.size(12, medium: 12, expanded: 12),
+            12,
           ),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(
-            ResponsiveTokens.size(12, medium: 12, expanded: 12),
+            12,
           ),
           borderSide: const BorderSide(color: AppColors.primary),
         ),
         contentPadding: EdgeInsets.symmetric(
-          horizontal: ResponsiveTokens.size(16, medium: 16, expanded: 16),
-          vertical: ResponsiveTokens.size(14, medium: 14, expanded: 14),
+          horizontal: 16,
+          vertical: 14,
         ),
         hintStyle: TextStyle(
           color: AppColors.textHint,
-          fontSize: ResponsiveTokens.size(14, medium: 14, expanded: 14),
+          fontSize: 14,
         ),
       ),
       dividerTheme: const DividerThemeData(
@@ -239,11 +238,11 @@ class AppTheme {
         selectedItemColor: _lightColorScheme.primary,
         unselectedItemColor: AppColors.neutral500,
         selectedLabelStyle: TextStyle(
-          fontSize: ResponsiveTokens.size(11, medium: 11, expanded: 11),
+          fontSize: 11,
           fontWeight: FontWeight.w600,
         ),
         unselectedLabelStyle: TextStyle(
-          fontSize: ResponsiveTokens.size(11, medium: 11, expanded: 11),
+          fontSize: 11,
         ),
         type: BottomNavigationBarType.fixed,
       ),
@@ -264,7 +263,7 @@ class AppTheme {
         foregroundColor: AppDarkColors.textPrimary,
         titleTextStyle: TextStyle(
           color: AppDarkColors.textPrimary,
-          fontSize: ResponsiveTokens.size(17, medium: 17, expanded: 17),
+          fontSize: 17,
           fontWeight: FontWeight.w600,
         ),
         systemOverlayStyle: SystemUiOverlayStyle.light,
@@ -273,7 +272,7 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(
-            ResponsiveTokens.size(12, medium: 12, expanded: 12),
+            12,
           ),
         ),
         color: AppDarkColors.surface,
@@ -282,15 +281,15 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           minimumSize: Size(
             0,
-            ResponsiveTokens.size(48, medium: 48, expanded: 48),
+            48,
           ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(
-              ResponsiveTokens.size(12, medium: 12, expanded: 12),
+              12,
             ),
           ),
           textStyle: TextStyle(
-            fontSize: ResponsiveTokens.size(16, medium: 16, expanded: 16),
+            fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -300,29 +299,29 @@ class AppTheme {
         fillColor: AppDarkColors.neutral100,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(
-            ResponsiveTokens.size(12, medium: 12, expanded: 12),
+            12,
           ),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(
-            ResponsiveTokens.size(12, medium: 12, expanded: 12),
+            12,
           ),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(
-            ResponsiveTokens.size(12, medium: 12, expanded: 12),
+            12,
           ),
           borderSide: const BorderSide(color: AppDarkColors.primary),
         ),
         contentPadding: EdgeInsets.symmetric(
-          horizontal: ResponsiveTokens.size(16, medium: 16, expanded: 16),
-          vertical: ResponsiveTokens.size(14, medium: 14, expanded: 14),
+          horizontal: 16,
+          vertical: 14,
         ),
         hintStyle: TextStyle(
           color: AppDarkColors.textHint,
-          fontSize: ResponsiveTokens.size(14, medium: 14, expanded: 14),
+          fontSize: 14,
         ),
       ),
       dividerTheme: const DividerThemeData(
@@ -336,11 +335,11 @@ class AppTheme {
         selectedItemColor: _darkColorScheme.primary,
         unselectedItemColor: AppDarkColors.neutral500,
         selectedLabelStyle: TextStyle(
-          fontSize: ResponsiveTokens.size(11, medium: 11, expanded: 11),
+          fontSize: 11,
           fontWeight: FontWeight.w600,
         ),
         unselectedLabelStyle: TextStyle(
-          fontSize: ResponsiveTokens.size(11, medium: 11, expanded: 11),
+          fontSize: 11,
         ),
         type: BottomNavigationBarType.fixed,
       ),
@@ -450,32 +449,32 @@ class AppAdaptiveColors {
 /// Pre-defined spacing constants
 class AppSpacing {
   AppSpacing._();
-  static double get xs => ResponsiveTokens.size(4, medium: 4, expanded: 4);
-  static double get sm => ResponsiveTokens.size(8, medium: 8, expanded: 8);
-  static double get md => ResponsiveTokens.size(12, medium: 12, expanded: 12);
-  static double get lg => ResponsiveTokens.size(16, medium: 16, expanded: 16);
-  static double get xl => ResponsiveTokens.size(24, medium: 24, expanded: 24);
-  static double get xxl => ResponsiveTokens.size(32, medium: 32, expanded: 32);
+  static double get xs => 4;
+  static double get sm => 8;
+  static double get md => 12;
+  static double get lg => 16;
+  static double get xl => 24;
+  static double get xxl => 32;
 }
 
 /// Pre-defined border radius constants
 class AppBorderRadius {
   AppBorderRadius._();
   static BorderRadius get xs =>
-      BorderRadius.circular(ResponsiveTokens.size(4, medium: 4, expanded: 4));
+      BorderRadius.circular(4);
   static BorderRadius get sm =>
-      BorderRadius.circular(ResponsiveTokens.size(8, medium: 8, expanded: 8));
+      BorderRadius.circular(8);
   static BorderRadius get md => BorderRadius.circular(
-    ResponsiveTokens.size(12, medium: 12, expanded: 12),
+    12,
   );
   static BorderRadius get lg => BorderRadius.circular(
-    ResponsiveTokens.size(16, medium: 16, expanded: 16),
+    16,
   );
   static BorderRadius get xl => BorderRadius.circular(
-    ResponsiveTokens.size(24, medium: 24, expanded: 24),
+    24,
   );
   static BorderRadius get full => BorderRadius.circular(
-    ResponsiveTokens.size(999, medium: 999, expanded: 999),
+    999,
   );
 }
 
@@ -488,103 +487,103 @@ class AppTextStyles {
   static const String? fontFamilyRegular = null;
 
   static TextStyle get h1 => TextStyle(
-    fontSize: ResponsiveTokens.size(32, medium: 32, expanded: 32),
+    fontSize: 32,
     fontWeight: FontWeight.w700,
     height: 1.2,
     letterSpacing: -0.5,
   );
 
   static TextStyle get h2 => TextStyle(
-    fontSize: ResponsiveTokens.size(28, medium: 28, expanded: 28),
+    fontSize: 28,
     fontWeight: FontWeight.w700,
     height: 1.25,
     letterSpacing: -0.25,
   );
 
   static TextStyle get h3 => TextStyle(
-    fontSize: ResponsiveTokens.size(24, medium: 24, expanded: 24),
+    fontSize: 24,
     fontWeight: FontWeight.w700,
     height: 1.5,
   );
 
   static TextStyle get h4 => TextStyle(
-    fontSize: ResponsiveTokens.size(20, medium: 20, expanded: 20),
+    fontSize: 20,
     fontWeight: FontWeight.w700,
     height: 1.5,
   );
 
   static TextStyle get h5 => TextStyle(
-    fontSize: ResponsiveTokens.size(18, medium: 18, expanded: 18),
+    fontSize: 18,
     fontWeight: FontWeight.w500,
     height: 1.5,
   );
 
   static TextStyle get h6 => TextStyle(
-    fontSize: ResponsiveTokens.size(16, medium: 16, expanded: 16),
+    fontSize: 16,
     fontWeight: FontWeight.w500,
     height: 1.5,
   );
 
   static TextStyle get bodyLarge => TextStyle(
-    fontSize: ResponsiveTokens.size(18, medium: 18, expanded: 18),
+    fontSize: 18,
     fontWeight: FontWeight.w400,
     height: 1.5,
   );
 
   static TextStyle get bodyMedium => TextStyle(
-    fontSize: ResponsiveTokens.size(16, medium: 16, expanded: 16),
+    fontSize: 16,
     fontWeight: FontWeight.w400,
     height: 1.5,
   );
 
   static TextStyle get bodySmall => TextStyle(
-    fontSize: ResponsiveTokens.size(14, medium: 14, expanded: 14),
+    fontSize: 14,
     fontWeight: FontWeight.w400,
     height: 1.5,
   );
 
   static TextStyle get bodyXSmall => TextStyle(
-    fontSize: ResponsiveTokens.size(12, medium: 12, expanded: 12),
+    fontSize: 12,
     fontWeight: FontWeight.w400,
     height: 1.5,
   );
 
   static TextStyle get caption => TextStyle(
-    fontSize: ResponsiveTokens.size(11, medium: 11, expanded: 11),
+    fontSize: 11,
     fontWeight: FontWeight.w400,
     height: 1.5,
   );
 
   static TextStyle get labelLarge => TextStyle(
-    fontSize: ResponsiveTokens.size(14, medium: 14, expanded: 14),
+    fontSize: 14,
     fontWeight: FontWeight.w500,
     height: 1.5,
     letterSpacing: 0.1,
   );
 
   static TextStyle get labelMedium => TextStyle(
-    fontSize: ResponsiveTokens.size(12, medium: 12, expanded: 12),
+    fontSize: 12,
     fontWeight: FontWeight.w500,
     height: 1.5,
     letterSpacing: 0.5,
   );
 
   static TextStyle get labelSmall => TextStyle(
-    fontSize: ResponsiveTokens.size(10, medium: 10, expanded: 10),
+    fontSize: 10,
     fontWeight: FontWeight.w500,
     height: 1.5,
     letterSpacing: 0.5,
   );
 
   static TextStyle get overline => TextStyle(
-    fontSize: ResponsiveTokens.size(10, medium: 10, expanded: 10),
+    fontSize: 10,
     fontWeight: FontWeight.w400,
     height: 1.5,
     letterSpacing: 1.5,
   );
 
   static TextStyle get elderlyBodyLarge => TextStyle(
-    fontSize: ResponsiveTokens.size(20, medium: 20, expanded: 20),
+    fontSize: 20,
     fontWeight: FontWeight.w400,
     height: 1.5,
   );

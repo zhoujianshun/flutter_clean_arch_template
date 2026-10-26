@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_clean_arch_template/core/responsive/responsive_tokens.dart';
 import 'package:flutter_clean_arch_template/core/theme/app_theme.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/my_circular_progress_indicator.dart';
 
@@ -129,7 +128,7 @@ class MyOutlinedButton extends StatelessWidget {
               textStyle ??
               Theme.of(
                 context,
-              ).textTheme.bodyMedium?.copyWith(fontSize: fontSize ?? 14.s);
+              ).textTheme.bodyMedium?.copyWith(fontSize: fontSize ?? 14);
           mainTextStyle = mainTextStyle?.copyWith(
             decoration: TextDecoration.none,
             color: !isDisabled

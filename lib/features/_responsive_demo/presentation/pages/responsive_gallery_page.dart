@@ -22,12 +22,14 @@ class ResponsiveGalleryPage extends StatelessWidget {
       body: LayoutBuilder(
         builder: (context, constraints) {
           final columns = ResponsiveBreakpoints.valueOf(
+            context,
             constraints,
             compactValue: 2,
             mediumValue: 3,
             expandedValue: 4,
           );
           final spacing = ResponsiveBreakpoints.valueOf<double>(
+            context,
             constraints,
             compactValue: 8,
             mediumValue: 12,

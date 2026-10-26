@@ -22,7 +22,7 @@
 - **首次接手项目**：先读 `getting_started` → `architecture` → `core_modules` → `create_new_feature`
 - **日常开发查阅**：按目录（网络/状态管理/路由/UI）按需跳转
 - **排障定位**：优先看 `monitoring/`、`logging/`、`architecture/NETWORK_ERROR_*`
-- **手机/平板适配**：优先看 `responsive/SCREENUTIL_GUIDE.md`，再结合 `architecture.md` 的分层约束落地
+- **手机/平板适配**：先读 `responsive/RESPONSIVE_SOURCE_WALKTHROUGH.md` 理解原理，再看 `responsive/RESPONSIVE_COMPONENTS_API.md` 查 API
 
 ---
 
@@ -111,11 +111,12 @@
 
 | 文档 | 主题 |
 |------|------|
+| [RESPONSIVE_SOURCE_WALKTHROUGH.md](responsive/RESPONSIVE_SOURCE_WALKTHROUGH.md) | **响应式模块源码详解**（从零学习，逐文件逐方法解读） |
 | [RESPONSIVE_COMPONENTS_API.md](responsive/RESPONSIVE_COMPONENTS_API.md) | 响应式组件 API 参考（核心文档） |
-| [SCREENUTIL_GUIDE.md](responsive/SCREENUTIL_GUIDE.md) | ScreenUtil 屏幕适配指南 |
+| [RESPONSIVE_INTERVIEW_GUIDE.md](responsive/RESPONSIVE_INTERVIEW_GUIDE.md) | 面试指南（简历素材 + 设计亮点 + Q&A） |
 | [TABLET_ADAPTATION_GUIDE.md](responsive/TABLET_ADAPTATION_GUIDE.md) | 平板适配架构决策记录（ADR） |
 | [RESPONSIVE_BEST_PRACTICES_COMPARISON.md](responsive/RESPONSIVE_BEST_PRACTICES_COMPARISON.md) | 企业级响应式方案对比（2026） |
-| [RESPONSIVE_CODE_REVIEW.md](responsive/RESPONSIVE_CODE_REVIEW.md) | 响应式模块代码审查报告（问题清单 + 待决策项） |
+| [RESPONSIVE_MODULE_REVIEW.md](responsive/RESPONSIVE_MODULE_REVIEW.md) | 响应式模块代码评审（问题清单 + 修改方案 + 实施顺序） |
 
 ### 待办清单 (`todo/`)
 

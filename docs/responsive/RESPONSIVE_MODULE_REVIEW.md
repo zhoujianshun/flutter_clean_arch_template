@@ -1,139 +1,335 @@
-# 响应式模块代码评审与改造方案
+# 响应式模块代码评审（`lib/core/responsive/`）
 
-> 评审日期：2026-10-23  
-> 范围：`lib/core/responsive/`、核心接入点及现有响应式测试。  
-> 方法：静态代码审阅、调用点抽查、既有测试执行；未进行真机折叠态验证。
+> **已落实更新（2026-10-26）**
+>
+> 以下评审建议已在后续重构中落实，原文保留作为历史记录：
+>
+> | 评审项 | 落实情况 |
+> |--------|---------|
+> | P0-1：`ResponsivePolicy` 未接线 | 已重命名为 `BreakpointConfig`，所有断点方法读取其自定义阈值 |
+> | P1-1：Token 旧 API 废弃 | `rsize/rfont/size/localSize/localFont` 及 `.rs/.rf/.s` 扩展已全部删除，统一为 `ResponsiveTokens.of(context).space/font/fixedSize` |
+> | P1-3：静默回退无警告 | 旧 API 已删除，`ResponsiveTokens.of` 无 scope 时安全回退到窗口级判定 |
+> | P2-2：窗口级 API 重复 | `ResponsiveContextX` 合并入 `breakpoints.dart`；`ResponsiveBreakpoints` 上的 `isXxxWindow` 保留（与 `isXxx` 约束版对称） |
+> | 文件合并 | `responsive_context.dart` → `breakpoints.dart`；`constraints_scope.dart` → `adaptive_builder.dart`；模块从 8 文件缩减到 6 文件 |
+> | `SCREENUTIL_GUIDE.md` | 已删除（内容被 `RESPONSIVE_COMPONENTS_API.md` 覆盖） |
+>
+> P0-2（`_coversWindow` 容差判定 + 分栏后清除子树铰链）、P0-3（明确「仅处理铰链」契约）、P1-2（`Expanded` 吸收浮点误差）已在第三轮修复中落实（见第 9 节）；P2-4（测试拆分）决策为保持单文件收敛，lint 已清零。
 
-## 结论
+> 评审日期：2026-10-23（第二轮，基于工作区当前未提交代码）  
+> 范围：`lib/core/responsive/` 全部 8 个文件、接入点 `main.dart` / `app_shell.dart` / `fold_aware_demo_page.dart`、`test/core/responsive/`。  
+> 方法：静态审阅 + 调用点抽查 + `flutter analyze` + `flutter test`；参考 Flutter 3.47 官方自适应布局指南、Material 3 Window Size Class、`flutter_screenutil 5.9.3` 源码。未做真机折叠态验证。
 
-模块已具备可用的基础架构：断点集中管理、优先使用 `LayoutBuilder`、内容最大宽度约束、局部约束传递以及折叠特征读取，普通手机、平板和大多数窗口缩放场景可以工作。
+## 1. 结论
 
-不过，它还不满足“复杂折叠屏和分屏场景可无条件复用”的最佳实践。最高优先级是统一**实际可用空间**的计算，并重构折叠铰链的坐标与方向模型；否则在带安全区、横向外屏、半开态或嵌套面板中，布局可能选择错误的导航形态或把分栏线放到错误位置。
+**基线**：`flutter test test/core/responsive` 71 项全部通过；`flutter analyze lib/core/responsive test/core/responsive` 源码 0 问题、测试文件 19 条 lint（1 warning + 18 info）。
 
-本次基线验证执行 `flutter test test/core/responsive/duo_layout_test.dart`，64 项通过。该结果仅证明现有行为被测试锁定，不表示下列已识别限制已经解决。
+**总体评价**：模块方向正确——以 `LayoutBuilder` 约束为局部真值、`MediaQuery` 为窗口真值、`ResponsiveBreakpoints.resolve` 为唯一回退链、内容宽度上限替代整体缩放。上一轮评审的 P0（窗口/局部空间分离、`FoldAxis`、AppShell 最小内容宽度、`tryFromConstraints`、`ConstraintsScope` 异常信息、`outerPadding` 语义）已基本落地。
 
-## 做得好的地方
+**本轮最需要处理的三件事**：
 
-1. `ResponsiveBreakpoints.resolve` 将三档回退链收敛为单一真值，避免不同组件出现不一致的 `expanded → medium → compact` 降级规则。
-2. `AdaptiveBuilder`、`AdaptiveLayoutBuilder` 和 `ConstraintsScope` 以父约束而非设备型号作局部布局决策，方向正确，适合分屏和导航栏旁的内容区。
-3. `ContentConstraint` 为表单、列表和详情设置阅读宽度上限，避免大屏直接拉满；这比仅按设计稿整体缩放更符合 Flutter 自适应布局理念。
-4. `FoldInfo` 区分物理铰链（`hinge`）和非遮挡折痕（`fold`），`HingeSplitLayout` 也已经对无铰链、无界宽度及明显嵌套场景做了保守回退。
-5. 测试覆盖了边界断点、回退语义、局部 Token、铰链左右分栏、内容约束和状态保持的基础行为，明显优于常见的“仅用模拟器目测”方案。
+1. `ResponsivePolicy` 是一个**没有任何读取方**的配置对象——注入后断点不会变，属于"看起来可配置、实际硬编码"的 API 陷阱。
+2. `HingePaneLayout` 的"全窗口"判定只比对宽/高相等，导致**在带 AppBar 的 Scaffold、NavigationRail 旁、Card 内等所有真实页面位置都走 fallback**（demo 页本身也是如此），水平铰链路径在实际应用中几乎不可达。
+3. 折痕（`DisplayFeatureType.fold`）对齐分栏在文档和 demo 文案中被宣称支持，但实现只读取 `obstruction`（hinge），且 `foldCrease` 被标为 `@visibleForTesting`，**功能实际不可用**。
 
-## 发现与修改方案
+## 2. 上一轮建议的落实情况
 
-### P0：断点使用的是窗口宽度，未统一为实际可用空间
+| 上一轮建议 | 状态 | 备注 |
+|---|---|---|
+| 页面只用局部约束；窗口级 API 改名 `fromWindowSize` | ✅ | `breakpoints.dart`、`responsive_context.dart` 文档已明确边界 |
+| AppShell 增加 `rail + divider + minContent` 复合条件 | ✅ | `app_shell.dart:101-110`，但阈值仍是类内常量，未进 Policy |
+| `FoldAxis` + 统一 `HingePaneLayout(first/second)` | ✅ | 已替换 `HingeSplitLayout` |
+| `FoldInfo` 保留特征列表、派生 `axis` | ✅ 部分 | 有 `features`/`axis`，缺 `panes`、`==`/`hashCode` |
+| `FoldAwareBuilder` 非全窗口回退 `FoldInfo.none` | ✅ | 判定方式仍有缺陷，见 P0-2 |
+| 引入可注入 `ResponsivePolicy` | ⚠️ 半成品 | 类已创建，**无人读取**，见 P0-1 |
+| `tryFromConstraints` / debug 警告 | ✅ | assert 写法有瑕疵，见 P2-1 |
+| `ConstraintsScope.of` 明确异常 | ✅ | |
+| `ContentConstraint` padding 语义 + 断言 | ✅ | 改名 `outerPadding` |
+| 删除/收紧 `StatefulAdaptiveBuilder` | ✅ | 已删除 |
+| Token 收敛为 context-aware、替换裸 `.w/.h/.r/.sp` | ❌ 未做 | 见 P1-1 |
 
-**位置**：`lib/core/responsive/breakpoints.dart:38`、`lib/core/responsive/responsive_tokens.dart:42`、`lib/features/app/presentation/pages/app_shell.dart:89`、`test/core/responsive/duo_layout_test.dart:1442`。
+## 3. 做得好的地方
 
-`fromContext` 直接读取 `MediaQuery.sizeOf(context).width`，全局 Token 则读取 `ScreenUtil().screenWidth`。两者都不表示 SafeArea、系统侧边区域、导航栏和父面板扣除后的真实内容宽度。现有测试已经明确锁定了“完整宽度 678dp 判为 medium、但 SafeArea 仅约 594dp”的已知限制；此时应用壳切换到 `NavigationRail` 后，内容区会进一步变窄。
+1. **单一回退真值**：`ResponsiveBreakpoints.resolve` 被 `valueOf`、`AdaptiveBuilder`、`FoldAwareBuilder`、`ResponsiveTokens._resolveByWindowClass` 共同委托，medium 缺失回退 compact 而非 expanded，测试已锁定。
+2. **窗口 / 局部双轨 API 边界清晰**：`fromConstraints` vs `fromWindowSize`、`localSize` vs `rsize`，命名和文档都把"不要在页面内用窗口宽度"说清楚了。
+3. **AppShell 的复合判定**是折叠屏外屏横持、分屏等场景的正确做法：断点到了 medium 但内容区 < 400dp 时仍退回底部导航。
+4. `FoldInfo` 和 `BoxConstraints` 在同一个 `LayoutBuilder` 回调内读取，避免折叠↔展开过渡帧的状态撕裂。
+5. `ContentConstraint` 用 `assert` 守住非法参数，`outerPadding` 命名直接说明了"在 `ConstrainedBox` 外"的语义。
+6. 测试覆盖边界值、回退链、嵌套保护、垂直/水平铰链、`localSize` 大屏窄面板不缩放等核心语义，并把已知限制显式锁定。
 
-**建议改造：**
+## 4. 问题清单与修改方案
 
-1. 页面和组件布局一律只根据最近 `LayoutBuilder` 的有界 `BoxConstraints` 判定；不要在页面内使用 `fromContext` / `screenValueOf` 作布局分支。
-2. 为导航壳新增“内容最小宽度”策略，例如同时满足 `railWidth + divider + minContentWidth` 才从底部导航切到 `NavigationRail`，而不是只判断根窗口是否达到 600dp。
-3. 为确有全局需求的 API 明确命名为 `fromWindowSize`，并将其限制为窗口级策略；不要将其描述为“全局导航取决于物理屏幕”。
-4. 将 SafeArea、键盘、系统侧栏与铰链占用后的区域作为集成测试输入，替换目前的“已知限制”回归测试。
+### P0-1：`ResponsivePolicy` 未接线，是"死配置"
 
-### P0：`FoldAwareBuilder` 向局部布局暴露了全局坐标的折叠区域
+**位置**：`breakpoints.dart:173-221`；读取方检索结果——`lib/` 内除定义文件外零引用。
 
-**位置**：`lib/core/responsive/fold_aware.dart:37`、`lib/core/responsive/fold_aware.dart:130`、`lib/core/responsive/fold_aware.dart:101`。
+`ResponsivePolicy` 暴露 `compactBreakpoint`、`expandedBreakpoint`、`minPaneWidth`、`navigationThreshold`，但：
 
-`MediaQuery.displayFeaturesOf` 的 `bounds` 是窗口坐标，而 `FoldAwareBuilder` 同时向任意 `LayoutBuilder` 子树传入局部 `BoxConstraints`。示例直接使用 `fold.hingeBounds?.left` 作为局部分栏位置；当构建器在 `SafeArea`、带 AppBar 的 body 或嵌套面板内时，两个坐标系不保证一致。`HingeSplitLayout` 已限制“完整窗口宽度”才使用铰链，但 `FoldAwareBuilder` 本身没有此保护，API 容易被误用。
+- `ResponsiveBreakpoints.fromWidth / fromConstraints / fromWindowSize` 全部使用 `static const`；
+- `AdaptiveBuilder`、`FoldAwareBuilder`、`ConstraintsScope` 不读取 Policy；
+- `AppShell` 自己定义了 `_railWidth = 80`、`_minContentWidth = 400`，与 `minPaneWidth = 300`、`navigationThreshold = 600` 平行存在且语义不一致；
+- `LayoutSemantics.masterPaneRatio` 的 `0.35 / 0.4` 同样硬编码。
 
-**建议改造：**
+按文档注入 `ResponsivePolicy(compactBreakpoint: 640)` 后，断点不会有任何变化。这比没有该类更糟：使用者会得到错误的"已生效"预期。`RESPONSIVE_COMPONENTS_API.md` 第 147 行起的章节也在描述一个不存在的行为。
 
-1. 不要将裸 `Rect` 作为局部布局位置直接暴露；将 `FoldInfo` 改为保存 `DisplayFeature` 列表及窗口坐标语义。
-2. 新增只供全窗口使用的 `WindowFoldLayout`，在断言/运行时检查中要求覆盖完整可用窗口；仅该组件可产生“可用于分栏的铰链位置”。
-3. 嵌套布局不做坐标猜测：返回 `null` 并使用普通比例分栏。浮层、弹窗和底部弹层使用 Flutter 的 `DisplayFeatureSubScreen`。
-4. 文档中删除“把 `hingeBounds.left` 直接传给任意两栏布局”的示例，改为使用封装后的 pane bounds。
+**修改方案（二选一，推荐 A）**
 
-### P0：铰链拆分只支持垂直铰链，半开/笔记本形态缺少安全布局
+A. 接线。把"按宽度分类"的职责挪到 Policy 上，静态常量只作默认值：
 
-**位置**：`lib/core/responsive/fold_aware.dart:188`、`lib/core/responsive/fold_aware.dart:204`、`lib/core/responsive/fold_aware.dart:211`。
+```dart
+class ResponsivePolicy extends InheritedWidget {
+  // ...字段不变
 
-`HingeSplitLayout` 仅检查 `hinge.width > 0` 并固定使用 `Row`。水平铰链的 `width` 通常等于窗口宽度，因此会回退到普通布局；如果该普通布局跨越物理铰链，交互控件仍可能落在遮挡区。`isHalfOpened` 只是布尔值，也不能告诉调用方铰链方向和两个可用面板的边界。
+  /// 按宽度分类（唯一实现，ResponsiveBreakpoints.fromWidth 委托到默认实例）。
+  WindowSizeClass classify(double width) {
+    if (width >= expandedBreakpoint) return WindowSizeClass.expanded;
+    if (width >= compactBreakpoint) return WindowSizeClass.medium;
+    return WindowSizeClass.compact;
+  }
 
-**建议改造：**
+  WindowSizeClass? tryClassify(BoxConstraints c) =>
+      c.hasBoundedWidth ? classify(c.maxWidth) : null;
+}
+```
 
-1. 定义 `FoldAxis { vertical, horizontal }`，从 `DisplayFeature.bounds` 的长边方向推导。
-2. 用统一的 `HingePaneLayout` 取代仅左右语义的 `HingeSplitLayout`：垂直铰链使用 `Row`，水平铰链使用 `Column`；`first` / `second` 取代 `left` / `right`。
-3. 计算并提供两个 pane 的 `Rect`、铰链安全间距与可用尺寸；宽或高无效时必须回退。
-4. 新增水平铰链、平铺态、半开态、横竖屏切换的 widget test，确保内容不会跨越物理遮挡区域。
+- `AdaptiveBuilder` / `AdaptiveLayoutBuilder` / `FoldAwareBuilder` 在 `LayoutBuilder` 回调里用 `ResponsivePolicy.of(context).classify(constraints.maxWidth)`，并把 `policy` 一并放进 `ConstraintsScope`，子树里的 `localSize`、`LayoutSemantics` 直接读 `scope.policy`。
+- `ResponsiveBreakpoints.fromWidth` 保留，内部委托 `const ResponsivePolicy(child: SizedBox.shrink()).classify(width)`，纯函数场景（Token、测试）仍可用。
+- AppShell 的 `_minContentWidth` 改读 `policy.minPaneWidth`；`railWidth` 可作为 Policy 新字段或继续留在壳层（它是 Material 组件尺寸，不是产品策略）。
+- 补测试：注入 `compactBreakpoint: 700` 后，650dp 必须判定 compact。
 
-### P1：Token 体系过度依赖全局 `ScreenUtil`，且缩放入口过多
+B. 删除。当前没有多品牌需求，按 YAGNI 删掉 `ResponsivePolicy` 和 API 文档章节，等真正需要时再加。
 
-**位置**：`lib/core/responsive/responsive_tokens.dart:42`、`lib/core/responsive/responsive_tokens.dart:60`、`lib/core/responsive/responsive_tokens.dart:70`、`lib/core/responsive/responsive_tokens.dart:88`、`lib/core/responsive/responsive_tokens.dart:286`。
+### P0-2：`HingePaneLayout` / `FoldAwareBuilder` 的"全窗口"判定使组件在真实页面中不可达
 
-当前有 `compact`、`aw`、`tw`、`size`、`font`、`rsize`、`rfont`、`localSize`、`localFont` 与七个 `num` 扩展。它们混合全局窗口、局部约束、手机/平板设计稿及字体策略，使用者很难预测同一个值在不同父级中的行为，也使单元测试必须初始化 `ScreenUtil`。现有业务页面仍直接使用 `.w`、`.h`、`.r`，例如 `lib/features/auth/presentation/pages/login_page/login_page.dart:55` 和 `lib/features/auth/presentation/pages/profile_page.dart:26`，会绕过 Token 的大屏保护。
+**位置**：`fold_aware.dart:174-176`（`isFullWindow`）、`fold_aware.dart:250-251`、`fold_aware.dart:265-266`；调用点 `fold_aware_demo_page.dart:253-265`、`333-358`。
 
-**建议改造：**
+当前逻辑：
 
-1. 默认 Token 改为固定逻辑像素（spacing、radius、component height、typography），页面布局差异用 `AdaptiveLayoutBuilder` 和显式 token scale 表达。
-2. 将 API 收敛为 `ResponsiveValues.of(context)` / `ResponsiveSpacing.of(context)` 等 context-aware 对象；只保留一套局部约束来源。
-3. 仅在确有两套设计稿且设计评审批准时保留平板缩放，删除或标记为内部 API 的 `tw`、`aw`、`rc` 等快捷扩展，避免新代码继续使用。
-4. 全项目替换裸 `.w/.h/.r/.sp`：先处理登录页、个人页及共享按钮，再用 lint 或自定义 lint 限制业务页面新增调用。
-5. 单独验证 100%、150%、200% 系统文字缩放下的截断、溢出和可点击区域；不要以屏幕宽度缩放替代无障碍文字缩放。
+```dart
+if (constraints.maxWidth != windowSize.width) return fallback;   // 垂直铰链
+if (constraints.maxHeight != windowSize.height) return fallback; // 水平铰链
+```
 
-### P1：`StatefulAdaptiveBuilder` 始终持有并布局所有布局变体
+问题：
 
-**位置**：`lib/core/responsive/adaptive_builder.dart:168`、`lib/core/responsive/adaptive_builder.dart:196`。
+1. **水平铰链路径在任何有 AppBar 的 `Scaffold.body` 中都失败**——body 高度 = 窗口高 − AppBar − 状态栏，永远不等于 `windowSize.height`。现有测试（`duo_layout_test.dart:446-483`）用无 AppBar 的 `Scaffold` + 890×890 `SizedBox` 才得以通过，并不代表真实页面。
+2. **垂直铰链路径在 NavigationRail 旁、Card/Padding 内同样失败**。demo 页把 `HingePaneLayout` 放在 `Card > Padding(16)` 内，宽度必然 ≠ 窗口宽度，因此即使在真实 Galaxy Fold 上，demo 也只会显示 fallback，无法演示任何铰链能力。
+3. 用 `==` 比较 double；在 DPR 非整数设备上，经过 `SafeArea` / `MediaQuery.removePadding` 后极易出现 `0.33dp` 级差异。
+4. "是否全窗口"的逻辑在 `FoldAwareBuilder` 和 `HingePaneLayout` 各写一份，后者还按轴向写了两次。
+5. 分栏成功后，没有向两个 pane 的子树移除铰链信息，子树内再出现 `FoldAwareBuilder` 会重新读取到同一个铰链（目前因宽度不匹配而回退，但这是碰巧而非设计）。
 
-`IndexedStack` 可以保留状态，但会同时保留所有布局树；不可见分支中的动画、流、焦点和资源仍可能工作，并且布局成本随变体增长。当前文档只提示内存开销，保护不足以避免页面误用。
+这与 Flutter 官方 `DisplayFeatureSubScreen` 的契约一致（它同样假定覆盖整屏），官方处理方式是**在覆盖整屏的位置分屏一次，然后用 `MediaQueryData.removeDisplayFeatures(subScreen)` 向子树声明"你所在的子屏幕没有铰链"**。本模块缺少后半步。
 
-**建议改造：**
+**修改方案**
 
-1. 默认只使用 `AdaptiveLayoutBuilder`；表单值、滚动位置等需要保留的数据上提到 Controller、Riverpod 或 `PageStorageKey`。
-2. 若保留该组件，给非激活分支包裹 `TickerMode(enabled: active)`，并明确其不适用于视频、地图、相机、持续订阅及同一 `GlobalKey` 的多套布局。
-3. 增加断点切换测试：验证不可见分支不触发 tick、焦点不会残留、语义树只暴露当前分支。
+1. **明确并执行"在壳层分屏"的使用契约**。`HingePaneLayout` 应放在覆盖整个窗口的位置（`MaterialApp.builder`、`AppShell` 的 `Scaffold` 之外、或 `extendBodyBehindAppBar` 的 body），由**每个 pane 自带 `Scaffold`/`AppBar`**。这是 `dual_screen` 包 `TwoPane` 的推荐用法，也是唯一不需要猜测偏移的方案。文档和 demo 都要按此改写；demo 页当前的两处嵌套用法应改为"全屏子页面"演示，或至少在文案中说明普通位置必然 fallback。
+2. 分屏成功后，用 `MediaQuery.removeDisplayFeatures` 包裹每个 pane：
 
-### P2：断点模型和 API 边界需要更清晰
+```dart
+Widget _pane(BuildContext context, Rect paneRect, Widget child) {
+  final mq = MediaQuery.of(context);
+  return MediaQuery(
+    data: mq.removeDisplayFeatures(paneRect),
+    child: child,
+  );
+}
+```
 
-**位置**：`lib/core/responsive/breakpoints.dart:6`、`lib/core/responsive/breakpoints.dart:28`、`lib/core/responsive/constraints_scope.dart:36`。
+3. 把"是否覆盖窗口"抽成私有工具并使用容差，两处共用：
 
-三档模型适合当前手机/平板目标，但注释称“对齐 Material 3”容易让人误解为完整尺寸类实现；超宽平板/桌面全部落入 `expanded`，没有最大内容宽度、列数和导航密度的独立策略。另外，无界约束静默回退为 compact，可能掩盖把断点判断放入滚动/无界子树的错误。
+```dart
+bool _coversWindow(BoxConstraints c, Size window, Axis axis) {
+  final (local, global) = switch (axis) {
+    Axis.horizontal => (c.hasBoundedWidth ? c.maxWidth : null, window.width),
+    Axis.vertical => (c.hasBoundedHeight ? c.maxHeight : null, window.height),
+  };
+  return local != null && (local - global).abs() < precisionErrorTolerance;
+}
+```
 
-**建议改造：**
+4. 把 pane 计算从 widget 里挪到 `FoldInfo`，便于测试和复用（见 P0-3 的 `panesFor`）。
+5. 补测试：`Scaffold(appBar: AppBar(), body: HingePaneLayout(...))` + 水平铰链，期望行为必须明确（当前是 fallback，若保持则写入文档；若改契约则期望分栏）。
 
-1. 文档改为“采用 M3 compact/medium/expanded 三个阈值的子集”，并将 desktop/超宽屏列入后续扩展策略。
-2. 引入可注入 `ResponsivePolicy`（断点、最小 pane 宽度、导航阈值），避免全局 `static const` 使品牌或产品线无法调整。
-3. 提供 `tryFromConstraints` 返回 nullable；`fromConstraints` 在 debug 模式对无界宽度报出明确错误，要求调用方转用外层有界约束。
-4. `ConstraintsScope.of` 使用明确异常信息而非依赖 `assert` 后的空值断言，便于 release 排障。
+### P0-3：折痕对齐分栏"宣称支持、实际不可用"
 
-### P2：`ContentConstraint` 和折叠信息的数据模型可再收紧
+**位置**：`fold_aware.dart:31-32`（文档宣称）、`fold_aware.dart:92-98`（`@visibleForTesting`）、`fold_aware.dart:238`（只读 `obstruction`）、`fold_aware_demo_page.dart:249`（文案"分栏线优先对齐铰链/折痕左侧"）。
 
-**位置**：`lib/core/responsive/content_constraint.dart:34`、`lib/core/responsive/content_constraint.dart:39`、`lib/core/responsive/fold_aware.dart:43`。
+- `HingePaneLayout` 只处理 `fold.obstruction`，`DisplayFeatureType.fold` 一律 fallback；
+- `foldCrease` / `obstruction` 两个 `Rect` 被标 `@visibleForTesting`，业务代码无法读取；但 `features` 又是公开的，调用方可以 `features.first.bounds` 绕过，注解形同虚设；
+- `FoldInfo` 没有 `==`/`hashCode`/`toString`，`fold == FoldInfo.none` 对解析出的空实例为 false，调试打印只有 `Instance of 'FoldInfo'`。
 
-`ContentConstraint` 当前将 `padding` 放在 `ConstrainedBox` 外，因此总宽度可能是 `maxWidth + padding`；这不一定错误，但 API 名称没有说明。`FoldInfo` 只保留首个 hinge/fold 和 `isHalfOpened`，后续若遇到多个显示特征或需要平铺/方向信息，调用方只能重新读取 `MediaQuery`。
+**修改方案**
 
-**建议改造：**
+1. 决定折痕是否支持。考虑到 iOS 当前 `displayFeatures` 恒为空，建议**明确列为不支持**，删除代码注释、API 文档和 demo 文案中"按折痕对齐"的表述；或者以显式开关支持：
 
-1. 为 `ContentConstraint` 增加 `includePaddingInMaxWidth`（默认 `true`）或把 padding 明确命名为 `outerPadding`；构造函数断言 `maxWidth > 0`、`maxHeight == null || maxHeight > 0`。
-2. `FoldInfo` 保留过滤后的不可变特征列表，并提供 `primaryHinge`、`axis`、`panes` 等派生属性；不要在调用方重新解析平台数据。
+```dart
+enum FoldSplitMode { hingeOnly, hingeOrCrease }
 
-## 推荐实施顺序
+HingePaneLayout(splitMode: FoldSplitMode.hingeOrCrease, ...)
+```
+
+2. 收紧 `FoldInfo` 数据模型：去掉两个 `Rect` 上的 `@visibleForTesting`，改为由 `FoldInfo` 提供派生 pane 计算，widget 只负责摆放：
+
+```dart
+typedef FoldPanes = ({Rect first, Rect second, FoldAxis axis});
+
+FoldPanes? panesFor(Size window, {double margin = 0, bool includeCrease = false}) {
+  final bounds = includeCrease ? (obstruction ?? foldCrease) : obstruction;
+  if (bounds == null || bounds.isEmpty && !includeCrease) return null;
+  // 按 axis 计算两个 Rect，任一宽/高 <= 0 返回 null
+}
+```
+
+3. 为 `FoldInfo` 实现 `==`、`hashCode`、`toString`（或改为 Freezed `abstract class`，与项目其余数据类一致）。
+
+### P1-1：Token 体系仍以 `ScreenUtil` 单例为真值，全树重建 + 三套窗口宽度来源
+
+**位置**：`responsive_tokens.dart:57-63`、`responsive_tokens.dart:236-245`；`main.dart:187-201`；`flutter_screenutil-5.9.3/lib/src/screenutil_init.dart:147-175`。
+
+1. **三个窗口宽度真值源**：`MediaQuery.sizeOf(context)`（`fromWindowSize`）、`ScreenUtil().screenWidth`（`_globalWindowClass`）、`ConstraintsScope`（局部）。前两者当前数值一致，但没有机制保证（例如将来 `ScreenUtilInit` 放到 `MaterialApp.builder` 内、或测试里只配置其中一个）。
+2. **无 `BuildContext` 的 Token 无法建立 Inherited 依赖**。`16.rs` 的正确刷新完全依赖 `ScreenUtilInit._revalidate` 在窗口尺寸变化时对**整棵 Element 树**逐个 `markNeedsBuild`（`_updateTree`）。折叠屏展开/合上、Android 分屏拖拽、桌面窗口缩放时，每一帧都会触发全树重建，这正是折叠屏适配最敏感的性能路径。
+3. 测试必须先初始化 `ScreenUtil`，否则 `_globalWindowClass` 抛错，单元测试和 widget 测试被迫耦合第三方包。
+4. 业务层仍大量直接使用 `.w/.h/.r/.sp`（`lib/shared/widgets/` 25 个文件、`lib/features/` 40 余个文件），绕过了 Token 的大屏保护，本模块的 clamp 策略只覆盖少数页面。
+5. 命名与类型：`.rs/.rf/.s` 为缩写，违反项目 `flutter-official.mdc` 的"Avoid abbreviations"；`.s` 太短易与其他扩展冲突；`rsize(num compactValue, {double? medium})` 参数类型不一致。
+
+**修改方案**
+
+1. 新增唯一 context 入口，内部读 `MediaQuery.sizeOf` 建立精确依赖，`ScreenUtil` 退居 compact 字体缩放实现细节：
+
+```dart
+class ResponsiveTokens {
+  static ResponsiveTokens of(BuildContext context) {
+    final scope = ConstraintsScope.maybeOf(context);
+    final windowClass = scope?.windowClass ??
+        ResponsivePolicy.of(context).classify(MediaQuery.sizeOf(context).width);
+    return ResponsiveTokens._(windowClass, isGloballyCompact: ...);
+  }
+
+  double space(double compact, {double? medium, double? expanded});
+  double font(double compact, {double? medium, double? expanded});
+}
+```
+
+2. `rsize/rfont/size` 及 `.rs/.rf/.s` 标记 `@Deprecated('Use ResponsiveTokens.of(context)')`，先停止新增再逐步迁移。
+3. 把 `fontSizeResolver` 中"≥ 600dp 不缩放"的策略下沉到 `ResponsiveTokens`，避免 `main.dart` 与 Token 各维护一份断点逻辑。
+4. 业务层 `.w/.h/.r/.sp` 的替换按上一轮顺序推进（共享按钮 → 登录/个人页 → demo），并用 `custom_lint` 或 `analysis_options` 的 `banned` 规则阻止新增。
+5. 补充 100% / 150% / 200% 系统字体缩放下的 widget 测试；Token 不应替代 `MediaQuery.textScalerOf`。
+
+### P1-2：`HingePaneLayout` 固定尺寸 `Row/Column` 存在浮点溢出风险
+
+**位置**：`fold_aware.dart:257-263`、`fold_aware.dart:273-279`。
+
+`firstWidth + (hinge.width + 2·margin) + secondWidth` 在数学上恰等于 `maxWidth`，但三个 double 相加可能大于 `maxWidth` 一个 ulp，触发黄黑溢出条。
+
+**修改方案**：首段和铰链间隙用 `SizedBox`，末段用 `Expanded` 吸收误差：
+
+```dart
+Row(children: [
+  SizedBox(width: firstWidth, child: first),
+  SizedBox(width: hinge.width + hingeMargin * 2),
+  Expanded(child: second),
+])
+```
+
+并补一条 `maxWidth = 1079.9999` 之类的非整数宽度测试。
+
+### P1-3：静默回退过多，误用无法被发现
+
+**位置**：`responsive_tokens.dart:153-156`、`responsive_tokens.dart:179-182`（无 `ConstraintsScope` 回退全局）；`breakpoints.dart:43-56`（无界回退 compact）。
+
+`localSize` 的设计初衷是"在 `AdaptiveBuilder` 子树内使用"，但缺少 Scope 时静默退回全局 `rsize`，和把 `rsize` 直接写错位置没有区别，页面在 NavigationRail 旁被过度放大时无法定位原因。
+
+**修改方案**：与 `fromConstraints` 一致，在 debug 下输出一次性警告（用 `Set<String>` 记录调用栈/位置避免每帧刷屏），或提供 `localSizeOrNull`。
+
+### P2-1：`fromConstraints` 的断言写法无效
+
+**位置**：`breakpoints.dart:45-52`。
+
+```dart
+assert(() { debugPrint(...); return true; }(), 'Unbounded width should not be used ...');
+```
+
+闭包恒返回 `true`，第二个参数的消息永远不会出现；每次 build 都会 `debugPrint`，横向滚动列表中会刷屏。建议改为 `assert(() { if (!_warned) {...} return true; }())` 或直接 `FlutterError.reportError` 一次。
+
+### P2-2：窗口级判定 API 三处重复
+
+**位置**：`breakpoints.dart:86-99`、`responsive_context.dart:14-21`、`responsive_tokens.dart:57`。
+
+`ResponsiveBreakpoints.isCompactWindow(context)` 与 `context.isCompactWindow` 完全等价。建议保留 `ResponsiveBreakpoints.fromWindowSize` 一个底层方法 + `ResponsiveContextX` 一组便捷 getter，删除 `ResponsiveBreakpoints` 上的三个 `isXxxWindow`。
+
+### P2-3：`WindowSizeClass` 与 Material 3 现行规范的差距
+
+**位置**：`breakpoints.dart:3-11`。
+
+M3 当前 Window Size Class 为 compact / medium / expanded / **large (1200–1599)** / **extra-large (≥1600)**。手机 + 平板目标下三档足够，但注释应写明"采用前三档"，并在 P0-1 的 Policy 中预留扩展位（例如 `List<(double, WindowSizeClass)> thresholds`），避免未来加档时改动所有 `switch`。
+
+### P2-4：测试组织与质量
+
+**位置**：`test/core/responsive/duo_layout_test.dart`（1565 行，20 个 group）。
+
+- 文件名 `duo_layout_test.dart` 已不能反映内容（覆盖整个模块），建议按源文件拆分：`breakpoints_test.dart`、`adaptive_builder_test.dart`、`fold_aware_test.dart`、`responsive_tokens_test.dart`、`app_shell_test.dart`。
+- `flutter analyze` 19 条：`unused_local_variable`（374 行）、`prefer_const_constructors` ×5、`unnecessary_underscores` ×12、`avoid_redundant_argument_values` ×1。
+- "外屏横持断点行为锁定"组锁定的是已知限制而非期望行为，建议改为 `skip: '待 P0-1 Policy 接线后改为 SafeArea 感知判定'`，或在 AppShell 层写期望行为的测试（678dp 窗口 + 84dp 侧栏 → 底部导航）。
+- 缺失用例：带 AppBar 的水平铰链、非整数宽度溢出、`ResponsivePolicy` 注入生效、200% 文字缩放、`MediaQuery.removeDisplayFeatures` 后子树不再读到铰链。
+
+### P2-5：文档与代码不一致
+
+- `docs/README.md:118` 链接到 `RESPONSIVE_CODE_REVIEW.md`，该文件不存在（实际为本文件）。
+- `RESPONSIVE_COMPONENTS_API.md` §ResponsivePolicy 描述了未生效的能力（P0-1）。
+- `fold_aware.dart:31-32` 与 demo 文案宣称折痕对齐（P0-3）。
+- `fold_aware_demo_page.dart` 两处 `HingePaneLayout` 位于 Card 内，真机上也只能看到 fallback（P0-2）。
+
+## 5. 逐文件速评
+
+| 文件 | 行数 | 评价 | 关联问题 |
+|---|---|---|---|
+| `breakpoints.dart` | 221 | 核心职责清晰；`ResponsivePolicy` 未接线；断言写法无效；窗口级 bool 重复 | P0-1, P2-1, P2-2, P2-3 |
+| `adaptive_builder.dart` | 128 | 简洁正确，两类构建器职责分明 | 需在 P0-1 后读取 Policy |
+| `constraints_scope.dart` | 73 | 良好；错误信息友好 | 建议增加 `policy` 字段 |
+| `content_constraint.dart` | 62 | 良好；断言 + 命名清晰 | 无 |
+| `fold_aware.dart` | 284 | 方向正确但契约执行不严；三处 `==` 比较；缺 `removeDisplayFeatures` | P0-2, P0-3, P1-2 |
+| `layout_semantics.dart` | 24 | 过薄，常量硬编码 | 并入 Policy 或扩充 |
+| `responsive_context.dart` | 40 | `hasAsymmetricHorizontalPadding` 实用；窗口 getter 重复 | P2-2 |
+| `responsive_tokens.dart` | 245 | 文档详尽，但真值源与重建机制依赖 ScreenUtil | P1-1, P1-3 |
+
+## 6. 推荐实施顺序
 
 | 阶段 | 工作项 | 验收标准 |
 |---|---|---|
-| 1 | 统一可用空间策略，修正 AppShell 导航阈值 | 678dp 窗口但 SafeArea/导航后内容不足时不展示拥挤的 Rail |
-| 2 | 重构铰链坐标与轴向，替换 `HingeSplitLayout` | 垂直、水平铰链都能生成不跨铰链的 pane；嵌套场景安全回退 |
-| 3 | 收敛 Token 与替换裸 ScreenUtil 调用 | 业务页无新增 `.w/.h/.r/.sp`；大屏间距不会按窗口倍数膨胀 |
-| 4 | 收紧状态保持和内容约束 API | 不可见布局不运行 tick；最大宽度的 padding 语义明确且有测试 |
-| 5 | 扩展测试矩阵和真机验收 | 覆盖文本缩放、键盘、分屏、横向外屏、两种铰链方向和旋转切换 |
+| 1 | P0-1：接线或删除 `ResponsivePolicy`；AppShell/LayoutSemantics 常量入 Policy | 注入 `compactBreakpoint: 700` 后 650dp 判定 compact 的测试通过；文档与行为一致 |
+| 2 | P0-2 + P1-2：抽 `_coversWindow` 容差判定、`removeDisplayFeatures`、`Expanded` 收尾、demo 改为全屏演示 | 带 AppBar 的水平铰链用例行为明确；非整数宽度无溢出；子树读不到铰链 |
+| 3 | P0-3：折痕支持要么显式开关要么删除宣称；`FoldInfo` 补 `==`/`toString`/`panesFor` | API 文档、代码注释、demo 文案三者一致 |
+| 4 | P1-1 + P1-3：`ResponsiveTokens.of(context)`；旧 API `@Deprecated`；静默回退加警告 | 新代码无 `.rs/.rf/.s`；测试不再初始化 ScreenUtil 即可运行 Token 用例 |
+| 5 | P2-x：断言修正、API 去重、测试拆分、README 断链修复、lint 清零 | `flutter analyze` 0 问题；README 链接全部可达 |
 
-## 建议测试矩阵
+## 7. 建议测试矩阵（增补项）
 
 | 场景 | 必测点 |
 |---|---|
-| 普通手机 320/375/430dp | 单列、最小触控尺寸、长文本与 200% 字号 |
-| 折叠外屏横向 | SafeArea 后内容不足时导航策略、表单不溢出 |
-| 展开折叠屏 | compact→expanded 跨级切换、状态迁移、普通比例两栏 |
-| 垂直物理铰链 | 两 pane 宽度、铰链及 margin 内无可交互内容 |
-| 水平物理铰链/半开态 | 上下 pane、键盘与底部操作区不被遮挡 |
-| 平板分屏/桌面窗口拖拽 | 连续跨过每个阈值、局部 panel 与全局窗口判定不混用 |
-| 大屏列表/详情/表单 | 读取宽度上限、网格列数、Rail 与内容区的最小宽度 |
+| `ResponsivePolicy` 注入 | 自定义阈值对 `AdaptiveBuilder`、`localSize`、AppShell 全部生效 |
+| 水平铰链 + AppBar | `Scaffold(appBar, body: HingePaneLayout)` 的行为与文档一致 |
+| 非整数窗口宽度 | `1079.9999 × 800` 下 `HingePaneLayout` 无溢出 |
+| 子屏幕隔离 | pane 内 `FoldInfo.fromContext` 返回无铰链 |
+| 窗口缩放性能 | 桌面/分屏连续拖拽 300 帧，统计 rebuild 次数（迁移 Token 前后对比） |
+| 文字缩放 | 200% 下登录页、设置页无溢出，可点击区域 ≥ 48dp |
 
-## 文档维护
+## 8. 参考
 
-现有文档对设备形态、平台限制和尺寸使用了较强的产品假设。建议将这些内容归入“已验证设备矩阵”，并在每个结论旁标注 Flutter 版本、OS/SDK 版本和验证方式。核心 API 文档只保留平台无关的 `MediaQuery.displayFeaturesOf` 行为、坐标系约束和 fallback 规则，避免产品叙述被误认为框架保证。
+- Flutter 官方：Adaptive & responsive design — "Use `LayoutBuilder` for local constraints, `MediaQuery.sizeOf` for window"；`DisplayFeatureSubScreen`、`MediaQueryData.removeDisplayFeatures`。
+- Material 3：Window size classes（compact / medium / expanded / large / extra-large）。
+- `flutter_screenutil 5.9.3`：`ScreenUtilInit._revalidate` / `_updateTree` 全树重建实现。
+- Microsoft `dual_screen` 包 `TwoPane`：铰链分屏组件应位于屏幕根部、每个 pane 自带 `Scaffold`。
 
+## 9. 第三轮修复记录（2026-10-26）
+
+本轮针对第三轮 code review 发现的问题完成如下修复，全部通过 `flutter analyze` 与 `duo_layout_test.dart` 回归验证：
+
+| 问题 | 严重度 | 修复内容 |
+|---|---|---|
+| Token 层 ScreenUtil 单例硬依赖 | 中 | `space()` 的 compact 缩放改用窗口级 MediaQuery 宽度（与 `ScreenUtil().screenWidth` 同源等价，`scaleWidth` 不受 `splitScreenMode`/`minTextAdapt` 影响）；`font()` 保留 `setSp`（维持根部 `fontSizeResolver` 语义）但增加 `_setSpSafe` 守卫——未接线 `ScreenUtilInit` 时回退固定 dp 并按调用点去重输出一次性 debug 警告，不再抛 `LateInitializationError` |
+| `FoldAwareBuilder` 嵌套保护仅校验水平轴 | 低 | 改为按铰链轴向匹配校验：垂直铰链要求宽度覆盖完整窗口，水平铰链要求高度覆盖（与 `HingePaneLayout` 分栏逻辑对齐）。修复水平铰链下全宽半高组件误用全局坐标的缺口，同时不再误伤带 AppBar/bottomNavigationBar 的 Scaffold body |
+| `BreakpointConfig` 无阈值倒置校验 | 低 | const 构造器追加 `assert(compactBreakpoint < expandedBreakpoint)`，debug 期即捕获接线错误 |
+| `ConstraintsScope.updateShouldNotify` 意图不明 | 低 | 补充 doc comment 说明刻意全量比较 constraints 的原因，防止被误"优化"为仅比较宽度 |
+| `FoldInfo.hashCode` 与 `==` 不对称 | 极低 | hash 纳入 `Object.hashAll(features)`，与 `listEquals(features)` 的相等语义对齐 |
+| `ContentConstraint.outerPadding` 文档公式不准 | 低 | 修正为精确公式 `outerPadding.horizontal + min(maxWidth, parentWidth - outerPadding.horizontal)`，恒 ≤ parentWidth |
+
+测试增补：`space` 无 ScreenUtilInit 可用、`font` 未初始化回退与初始化缩放三例；轴向保护三例（垂直铰链全宽半高传递、水平铰链全宽半高降级、水平铰链全高半宽传递）；倒置阈值断言一例。

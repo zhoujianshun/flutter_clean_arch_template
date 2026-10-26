@@ -169,7 +169,7 @@ class _ResponsiveChatPageState extends State<ResponsiveChatPage> {
 
   /// 平板布局：联系人 + 对话窗口
   Widget _buildSplitLayout(BuildContext context, BoxConstraints constraints) {
-    final contactWidth = ResponsiveBreakpoints.isExpanded(constraints)
+    final contactWidth = ResponsiveBreakpoints.isExpanded(context, constraints)
         ? 360.0
         : 300.0;
 

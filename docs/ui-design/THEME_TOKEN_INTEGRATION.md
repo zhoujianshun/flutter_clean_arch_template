@@ -67,11 +67,11 @@ final bottomSafe = ScreenUtil().bottomBarHeight;
 | 能力 | 入口 | 说明 |
 |------|------|------|
 | 布局结构切换 | `AdaptiveBuilder` | compact / medium / expanded 三档布局，见 `adaptive_builder.dart` |
-| 尺寸 token | `ResponsiveTokens` | `.aw()` / `.tw()` 等，带大屏缩放上限，见 `responsive_tokens.dart` |
-| 语义化判断 | `ResponsiveContextX` | `context.isCompactWindow` 等扩展，见 `responsive_context.dart` |
+| 尺寸 token | `ResponsiveTokens` | `ResponsiveTokens.of(context).space/font/fixedSize`，见 `responsive_tokens.dart` |
+| 语义化判断 | `ResponsiveContextX` | `context.isCompactWindow` 等扩展，见 `breakpoints.dart` |
 | 断点常量 | `ResponsiveBreakpoints` | 见 `breakpoints.dart` |
 
-完整用法参见 [responsive/SCREENUTIL_GUIDE.md](../responsive/SCREENUTIL_GUIDE.md) 与 [RESPONSIVE_COMPONENTS_API.md](../responsive/RESPONSIVE_COMPONENTS_API.md)。
+完整用法参见 [RESPONSIVE_COMPONENTS_API.md](../responsive/RESPONSIVE_COMPONENTS_API.md)。
 
 ## 5. 使用示例
 
@@ -215,4 +215,4 @@ A：请使用 `AppAdaptiveColors.*(context)` 或 `Theme.of(context).colorScheme`
 
 - `ui-design/CUSTOM_THEME_GUIDE.md`
 - `ui-design/THEME_SWITCHING_GUIDE.md`
-- `responsive/SCREENUTIL_GUIDE.md`（平板适配专项）
+- `responsive/RESPONSIVE_COMPONENTS_API.md`（响应式组件 API 参考）

@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_clean_arch_template/core/responsive/responsive_tokens.dart';
 import 'package:flutter_clean_arch_template/core/theme/app_theme.dart';
 import 'package:flutter_clean_arch_template/shared/widgets/button/my_filled_button.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -60,7 +59,7 @@ class AppErrorWidget extends StatelessWidget {
           alignment: isCenter ? Alignment.center : Alignment.topCenter,
           padding: isCenter
               ? EdgeInsets.all(24.r)
-              : EdgeInsets.only(top: isCompactHeight ? 24.rs : 96.rs),
+              : EdgeInsets.only(top: isCompactHeight ? 24.r : 96.r),
           child: child,
         );
 
@@ -87,10 +86,10 @@ class AppErrorWidget extends StatelessWidget {
         // 错误图标
         Image.asset(
           _getErrorImage(),
-          width: 165.rs,
-          height: 144.rs,
+          width: 165.r,
+          height: 144.r,
         ),
-        SizedBox(height: 16.rs),
+        SizedBox(height: 16.r),
         // 错误标题
         // Text(
         //   title ?? '出错了',
@@ -101,7 +100,7 @@ class AppErrorWidget extends StatelessWidget {
         //   textAlign: TextAlign.center,
         // ),
 
-        // SizedBox(height: 8.rs),
+        // SizedBox(height: 8.r),
 
         // 错误描述
         Text(
@@ -114,7 +113,7 @@ class AppErrorWidget extends StatelessWidget {
 
         // 错误详情（仅在调试模式下显示）
         if (error.isNotEmpty && kDebugMode) ...[
-          SizedBox(height: 4.rs),
+          SizedBox(height: 4.r),
           ExpansionTile(
             title: Text(
               '错误详情',
@@ -126,7 +125,7 @@ class AppErrorWidget extends StatelessWidget {
               Container(
                 width: double.infinity,
                 padding: EdgeInsets.all(12.r),
-                margin: EdgeInsets.symmetric(horizontal: 16.rs),
+                margin: EdgeInsets.symmetric(horizontal: 16.r),
                 decoration: BoxDecoration(
                   color: AppAdaptiveColors.error50(context),
                   borderRadius: BorderRadius.circular(8.r),
@@ -146,15 +145,15 @@ class AppErrorWidget extends StatelessWidget {
           ),
         ],
 
-        SizedBox(height: 16.rs),
+        SizedBox(height: 16.r),
 
         // 重试按钮
         if (onRetry != null)
           ConstrainedBox(
-            constraints: BoxConstraints(minWidth: 72.rf),
+            constraints: BoxConstraints(minWidth: 72.r),
             child: MyFilledButton.roundText(
-              fontSize: 12.rf,
-              height: 28.rf,
+              fontSize: 12.r,
+              height: 28.r,
               text: retryText,
               onPressed: onRetry,
             ),
@@ -211,7 +210,7 @@ class AppSimpleErrorWidget extends StatelessWidget {
                 size: 20.r,
                 color: AppAdaptiveColors.error500(context),
               ),
-              SizedBox(width: 8.rs),
+              SizedBox(width: 8.r),
               Expanded(
                 child: Text(
                   message,
@@ -223,7 +222,7 @@ class AppSimpleErrorWidget extends StatelessWidget {
             ],
           ),
           if (onRetry != null) ...[
-            SizedBox(height: 12.rs),
+            SizedBox(height: 12.r),
             SizedBox(
               width: double.infinity,
               child: TextButton(

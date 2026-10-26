@@ -106,11 +106,7 @@ class ResponsiveFormTabletLayout extends StatelessWidget {
                     children: [
                       OutlinedButton(onPressed: () {}, child: const Text('取消')),
                       SizedBox(
-                        width: ResponsiveTokens.size(
-                          16,
-                          medium: 16,
-                          expanded: 16,
-                        ),
+                        width: 16,
                       ),
                       FilledButton(onPressed: () {}, child: const Text('提交')),
                     ],

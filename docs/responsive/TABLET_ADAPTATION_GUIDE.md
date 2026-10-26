@@ -63,7 +63,7 @@
 - 平板端间距在 `AdaptiveBuilder` 的 medium/expanded 回调中直接用 dp，不经过 ScreenUtil
 - 折叠屏切换时无 UI 跳变
 
-**替代方案**: `ResponsiveTokens.tw()` 用于有平板独立设计稿时的缩放
+**替代方案**: `ResponsiveTokens.of(context).space()` / `.font()` 按断点返回固定 dp 值，平板端不缩放
 
 ---
 
@@ -95,11 +95,11 @@
 | 文件 | 路径 | 职责 | 说明 |
 |------|------|------|------|
 | `breakpoints.dart` | `core/responsive/` | 断点判定 | 单一真值源，定义常量 + 提供 `isCompact`/`valueOf` 等方法 |
-| `responsive_tokens.dart` | `core/responsive/` | 设计 Token | 设计稿尺寸、内容宽度常量、`aw()`/`tw()`/`size()`/`font()` 缩放 |
-| `adaptive_builder.dart` | `core/responsive/` | 声明式组件 | `AdaptiveBuilder` / `AdaptiveLayoutBuilder` / `StatefulAdaptiveBuilder` |
+| `responsive_tokens.dart` | `core/responsive/` | 设计 Token | 设计稿尺寸、内容宽度常量、`ResponsiveTokens.of(context).space/font/fixedSize` |
+| `adaptive_builder.dart` | `core/responsive/` | 声明式组件 + 约束作用域 | `AdaptiveBuilder` / `AdaptiveLayoutBuilder` / `ConstraintsScope` |
 | `layout_semantics.dart` | `core/responsive/` | 语义决策 | `railLabelType()`、`masterPaneRatio()` 等页面层布局语义 |
 | `content_constraint.dart` | `core/responsive/` | 内容约束 | 大屏上限制内容最大宽度并居中 |
-| `responsive_context.dart` | `core/responsive/` | BuildContext 扩展 | 便捷 getter + iPhone Duo 辅助属性 |
+| `breakpoints.dart` | `core/responsive/` | 断点判定 + Context 扩展 | `ResponsiveBreakpoints`、`BreakpointConfig`、`ResponsiveContextX` |
 
 **选择理由**:
 - 单一职责：每个文件只做一件事
@@ -137,8 +137,8 @@
 |------|------|
 | iPhone Duo 内屏忽略方向锁定，运行时 `setPreferredOrientations` 导致 Flutter 引擎旋转状态冲突 | 完全移除运行时方向锁定（`OrientationPolicyWidget` 已删除）。iOS 方向由 `Info.plist` 静态声明；Android 不做方向锁定。全部依赖响应式 UI 自适应。 |
 | 折叠→展开是 compact→expanded **跨级跳变**（466→951，跳过 medium） | `AdaptiveBuilder` 回退链（expanded→medium→compact）已覆盖；测试矩阵新增跨级跳变用例 |
-| 展开态 `.w` 缩放 2.37× 视觉爆炸 | 业务组件统一使用 `core/responsive` token（`.rw`/`.rs`/`.rf`，缩放上限 clamp）；demo 页面除外（可编译剔除） |
-| Android 铰链设备交互元素压铰链 | 新增 `fold_aware.dart`：`FoldInfo` / `FoldAwareBuilder` / `HingeSplitLayout` |
+| 展开态 `.w` 缩放 2.37× 视觉爆炸 | 业务组件统一使用 `ResponsiveTokens.of(context).space/font`（compact 缩放上限 clamp 0.85–1.15，大屏固定 dp）；demo 页面除外（可编译剔除） |
+| Android 铰链设备交互元素压铰链 | 新增 `fold_aware.dart`：`FoldInfo` / `FoldAwareBuilder` / `HingePaneLayout` |
 | 展开态横持（951×669）纵向空间有限 | `ContentConstraint` 新增可选 `maxHeight` 参数 |
 | iPhone Duo 内屏横屏，系统将 bar 合并到侧边垂直控件条带，Flutter 自绘 bar 无法整合 | Flutter 框架级限制。`SafeArea` 正确避开垂直条带（~84dp）。添加 `hasAsymmetricHorizontalPadding` 辅助属性；布局根据宽度断点决策而非 `orientation`。`ConstraintsScope` 让子组件读取局部约束。未来可评估 `nitro_fold_duo` / `iphone_duo_layout` 插件。 |
 

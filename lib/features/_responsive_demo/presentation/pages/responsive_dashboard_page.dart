@@ -1,8 +1,6 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_clean_arch_template/core/responsive/adaptive_builder.dart';
-import 'package:flutter_clean_arch_template/core/responsive/responsive_tokens.dart';
-
 /// 响应式 Dashboard 示例
 ///
 /// 演示手机和平板上截然不同的布局结构：
@@ -35,41 +33,41 @@ class _CompactDashboard extends StatelessWidget {
     return ListView(
       key: const PageStorageKey<String>('responsive_dashboard_compact_list'),
       padding: EdgeInsets.all(
-        ResponsiveTokens.size(16, medium: 16, expanded: 16),
+        16,
       ),
       children: [
         _buildBanner(context, '欢迎回来！'),
-        SizedBox(height: ResponsiveTokens.size(16, medium: 16, expanded: 16)),
+        SizedBox(height: 16),
         const _StatCard(
           title: '今日访问',
           value: '1,234',
           icon: Icons.visibility,
           color: Colors.blue,
         ),
-        SizedBox(height: ResponsiveTokens.size(12, medium: 12, expanded: 12)),
+        SizedBox(height: 12),
         const _StatCard(
           title: '新增用户',
           value: '56',
           icon: Icons.person_add,
           color: Colors.green,
         ),
-        SizedBox(height: ResponsiveTokens.size(12, medium: 12, expanded: 12)),
+        SizedBox(height: 12),
         const _StatCard(
           title: '订单数量',
           value: '89',
           icon: Icons.shopping_cart,
           color: Colors.orange,
         ),
-        SizedBox(height: ResponsiveTokens.size(12, medium: 12, expanded: 12)),
+        SizedBox(height: 12),
         const _StatCard(
           title: '总收入',
           value: '¥12,450',
           icon: Icons.attach_money,
           color: Colors.purple,
         ),
-        SizedBox(height: ResponsiveTokens.size(16, medium: 16, expanded: 16)),
+        SizedBox(height: 16),
         const _SectionTitle(title: '最近动态'),
-        SizedBox(height: ResponsiveTokens.size(8, medium: 8, expanded: 8)),
+        SizedBox(height: 8),
         ...List.generate(5, (i) => _ActivityItem(index: i)),
       ],
     );

@@ -371,7 +371,7 @@ ContentConstraint(
 
 | 编号 | 改进项 | 理由 | 工作量 |
 |------|--------|------|--------|
-| 1 | ScreenUtil `.w` 大屏上限 | 平板上 `16.w` ≈ 22dp，间距偏大。可使用 `ResponsiveTokens.aw()` 方法，大屏上 clamp 缩放比 | 小 |
+| 1 | ScreenUtil `.w` 大屏上限 | 平板上 `16.w` ≈ 22dp，间距偏大。可使用 `ResponsiveTokens.of(context).space()` 方法，大屏上 clamp 缩放比 | 小 |
 | 2 | 断点切换状态保持 | 在 `AdaptiveLayoutBuilder` 中使用 `IndexedStack` 或 key 策略保持子组件状态 | 中 |
 | 3 | Medium 断点上界调整为 840dp | 对齐 Material 3 官方标准 | 小（但需检查所有布局） |
 

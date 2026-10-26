@@ -39,6 +39,7 @@ class ExampleListPage extends ConsumerWidget {
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final columns = ResponsiveBreakpoints.valueOf(
+                  context,
                   constraints,
                   compactValue: 1,
                   mediumValue: 2,

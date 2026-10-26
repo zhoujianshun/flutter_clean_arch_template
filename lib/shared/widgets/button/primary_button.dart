@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_clean_arch_template/core/responsive/responsive_tokens.dart';
-
 /// 带加载状态的按钮组件
 class PrimaryButton extends StatelessWidget {
   const PrimaryButton({
@@ -81,7 +79,7 @@ class PrimaryButton extends StatelessWidget {
               theme.textTheme.bodyMedium?.copyWith(
                 fontSize:
                     fontSize ??
-                    ResponsiveTokens.size(14, medium: 14, expanded: 14),
+                    14,
               );
           mainTextStyle = mainTextStyle?.copyWith(
             decoration: TextDecoration.none,

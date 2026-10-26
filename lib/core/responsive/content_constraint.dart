@@ -9,8 +9,8 @@ import 'package:flutter_clean_arch_template/core/responsive/responsive_tokens.da
 /// [maxHeight] 不会自动提供滚动能力，超出部分由内容自身的
 /// 滚动行为接管（如 [ListView] / [SingleChildScrollView]）。
 ///
-/// [outerPadding] 位于 [ConstrainedBox] **外部**，因此总占用宽度
-/// 为 `min(parentWidth, maxWidth) + outerPadding.horizontal`。
+/// [outerPadding] 位于 [ConstrainedBox] **外部**，先扣除 padding 再对
+/// 剩余宽度做 maxWidth 钳制，总占用恒不超过父级宽度（见 [ContentConstraint.outerPadding]）。
 class ContentConstraint extends StatelessWidget {
   const ContentConstraint({
     required this.child,
@@ -19,11 +19,11 @@ class ContentConstraint extends StatelessWidget {
     this.maxHeight,
     this.alignment = Alignment.topCenter,
     this.outerPadding,
-  })  : assert(maxWidth > 0, 'maxWidth must be positive'),
-        assert(
-          maxHeight == null || maxHeight > 0,
-          'maxHeight must be positive or null',
-        );
+  }) : assert(maxWidth > 0, 'maxWidth must be positive'),
+       assert(
+         maxHeight == null || maxHeight > 0,
+         'maxHeight must be positive or null',
+       );
 
   final Widget child;
 
@@ -40,7 +40,10 @@ class ContentConstraint extends StatelessWidget {
 
   /// 位于 [ConstrainedBox] **外部**的间距。
   ///
-  /// 总占用宽度 = `min(parentWidth, maxWidth) + outerPadding.horizontal`。
+  /// 总占用宽度 = `outerPadding.horizontal +
+  /// min(maxWidth, parentWidth - outerPadding.horizontal)`，
+  /// 恒 ≤ parentWidth，不会溢出（Padding 先扣除，剩余宽度再交给
+  /// [ConstrainedBox] 钳制）。
   final EdgeInsetsGeometry? outerPadding;
 
   @override

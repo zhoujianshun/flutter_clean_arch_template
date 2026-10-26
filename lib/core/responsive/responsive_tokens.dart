@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
+import 'package:flutter_clean_arch_template/core/responsive/adaptive_builder.dart';
 import 'package:flutter_clean_arch_template/core/responsive/breakpoints.dart';
-import 'package:flutter_clean_arch_template/core/responsive/constraints_scope.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// 响应式设计 token（间距、字体、内容宽度等）。
@@ -9,237 +9,201 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 /// - compact（手机）允许按设计稿缩放；
 /// - medium/expanded（平板）优先固定 dp，避免"大屏过度放大"。
 ///
-/// ### API 选择指南
+/// ### ScreenUtil 依赖契约
 ///
-/// ```text
-/// 需要按屏幕适配？
-/// ├─ 是 → 在 AdaptiveBuilder 子树中？
-/// │       ├─ 是 → localSize(context, 16) / localFont(context, 14)
-/// │       └─ 否 → 16.rs / 14.rf（或 rsize/rfont 指定多断点值）
-/// └─ 否（主题/全局定义）→ 16.s（或 size 指定多断点值）
+/// - [space] 的 compact 缩放基于窗口级 MediaQuery 宽度，**不依赖** ScreenUtil。
+/// - [font] 的 compact 缩放委托 `ScreenUtil().setSp`（保留根部
+///   `ScreenUtilInit` 注入的 `fontSizeResolver` 语义），**要求根部已接线
+///   `ScreenUtilInit`**；未接线时回退固定 dp 并输出一次性 debug 警告。
+///
+/// ### 用法：`ResponsiveTokens.of(context)`
+///
+/// 基于局部约束（[ConstraintsScope]）和 [BreakpointConfig] 自定义断点
+/// 做断点判定。适用于所有场景，包括嵌套面板。
+///
+/// ```dart
+/// final tokens = ResponsiveTokens.of(context);
+/// final padding = tokens.space(16, medium: 24, expanded: 32);
+/// final fontSize = tokens.font(14, medium: 16);
 /// ```
-///
-/// ### 全局 vs 局部
-///
-/// **全局方法**（[rsize]/[rfont]/[size] 及扩展 `16.rs`/`14.rf`/`16.s`）：
-/// 基于 [ScreenUtil] 全局窗口宽度做断点判定。适用于绝大多数手机页面。
-///
-/// **局部方法**（[localSize]/[localFont]）：
-/// 基于 [ConstraintsScope]（由 `AdaptiveBuilder` 自动注入）的局部约束宽度
-/// 做断点判定。适用于嵌套面板（NavigationRail 旁的内容区）或 Split View
-/// 场景，此时全局窗口宽度不等于组件实际可用宽度。
-/// 若 context 中无 [ConstraintsScope]，自动回退到全局行为。
+@immutable
 class ResponsiveTokens {
-  ResponsiveTokens._();
+  /// 用于 [of] 返回的上下文感知实例。
+  const ResponsiveTokens._({
+    required this.windowClass,
+    required this.isGloballyCompact,
+    required this.globalWindowWidth,
+  });
 
-  // 设计稿尺寸。
+  /// 当前（局部或全局）窗口尺寸类。
+  final WindowSizeClass windowClass;
+
+  /// 全局窗口是否为 compact（用于区分"真手机"和"大屏窄面板"）。
+  final bool isGloballyCompact;
+
+  /// 全局窗口宽度（dp，来自 `MediaQuery.sizeOf`）。
+  ///
+  /// 供 compact 缩放计算使用。与 `ScreenUtil().screenWidth` 同源等价
+  /// （`ScreenUtilInit` 内部即以窗口级 MediaQuery configure），
+  /// 此处直接读取以消除对 ScreenUtil 单例的依赖。
+  final double globalWindowWidth;
+
+  // -------------------------------------------------------------------------
+  // 设计稿与常量
+  // -------------------------------------------------------------------------
+
+  /// 手机设计稿宽度。
   static const double phoneDesignWidth = 375;
+
+  /// 手机设计稿高度。
   static const double phoneDesignHeight = 812;
+
+  /// 平板设计稿宽度。
   static const double tabletDesignWidth = 768;
+
+  /// 平板设计稿高度。
   static const double tabletDesignHeight = 1024;
 
-  // 内容最大宽度（按页面语义）。
+  /// 内容最大宽度（窄表单）。
   static const double maxWidthFormNarrow = 420;
+
+  /// 内容最大宽度（标准表单）。
   static const double maxWidthForm = 480;
+
+  /// 内容最大宽度（列表语义）。
   static const double maxWidthList = 600;
+
+  /// 内容最大宽度（详情语义）。
   static const double maxWidthDetail = 680;
 
-  // 紧凑屏缩放保护范围。
+  /// 紧凑屏缩放保护范围。
   static const double minCompactScaleRatio = 0.85;
+
+  /// 紧凑屏缩放保护范围。
   static const double maxCompactScaleRatio = 1.15;
 
-  /// 全局窗口尺寸类（单一真值源，所有全局方法共用）。
-  ///
-  /// 基于 [ScreenUtil] 的全局窗口宽度判定。
-  /// **仅用于全局 Token**（[rsize]/[rfont]/[size]）；
-  /// 局部/嵌套场景请使用 [localSize]/[localFont]，
-  /// 它们基于 [ConstraintsScope] 的实际可用宽度判定。
-  static WindowSizeClass get _globalWindowClass =>
-      ResponsiveBreakpoints.fromWidth(ScreenUtil().screenWidth);
+  // -------------------------------------------------------------------------
+  // 推荐 API：context-aware 实例
+  // -------------------------------------------------------------------------
 
-  static double _compactScale() {
-    final scale = ScreenUtil().screenWidth / phoneDesignWidth;
-    return scale.clamp(minCompactScaleRatio, maxCompactScaleRatio);
-  }
-
-  /// 内部使用的手机端缩放（供 rsize/localSize 在 compact 端调用）。
-  static double _compact(num value) => value * _compactScale();
-
-  /// 按断点返回尺寸值（**不缩放**）。
+  /// 获取上下文感知的响应式 token 实例。
   ///
-  /// 所有断点均直接返回传入的 dp 值，compact 端**不做**缩放。
-  /// 适用于主题定义、全局样式等不需要按屏幕尺寸缩放的场景。
-  ///
-  /// 如果 compact 端需要按设计稿缩放，请使用 [rsize]。
-  ///
-  /// 快捷写法：`16.s`（通过 [ResponsiveNumExtension]）。
-  static double size(num compactValue, {double? medium, double? expanded}) {
-    return _resolveByWindowClass(
-      _globalWindowClass,
-      compactValue,
-      compactTransform: (v) => v.toDouble(),
-      medium: medium,
-      expanded: expanded,
-    );
-  }
-
-  /// 按断点返回尺寸值（compact 端**带缩放**）。
-  ///
-  /// - compact：按设计稿宽度缩放（clamp 0.85–1.15）
-  /// - medium/expanded：优先使用固定 dp（传入的 [medium]/[expanded]）
-  ///
-  /// 适用于页面布局中的间距、尺寸等需要跟随屏幕适配的值。
-  /// 如果不需要缩放（如主题定义），请使用 [size]。
-  ///
-  /// 快捷写法：`16.rs`（通过 [ResponsiveNumExtension]）。
-  static double rsize(num compactValue, {double? medium, double? expanded}) {
-    return _resolveByWindowClass(
-      _globalWindowClass,
-      compactValue,
-      compactTransform: _compact,
-      medium: medium,
-      expanded: expanded,
-    );
-  }
-
-  /// 按断点返回字体值（compact 端**带 sp 缩放**）。
-  ///
-  /// - compact：通过 [ScreenUtil.setSp] 按字体缩放策略处理
-  /// - medium/expanded：使用固定 dp（防止字体在平板过大）
-  ///
-  /// 适用于页面内的文字，需要跟随 ScreenUtil 字体适配。
-  /// 如果不需要缩放（如主题定义），请使用 [size]。
-  ///
-  /// 快捷写法：`14.rf`（通过 [ResponsiveNumExtension]）。
-  static double rfont(num compactValue, {double? medium, double? expanded}) {
-    return _resolveByWindowClass(
-      _globalWindowClass,
-      compactValue,
-      compactTransform: (v) => ScreenUtil().setSp(v.toDouble()),
-      medium: medium,
-      expanded: expanded,
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // 局部约束感知方法（context-aware）
-  // ---------------------------------------------------------------------------
-
-  /// 基于局部约束的尺寸值（compact 端**条件缩放**）。
-  ///
-  /// 从 [ConstraintsScope.maybeOf] 读取 `AdaptiveBuilder` 注入的局部约束宽度
-  /// 做断点判定。若 context 中无 [ConstraintsScope]，回退到全局 [rsize]。
-  ///
-  /// 适用于嵌套面板（NavigationRail 旁的内容区）或 Split View 场景，
-  /// 此时全局窗口宽度不等于组件实际可用宽度。
-  ///
-  /// ### 缩放策略
-  ///
-  /// - **全局 compact + 局部 compact**（真手机）：按设计稿缩放
-  /// - **全局非 compact + 局部 compact**（大屏窄面板）：固定 dp，不缩放
-  ///
-  /// 这样确保大屏上的窄面板不会因为全局窗口宽度被过度放大。
+  /// 优先使用 `ConstraintsScope`（由 `AdaptiveBuilder` 自动注入）的局部
+  /// 约束宽度做断点判定；不存在时使用 [BreakpointConfig] + 窗口宽度。
   ///
   /// ```dart
-  /// // 在 AdaptiveBuilder 的子树中
-  /// final padding = ResponsiveTokens.localSize(context, 16, medium: 24);
+  /// final tokens = ResponsiveTokens.of(context);
+  /// final padding = tokens.space(16, medium: 24);
+  /// final fontSize = tokens.font(14, medium: 16);
   /// ```
-  static double localSize(
-    BuildContext context,
-    num compactValue, {
-    double? medium,
-    double? expanded,
-  }) {
+  static ResponsiveTokens of(BuildContext context) {
     final scope = ConstraintsScope.maybeOf(context);
-    if (scope == null) {
-      return rsize(compactValue, medium: medium, expanded: expanded);
-    }
+    final config = BreakpointConfig.of(context);
+    final globalWindowWidth = MediaQuery.sizeOf(context).width;
+    final globalClass = config.classify(globalWindowWidth);
+    final windowClass = scope?.windowClass ?? globalClass;
+    final isGloballyCompact = globalClass == WindowSizeClass.compact;
 
-    final isGloballyCompact = _globalWindowClass == WindowSizeClass.compact;
-    return _resolveByWindowClass(
-      scope.windowClass,
-      compactValue,
-      compactTransform: isGloballyCompact ? _compact : (v) => v.toDouble(),
-      medium: medium,
-      expanded: expanded,
+    return ResponsiveTokens._(
+      windowClass: windowClass,
+      isGloballyCompact: isGloballyCompact,
+      globalWindowWidth: globalWindowWidth,
     );
   }
 
-  /// 基于局部约束的字体值（compact 端**条件缩放**）。
+  /// 按断点返回间距/尺寸值。
   ///
-  /// 与 [localSize] 类似，但全局 compact 时使用 [ScreenUtil.setSp]。
-  /// 全局非 compact 时（大屏窄面板），字体不缩放，直接返回固定 dp。
-  /// 若 context 中无 [ConstraintsScope]，回退到全局 [rfont]。
-  static double localFont(
-    BuildContext context,
-    num compactValue, {
-    double? medium,
-    double? expanded,
-  }) {
-    final scope = ConstraintsScope.maybeOf(context);
-    if (scope == null) {
-      return rfont(compactValue, medium: medium, expanded: expanded);
-    }
-
-    final isGloballyCompact = _globalWindowClass == WindowSizeClass.compact;
-    return _resolveByWindowClass(
-      scope.windowClass,
-      compactValue,
-      compactTransform: isGloballyCompact
-          ? (v) => ScreenUtil().setSp(v.toDouble())
-          : (v) => v.toDouble(),
-      medium: medium,
-      expanded: expanded,
-    );
-  }
-
-  /// 按 [WindowSizeClass] 解析值，渐进回退。
-  ///
-  /// 回退语义（P0-1 回归测试锁定）：medium/expanded 缺失时回退到
-  /// **原始** [compactValue]（未缩放），而非 [compactTransform] 的缩放结果。
-  static double _resolveByWindowClass(
-    WindowSizeClass windowClass,
-    num compactValue, {
-    required double Function(num) compactTransform,
-    double? medium,
-    double? expanded,
-  }) {
+  /// - compact + 全局 compact（真手机）：按设计稿缩放（clamp 0.85–1.15），
+  ///   缩放基于窗口级 MediaQuery 宽度，不依赖 ScreenUtil
+  /// - compact + 全局非 compact（大屏窄面板）：固定 dp，不缩放
+  /// - medium/expanded：优先使用传入的固定 dp 值
+  double space(double compact, {double? medium, double? expanded}) {
     if (windowClass == WindowSizeClass.compact) {
-      return compactTransform(compactValue);
+      return isGloballyCompact ? _compact(compact) : compact;
     }
     return ResponsiveBreakpoints.resolve(
       windowClass: windowClass,
-      compact: compactValue.toDouble(),
+      compact: compact,
       medium: medium,
       expanded: expanded,
     );
   }
-}
 
-/// [ResponsiveTokens] 的 `num` 快捷扩展。
-///
-/// | Extension | 等价调用 | compact 端 | 说明 |
-/// |-----------|---------|-----------|------|
-/// | `16.rs` | `ResponsiveTokens.rsize(16)` | 缩放 | 页面间距/尺寸 |
-/// | `14.rf` | `ResponsiveTokens.rfont(14)` | sp 缩放 | 页面字体 |
-/// | `16.s` | `ResponsiveTokens.size(16)` | 不缩放 | 主题/全局尺寸 |
-///
-/// 需要为不同断点指定不同值时，使用静态方法：
-/// ```dart
-/// ResponsiveTokens.rsize(16, medium: 24, expanded: 32)
-/// ```
-///
-/// 嵌套面板等局部约束场景，使用 context-aware 方法：
-/// ```dart
-/// ResponsiveTokens.localSize(context, 16, medium: 24)
-/// ```
-extension ResponsiveNumExtension on num {
-  /// 页面响应式尺寸（compact 带缩放）——[ResponsiveTokens.rsize] 的快捷写法。
-  double get rs => ResponsiveTokens.rsize(this);
+  /// 按断点返回字体值。
+  ///
+  /// - compact + 全局 compact（真手机）：通过 `ScreenUtil().setSp` 缩放
+  ///   （保留根部 `ScreenUtilInit` 注入的 `fontSizeResolver` 语义）；
+  ///   根部未接线 `ScreenUtilInit` 时回退固定 dp 并输出一次性 debug 警告
+  /// - compact + 全局非 compact（大屏窄面板）：固定 dp，不缩放
+  /// - medium/expanded：优先使用传入的固定 dp 值
+  double font(double compact, {double? medium, double? expanded}) {
+    if (windowClass == WindowSizeClass.compact) {
+      return isGloballyCompact ? _setSpSafe(compact) : compact;
+    }
+    return ResponsiveBreakpoints.resolve(
+      windowClass: windowClass,
+      compact: compact,
+      medium: medium,
+      expanded: expanded,
+    );
+  }
 
-  /// 页面响应式字体（compact 带 sp 缩放）——[ResponsiveTokens.rfont] 的快捷写法。
-  double get rf => ResponsiveTokens.rfont(this);
+  /// 按断点返回固定 dp 值（所有断点均不缩放）。
+  ///
+  /// 适用于主题定义、全局样式等不需要按屏幕尺寸缩放的场景。
+  double fixedSize(double compact, {double? medium, double? expanded}) {
+    return ResponsiveBreakpoints.resolve(
+      windowClass: windowClass,
+      compact: compact,
+      medium: medium,
+      expanded: expanded,
+    );
+  }
 
-  /// 主题/全局尺寸（不缩放）——[ResponsiveTokens.size] 的快捷写法。
-  double get s => ResponsiveTokens.size(this);
+  // -------------------------------------------------------------------------
+  // 内部工具
+  // -------------------------------------------------------------------------
+
+  /// compact 缩放比（基于全局窗口宽度，clamp 0.85–1.15）。
+  double _compactScale() {
+    final scale = globalWindowWidth / phoneDesignWidth;
+    return scale.clamp(minCompactScaleRatio, maxCompactScaleRatio);
+  }
+
+  double _compact(num value) => value * _compactScale();
+
+  /// 已告警过的调用位置（避免每帧刷屏）。
+  @visibleForTesting
+  static final Set<int> screenUtilMissingWarningHashes = {};
+
+  /// 委托 `ScreenUtil().setSp`，根部未接线 `ScreenUtilInit` 时安全回退。
+  ///
+  /// ScreenUtil 的内部字段为 `late` 且无公开初始化探针，未初始化时访问
+  /// 会抛 late 初始化错误。该错误类型未公开导出（VM 上为 `LateError`，
+  /// dart2js 上为 `dart:internal` 的 `LateInitializationError`），无法按
+  /// 类型引用到 on-catch 子句，故捕获 `Error` 后按 runtimeType 名称过滤；
+  /// 命中时回退固定 dp，并按调用点哈希去重输出一次性 debug 警告。
+  static double _setSpSafe(double value) {
+    try {
+      return ScreenUtil().setSp(value);
+      // ignore: avoid_catching_errors, late 初始化错误类型未公开导出，无法按类型捕获，详见上方注释
+    } on Error catch (e) {
+      final typeName = e.runtimeType.toString();
+      final isLateInitError =
+          typeName == 'LateError' || typeName == 'LateInitializationError';
+      if (!isLateInitError) rethrow;
+      assert(() {
+        final hash = StackTrace.current.hashCode;
+        if (screenUtilMissingWarningHashes.add(hash)) {
+          debugPrint(
+            'ResponsiveTokens.font: ScreenUtil 未初始化（根部缺少 ScreenUtilInit），'
+            ' 已回退为固定 dp，字体将不按设计稿缩放；'
+            ' 如需启用 compact 字体缩放，请在 App 根部接线 ScreenUtilInit。',
+          );
+        }
+        return true;
+      }(), 'ScreenUtil missing guard');
+      return value;
+    }
+  }
 }

@@ -122,6 +122,19 @@ Widgets should read colors and text styles from **`Theme.of(context)`** whenever
 
 **Guideline:** throw **exceptions** at the IO boundary; return **`Either<Failure, T>`** from repositories so presentation stays declarative.
 
+## Responsive
+
+| Piece | Path / role |
+|-------|----------------|
+| **`breakpoints.dart`** | `WindowSizeClass` 枚举、`ResponsiveBreakpoints` 静态工具（单一断点判定入口）、`BreakpointConfig` InheritedWidget（可注入自定义阈值）、`ResponsiveContextX` 扩展 |
+| **`adaptive_builder.dart`** | `AdaptiveBuilder` / `AdaptiveLayoutBuilder`（LayoutBuilder + 断点分发 + 回退链）、`ConstraintsScope` InheritedWidget（自动注入局部约束） |
+| **`responsive_tokens.dart`** | `ResponsiveTokens.of(context)` — 上下文感知的 token 实例，提供 `space()` / `font()` / `fixedSize()` 三种缩放策略；区分"真手机"与"大屏窄面板" |
+| **`fold_aware.dart`** | `FoldAwareBuilder` / `HingePaneLayout` — 折叠屏铰链检测、双窗格避让布局、嵌套保护 |
+| **`content_constraint.dart`** | `ContentConstraint` — 内容最大宽度约束组件 |
+| **`layout_semantics.dart`** | `LayoutSemantics` — 嵌套层级语义标记（top / detail / nested） |
+
+**Flow:** `BreakpointConfig`（可选）注入自定义阈值 → `AdaptiveBuilder` 使用 `LayoutBuilder` 获取约束 → 委托 `ResponsiveBreakpoints.fromConstraints` 判定 `WindowSizeClass` → 注入 `ConstraintsScope` → 子组件通过 `ResponsiveTokens.of(context)` 读取局部约束做缩放决策。折叠屏场景额外经过 `FoldAwareBuilder` 检测铰链并注入 `FoldInfo`。
+
 ## App Resources (Launcher Icons & Native Splash)
 
 | Piece | Path / role |
